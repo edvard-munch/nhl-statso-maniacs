@@ -66,27 +66,8 @@ class Command(BaseCommand):
                     home_skaters = []
                     home_goalies = []
 
-                    # AWAY
-                    players = rosters['away']['players']
-                    for key, value in players.items():
-                        nhl_id = int(key[2:])
-                        player = get_player(nhl_id)
-                        if player:
-                            val = add_player(value, player, away_skaters, away_goalies)
-
-                            player.new_gamelog_stats[str(gameday_obj.day)] = val
-                            player.save(update_fields=['new_gamelog_stats'])
-
-                    # HOME
-                    players = rosters['home']['players']
-                    for key, value in players.items():
-                        nhl_id = int(key[2:])
-                        player = get_player(nhl_id)
-                        if player:
-                            val = add_player(value, player, home_skaters, home_goalies)
-
-                            player.new_gamelog_stats[str(gameday_obj.day)] = val
-                            player.save(update_fields=['new_gamelog_stats'])
+                    iterate_players(gameday_obj, rosters['away']['players'], away_skaters, away_goalies)
+                    iterate_players(gameday_obj, rosters['home']['players'], home_skaters, home_goalies)
 
                     save_game_side(team_objects[0], 'away', game_obj, date["date"])
                     save_game_side(team_objects[1], 'home', game_obj, date["date"])
@@ -95,6 +76,17 @@ class Command(BaseCommand):
                     game_obj.away_goalies.set(away_goalies)
                     game_obj.home_skaters.set(home_skaters)
                     game_obj.home_goalies.set(home_goalies)
+
+
+def iterate_players(gameday_obj, players, skaters, goalies):
+    for key, value in players.items():
+        nhl_id = int(key[2:])
+        player = get_player(nhl_id)
+        if player:
+            val = add_player(value, player, skaters, goalies)
+
+            player.new_gamelog_stats[str(gameday_obj.day)] = val
+            player.save(update_fields=['new_gamelog_stats'])
 
 
 def add_player(value, player, skaters, goalies):
