@@ -18,6 +18,10 @@ SEASON_START = "2019-10-02"
 SEASON_END = "2020-04-04"
 REGULAR_PERIODS_AMOUNT = 3
 GAME_FINISHED = 'Final'
+SIDES = {
+    'away': 'away',
+    'home': 'home',
+}
 
 
 class Command(BaseCommand):
@@ -69,8 +73,8 @@ class Command(BaseCommand):
                     iterate_players(gameday_obj, rosters['away']['players'], away_skaters, away_goalies)
                     iterate_players(gameday_obj, rosters['home']['players'], home_skaters, home_goalies)
 
-                    save_game_side(team_objects[0], 'away', game_obj, date["date"])
-                    save_game_side(team_objects[1], 'home', game_obj, date["date"])
+                    save_game_side(team_objects[0], SIDES['away'], game_obj, date["date"])
+                    save_game_side(team_objects[1], SIDES['home'], game_obj, date["date"])
 
                     game_obj.away_skaters.set(away_skaters)
                     game_obj.away_goalies.set(away_goalies)
