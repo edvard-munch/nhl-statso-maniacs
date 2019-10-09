@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h3>NHL Scoreboard</h3><br>
+<!-- <div id="#gameday_section"> -->
+  {% for day in days_per_page %}
+      {% if day.day|to_str == today|to_str %}
+        <a class="gameday curr-day" href="{% url 'games' day.day %}">{{ day.day }}</a>
+      {% else %}
+        <a class="gameday" href="{% url 'games' day.day %}">{{ day.day }}</a>
+      {% endif %}
+  {% endfor %}
+<!-- </div> -->
+<br><br>
+{% for game in today.games.all %}
+    <p><a href="{% url 'game_detail' game.slug game.nhl_id %}">{{ game.result }}</a></p>
+{% endfor %}
+{% endblock content %}

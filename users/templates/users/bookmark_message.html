@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="sign_button" href="{% url 'register' %}">Start tracking your favorite players</a><br><br>
+
+<small class="text-muted">
+    Already Have An Account? <a class="ml-2" href="{% url 'login' %}">Sign In</a>
+</small>
+{% endblock content %}

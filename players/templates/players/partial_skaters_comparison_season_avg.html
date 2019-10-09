@@ -1,0 +1,90 @@
+<tr>
+  <th scope="row">Games</th>
+  {% for player in comp_skt %}
+  <td>{{ player.games }}</td>
+  {% endfor %}
+</tr>
+<tr>
+<th scope="row">Goals</th>
+{% for player in comp_skt %}
+  <td>{{ player.goals_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">Assists</th>
+{% for player in comp_skt %}
+  <td>{{ player.assists_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">Points</th>
+{% for player in comp_skt %}
+  <td>{{ player.points_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">+/-</th>
+{% for player in comp_skt %}
+  <td>{{ player.plus_minus_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">PIM</th>
+{% for player in comp_skt %}
+  <td>{{ player.penalty_min_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">SOG</th>
+{% for player in comp_skt %}
+  <td>{{ player.shots_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">Hits</th>
+{% for player in comp_skt %}
+  <td>{{ player.hits_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">Bks</th>
+{% for player in comp_skt %}
+  <td>{{ player.blocks_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">FW</th>
+{% for player in comp_skt %}
+  <td>{{ player.faceoff_wins_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">PPP</th>
+{% for player in comp_skt %}
+  <td>{{ player.pp_points_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+<th scope="row">SHP</th>
+{% for player in comp_skt %}
+  <td>{{ player.sh_points_avg|floatformat:2 }}</td>
+{% endfor %}
+</tr>
+<tr>
+  <th scope="row">TOI</th>
+  {% for player in comp_skt %}
+  <td>{{ player.time_on_ice }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">TOI PP</th>
+  {% for player in comp_skt %}
+  <td>{{ player.time_on_ice_pp }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">TOI SH</th>
+  {% for player in comp_skt %}
+  <td>{{ player.time_on_ice_sh }}</td>
+  {% endfor %}
+</tr>

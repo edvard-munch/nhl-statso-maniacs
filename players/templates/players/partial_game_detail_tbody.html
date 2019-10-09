@@ -1,0 +1,34 @@
+{% for player in item.list %}
+{% with date=game.gameday.day|to_str %}
+{% with stats_dict=player.new_gamelog_stats|get_item:date %}
+<tr>
+<td>
+  <div id="favorite_section">
+    {% if player in favorites %}
+      <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
+    {% else %}
+      <a class="js-fav-add" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
+    {% endif %}
+  </div>
+</td>
+<td>{{ stats_dict.jerseyNumber }}</td>
+<td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
+<td>{{ player.position_abbr }}</td>
+<td>{{ player.age }}</td>
+<td>{{ stats_dict.goals }}</td>
+<td>{{ stats_dict.assists }}</td>
+<td>{{ stats_dict.plusMinus }}</td>
+<td>{{ stats_dict.penaltyMinutes }}</td>
+<td>{{ stats_dict.shots }}</td>
+<td>{{ stats_dict.hits }}</td>
+<td>{{ stats_dict.blocked }}</td>
+<td>{{ stats_dict.faceOffWins }}</td>
+<td>{{ stats_dict.powerPlayPoints }}</td>
+<td>{{ stats_dict.shortHandedPoints }}</td>
+<td>{{ stats_dict.timeOnIce }}</td>
+<td>{{ stats_dict.powerPlayTimeOnIce }}</td>
+<td>{{ stats_dict.shortHandedTimeOnIce }}</td>
+</tr>
+{% endwith %}
+{% endwith %}
+{% endfor %}

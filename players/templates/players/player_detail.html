@@ -1,0 +1,482 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load tags %}
+
+{% block title %}
+{{ player.name }} - NHL stats tracker
+{% endblock title %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+<script id="comp_quota_reached">"{{ comp_quota_reached }}"</script>
+{% endblock styles %}
+
+{% block content %}
+<!-- FAVORITES MESSAGE -->
+<div id="prof-fav-alert" class="alert alert-primary js-fav-alert test-class" role="alert">
+  <span class="js-fav-message"></span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- COMPARISON MESSAGE -->
+<div id="prof-comp-alert" class="alert alert-primary js-comp-alert" role="alert">
+  <span class="js-comp-message"></span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- NOTE SAVED MESSAGE -->
+<div id="note-alert" class="alert alert-primary note-alert js-note-alert" role="alert">
+  <span class="js-note-message"></span>
+    <button type="button" class="close close-button" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- POSITIONS SAVED MESSAGE -->
+<div id="positions-alert" class="alert alert-primary js-positions-alert" role="alert">
+  <span class="js-positions-message"></span>
+    <button type="button" class="close close-button" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+{# <div class="back-img" style="background-image: url('https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/{{ bio.currentTeam.id }}.svg')"> #}
+<img class="rounded-circle account-img" src="{{ player.image.url }}">
+<div id="profile_section">
+  <div class="media-body">
+    <div id="inline-section">
+      <h4>{{ player.name }}</h4>
+    </div>
+
+    <div id="inline-section">
+      <a class="{{ fav.class }}" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="{{ fav.title }}"> <i class="{{ fav.icon_class }}"></i></a>
+    </div>
+      &nbsp;
+
+    <div id="inline-section">
+      <a class="{{ comp.class }}" href="{% url 'player_compare' player.slug player.nhl_id %}" title="{{ comp.title }}">{{ comp.html_content }}</a>
+    </div>
+
+    <p>
+  {% if player.team %}
+    #{{ player.pl_number }} {{ player.position_name }} | <a href="{% url 'team_detail' player.team.slug player.team.nhl_id %}">{{ player.team.name }}</a>
+  {% endif %}
+  </p>
+    <b>Height:</b> {{ player.height }}<br>
+    <b>Weight:</b> {{ player.weight }}<br>
+    <b>Born:</b> {{ player.birth_date }} in {{ player.birth_city }}, {% if player.birth_state %} {{ player.birth_state }}, {% endif %} {{ player.birth_country }}<br>
+    {% if player.draft_year %}
+    <b>Drafted:</b> {{ player.draft_year }} {{ player.draft_round|ordinal_num }} round {{ player.draft_number|ordinal_num }} pick <br>
+    {% endif %}
+    <b>Age:</b> {{ player.age }}<br>
+    <b>Nationality:</b> <img src="{{ player.nation_flag.url }}" title="{{ player.nation }}" />
+    <div class="gap-10"></div>
+    {% if skater %}
+    <div id="inline-section">
+      <b>Position:</b> <span  class="js_pos">{{ positions }}</span>
+    </div>
+    &nbsp;
+
+    <!-- POSITION FORM -->
+    <div id="inline-section">
+    <p class="expand-one">
+      <span title='Edit positions'><i class="fas fa-edit"></i></span>
+    </p>
+    </div>
+    <form method="POST" action="{% url 'player_positions' player.slug player.nhl_id %}" class="js-save-positions">
+      {% csrf_token %}
+      <p class="content-one">
+        {% for key, val in checked_dict.items %}
+        <input type="checkbox" name="check" value="{{ key }}" {{ val }}> {{ key }}<br>
+        {% endfor %}
+        <br><input type="submit" value="Save">
+        <input type="reset" value="Cancel">
+      </p>
+    </form>
+    {% endif %}
+
+    <div id="inline-section"><a href="https://twitter.com/search?f=tweets&vertical=default&q={{ player.name }}&src=typd" target="_blank" title="Search for latest tweets"><i class="fab fa-twitter fa-lg"></i></a></div>
+    <div id="inline-section"><a href="https://www.youtube.com/results?search_query={{ player.name }}&src=typd" target="_blank" title="Search for highlights"><i class="fab fa-youtube fa-lg" style="color:red"></i></a></div><br><br>
+  </div>
+</div>
+</div>
+
+<!-- NOTE FORM -->
+<div id="note_section">
+  <form method="POST" action="{% url 'player_note' player.slug player.nhl_id %}" class="js-save-note">
+    {% csrf_token %}
+
+    <p>
+      <textarea name="text" cols="28" rows="7" maxlength="{{ note_max_length }}" id="id_text" placeholder="Your private note about {{ player.name }}, not visible for other users.">{{ note.text }}</textarea><br>
+      {{ note_max_length }} characters max<br> <span id="characters"></span>
+    </p>
+
+  <input type="submit" value="Save">
+  <input type="reset" value="Cancel" id="note-reset">
+  </form>
+
+  {# Youtube video #}
+  <iframe width="260" height="155"
+      src="{{ player.relevant_video }}" frameborder="0"
+      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+  </iframe>
+</div>
+
+{% if not skater %}
+<!-- GOALIES CURRENT       -->
+<table>
+  <thead>
+    <tr>
+      <th>Stats type</th>
+      <th>GP</th>
+      <th>W</th>
+      <th>L</th>
+      <th>OTL</th>
+      <th>GAA</th>
+      <th>SV %</th>
+      <th>SV</th>
+      <th>SHO</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>Totals</td>
+      <td>{{ player.games }}</td>
+      <td>{{ player.wins }}</td>
+      <td>{{ player.losses }}</td>
+      <td>{{ player.ot_losses }}</td>
+      <td>{{ player.goals_against_av|floatformat:2 }}</td>
+      <td>{{ player.saves_perc|floatformat:3 }}</td>
+      <td>{{ player.saves }}</td>
+      <td>{{ player.shotouts }}</td>
+    </tr>
+    {% if season_in_prog %}
+    <tr>
+      <td>Projected</td>
+      <td>{{ player.proj_stats.games }}</td>
+      <td>{{ player.proj_stats.wins }}</td>
+      <td>{{ player.proj_stats.losses }}</td>
+      <td>{{ player.proj_stats.ot }}</td>
+      <td>{{ player.proj_stats.goalAgainstAverage|floatformat:2 }}</td>
+      <td>{{ player.proj_stats.savePercentage|floatformat:3 }}</td>
+      <td>{{ player.proj_stats.saves }}</td>
+      <td>{{ player.proj_stats.shutouts }}</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+<div class="gap-20"></div>
+
+<!-- GOALIES ALL SEASONS       -->
+<h5>Career</h5>
+<table id="tab1" class="tablesorter static_row">
+  <thead>
+    <tr>
+      <th>Seson</th>
+      <th>Team</th>
+      <th>GP</th>
+      <th>W</th>
+      <th>L</th>
+      <th>OTL</th>
+      <th>GAA</th>
+      <th>SV %</th>
+      <th>SV</th>
+      <th>SHO</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for season in sbs_stats %}
+    <tr>
+      <td>{{ season.season }}</td>
+      <td>{{ season.team.abbr }}</td>
+      <td>{{ season.stat.games }}</td>
+      <td>{{ season.stat.wins }}</td>
+      <td>{{ season.stat.losses }}</td>
+      <td>{{ season.stat.ot }}</td>
+      <td>{{ season.stat.goalAgainstAverage|floatformat:2 }}</td>
+      <td>{{ season.stat.savePercentage|floatformat:3 }}</td>
+      <td>{{ season.stat.saves }}</td>
+      <td>{{ season.stat.shutouts }}</td>
+    </tr>
+    {% endfor %}
+    <!--GOALIE TOTAL CAREER STATS -->
+    <tr class="static">
+      <td>Total</td>
+      <td> — </td>
+      <td>{{ total.games }}</td>
+      <td>{{ total.wins }}</td>
+      <td>{{ total.losses }}</td>
+      <td>{{ total.ot }}</td>
+      <td>{{ total.goalAgainstAverage|floatformat:2 }}</td>
+      <td>{{ total.savePercentage|floatformat:3 }}</td>
+      <td>{{ total.saves }}</td>
+      <td>{{ total.shutouts }}</td>
+    </tr>
+  </tbody>
+</table>
+<div class="gap-20"></div>
+
+<!-- GOALIES LAST GAMES     -->
+<h5>Last games</h5>
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Opp</th>
+      <th>Res</th>
+      <th>Min</th>
+      <th>GA</th>
+      <th>SV %</th>
+      <th>SV</th>
+      <th>SA</th>
+      <th>SHO</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for game in last_gms %}
+    <tr>
+      <td>{{ game.date }}</td>
+      <td>{{ game.opponent.id }}</td>
+      <td>{{ game.stat.decision }}</td>
+      <td>{{ game.stat.timeOnIce }}</td>
+      <td>{{ game.stat.goalsAgainst }}</td>
+      <td>{{ game.stat.savePercentage|floatformat:3 }}</td>
+      <td>{{ game.stat.saves }}</td>
+      <td>{{ game.stat.shotsAgainst }}</td>
+      <td>{{ game.stat.shutouts }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="gap-10"></div>
+<p><a href="{% url 'player_gamelog' player.slug player.nhl_id %}">Full gamelog</a></p>
+{% else %}
+
+<!-- SKATERS CURRENT       -->
+<table>
+  <thead>
+    <tr>
+      <th>Stats type</th>
+      <th>GP</th>
+      <th>G</th>
+      <th>A</th>
+      <th>Pts</th>
+      <th>+/-</th>
+      <th>PIM</th>
+      <th>SOG</th>
+      <th>Hits</th>
+      <th>Bks</th>
+      <th>FW</th>
+      <th>PPP</th>
+      <th>SHP</th>
+      <th>TOI</th>
+      <th class="width">TOI PP</th>
+      <th class="width">TOI SH</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Totals</td>
+      <td>{{player.games}}</td>
+      <td>{{player.goals}}</td>
+      <td>{{player.assists}}</td>
+      <td>{{player.points}}</td>
+      <td>{{player.plus_minus}}</td>
+      <td>{{player.penalty_min}}</td>
+      <td>{{player.shots}}</td>
+      <td>{{player.hits}}</td>
+      <td>{{player.blocks}}</td>
+      <td>{{player.faceoff_wins}}</td>
+      <td>{{player.pp_points}}</td>
+      <td>{{player.sh_points}}</td>
+      <td>{{player.time_on_ice}}</td>
+      <td>{{player.time_on_ice_pp}}</td>
+      <td>{{player.time_on_ice_sh}}</td>
+    </tr>
+    <tr>
+      <td>Averages</td>
+      <td>{{player.games}}</td>
+      <td>{{ player.goals_avg|floatformat:2 }}</td>
+      <td>{{ player.assists_avg|floatformat:2 }}</td>
+      <td>{{ player.points_avg|floatformat:2 }}</td>
+      <td>{{ player.plus_minus_avg|floatformat:2 }}</td>
+      <td>{{ player.penalty_min_avg|floatformat:2 }}</td>
+      <td>{{ player.shots_avg|floatformat:2 }}</td>
+      <td>{{ player.hits_avg|floatformat:2 }}</td>
+      <td>{{ player.blocks_avg|floatformat:2 }}</td>
+      <td>{{ player.faceoff_wins_avg|floatformat:2 }}</td>
+      <td>{{ player.pp_points_avg|floatformat:2 }}</td>
+      <td>{{ player.sh_points_avg|floatformat:2 }}</td>
+      <td>{{player.time_on_ice}}</td>
+      <td>{{player.time_on_ice_pp}}</td>
+      <td>{{player.time_on_ice_sh}}</td>
+    </tr>
+    {% if season_in_prog %}
+    <tr>
+      <td>Projected</td>
+      <td>{{player.proj_stats.games}}</td>
+      <td>{{player.proj_stats.goals}}</td>
+      <td>{{player.proj_stats.assists}}</td>
+      <td>{{player.proj_stats.points}}</td>
+      <td>{{player.proj_stats.plusMinus}}</td>
+      <td>{{player.proj_stats.pim}}</td>
+      <td>{{player.proj_stats.shots}}</td>
+      <td>{{player.proj_stats.hits}}</td>
+      <td>{{player.proj_stats.blocked}}</td>
+      <td>{{player.proj_stats.faceoff_wins}}</td>
+      <td>{{player.proj_stats.powerPlayPoints}}</td>
+      <td>{{player.proj_stats.shortHandedPoints}}</td>
+      <td>{{player.time_on_ice}}</td>
+      <td>{{player.time_on_ice_pp}}</td>
+      <td>{{player.time_on_ice_sh}}</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+<div class="gap-20"></div>
+
+<!-- SKATERS ALL SEASONS       -->
+{% for item in stats %}
+<h5>{{ item.title }}</h5><br>
+<table id="tab2" class="tablesorter static_row">
+  <thead>
+    <tr>
+      <th>Seson</th>
+      <th>Team</th>
+      <th>GP</th>
+      <th>G</th>
+      <th>A</th>
+      <th>Pts</th>
+      <th>+/-</th>
+      <th>PIM</th>
+      <th>SOG</th>
+      <th>Hits</th>
+      <th>Bks</th>
+      <th>FW</th>
+      <th>PPP</th>
+      <th>SHP</th>
+      <th class="sorter-countdown">TOI</th>
+      <th class="sorter-countdown">TOI PP</th>
+      <th class="sorter-countdown">TOI SH</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for season in item.stats %}
+    <tr>
+      <td>{{ season.season }}</td>
+      <td>{{ season.team.abbr }}</td>
+      <td>{{ season.stat.games }}</td>
+      <td>{{ season.stat.goals }}</td>
+      <td>{{ season.stat.assists }}</td>
+      <td>{{ season.stat.points }}</td>
+      <td>{{ season.stat.plusMinus }}</td>
+      <td>{{ season.stat.pim }}</td>
+      <td>{{ season.stat.shots }}</td>
+      <td>{{ season.stat.hits }}</td>
+      <td>{{ season.stat.blocked }}</td>
+      <td>{{ season.stat.faceoffsWon }}</td>
+      <td>{{ season.stat.powerPlayPoints }}</td>
+      <td>{{ season.stat.shortHandedPoints }}</td>
+      <td>{{ season.stat.timeOnIce }}</td>
+      <td>{{ season.stat.powerPlayTimeOnIce }}</td>
+      <td>{{ season.stat.shortHandedTimeOnIce }}</td>
+    </tr>
+    {% endfor %}
+    <!--SKATER TOTAL CAREER STATS -->
+    <tr class="static">
+      <td>Total</td>
+      <td> — </td>
+      <td>{{ item.total.games }}</td>
+      <td>{{ item.total.goals }}</td>
+      <td>{{ item.total.assists }}</td>
+      <td>{{ item.total.points }}</td>
+      <td>{{ item.total.plusMinus }}</td>
+      <td>{{ item.total.pim }}</td>
+      <td>{{ item.total.shots }}</td>
+      <td>{{ item.total.hits }}</td>
+      <td>{{ item.total.blocked }}</td>
+      <td>{{ item.total.faceoffsWon }}</td>
+      <td>{{ item.total.powerPlayPoints }}</td>
+      <td>{{ item.total.shortHandedPoints }}</td>
+      <td>{{ item.total.timeOnIcePerGame }}</td>
+      <td>{{ item.total.powerPlayTimeOnIcePerGame }}</td>
+      <td>{{ item.total.shortHandedTimeOnIcePerGame }}</td>
+    </tr>
+  </tbody>
+</table>
+<div class="gap-20"></div>
+{% endfor %}
+
+<!-- SKATERS LAST GAMES       -->
+<h5>Last games</h5>
+<table>
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Opp</th>
+      <th>G</th>
+      <th>A</th>
+      <th>Pts</th>
+      <th>+/-</th>
+      <th>PIM</th>
+      <th>SOG</th>
+      <th>Hits</th>
+      <th>Bks</th>
+      <th>FW</th>
+      <th>PPP</th>
+      <th>SHP</th>
+      <th>TOI</th>
+      <th>TOI PP</th>
+      <th>TOI SH</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for game in last_gms %}
+    <tr>
+      <td>{{ game.date }}</td>
+      <td>{{ game.opponent.id }}</td>
+      <td>{{ game.stat.goals }}</td>
+      <td>{{ game.stat.assists }}</td>
+      <td>{{ game.stat.points }}</td>
+      <td>{{ game.stat.plusMinus }}</td>
+      <td>{{ game.stat.pim }}</td>
+      <td>{{ game.stat.shots }}</td>
+      <td>{{ game.stat.hits }}</td>
+      <td>{{ game.stat.blocked }}</td>
+      <td>{{ game.stat.faceoffswon }}</td>
+      <td>{{ game.stat.powerPlayPoints }}</td>
+      <td>{{ game.stat.shortHandedPoints }}</td>
+      <td>{{ game.stat.timeOnIce }}</td>
+      <td>{{ game.stat.powerPlayTimeOnIce }}</td>
+      <td>{{ game.stat.shortHandedTimeOnIce }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<div class="gap-10"></div>
+<p><a href="{% url 'player_gamelog' player.slug player.nhl_id %}">Full gamelog</a></p>
+{% endif %}
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+<!-- Widgets -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/widgets/widget-staticRow.min.js"></script>
+
+<script src="{% static 'players/parser-duration.js' %}"></script>
+<script src="{% static 'players/char_counter.js' %}"></script>
+<script src="{% static 'players/toggler.js' %}"></script>
+<script src="{% static 'players/ajax_save_note.js' %}"></script>
+<script src="{% static 'players/ajax_save_positions.js' %}"></script>
+<script src="{% static 'players/ajax_add_comp.js' %}"></script>
+<script src="{% static 'players/ajax_del_comp.js' %}"></script>
+<script src="{% static 'players/ajax_add_fav.js' %}"></script>
+<script src="{% static 'players/ajax_del_fav.js' %}"></script>
+<script src="{% static 'players/sorting_player_detail.js' %}"></script>
+{% endblock scripts %}

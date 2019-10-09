@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  {{ title }} - NHL stats tracker
+{% endblock title %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+{% endblock styles %}
+
+{% block content %}
+
+<input id="js_external_filter_goalies" class="select" type="select" data-column="2" placeholder="Input goalies's name">
+<input id="js_external_filter_skaters" class="select" type="select" data-column="2" placeholder="Input skater's name"><br>
+<input type="checkbox" class="js_rookie_filter_skt" title="Show only rookies">
+<input type="checkbox" class="js_rookie_filter_gls" title="Show only rookies"> rookie
+<br><br><br>
+
+<div class="button-table-container">
+<a id="js_avg_stats" class="left-side-button button" href="#">See average stats</a>
+<a id="js_gls_stats" class="left-side-button button" href="#">See goalie stats</a>
+
+<button type="button" class="reset js_reset_skaters">Reset filters</button>
+<button type="button" class="reset js_reset_goalies">Reset filters</button>
+
+<table id="tab1" class="tablesorter sortable">
+  <thead>
+    {% include 'players/partial_skaters_header.html' %}
+  </thead>
+
+<!-- PAGER -->
+<tfoot>
+  {% include 'players/partial_pager.html' with id='tab1_pager_options' pager_class='pager-s' colspan='27'%}
+</tfoot>
+
+<tbody>
+  <!-- AJAX -->
+</tbody>
+</table>
+
+<!-- GOALIES -->
+<table id="tab2" class="tablesorter sortable">
+<thead>
+  {% include 'players/partial_goalies_header.html' %}
+</thead>
+
+<!-- PAGER -->
+<tfoot>
+  {% include 'players/partial_pager.html' with id="tab2_pager_options" pager_class='pager-g' colspan='20'%}
+</tfoot>
+
+<tbody>
+  <!-- AJAX -->
+</tbody>
+</table>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+<!-- Widgets -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/extras/jquery.tablesorter.pager.min.js"></script>
+
+<script src="{% static 'players/sorter_players.js' %}"></script>
+<script src="{% static 'players/ajax_add_fav.js' %}"></script>
+<script src="{% static 'players/ajax_del_fav.js' %}"></script>
+{% endblock scripts %}

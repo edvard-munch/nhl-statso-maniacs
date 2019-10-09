@@ -1,0 +1,83 @@
+<tr>
+  <th scope="row">Pic</th>
+  {% for player in comp_skt %}
+  <td><img class="rounded-circle account-img" src="{{ player.image.url }}"></td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Name</th>
+  {% for player in comp_skt %}
+  <td><a href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Comparison</th>
+  {% for player in comp_skt %}
+  <td>
+    <a class="button nano-button js-compare-del_skater" href="{% url 'player_compare' player.slug player.nhl_id %}" title="Remove from comparison">DEL</a>
+  </td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Favorite</th>
+  {% for player in comp_skt %}
+  <td>
+    <div id="favorite_section">
+      {% if player in favorites_s %}
+        <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
+      {% else %}
+        <a class="js-fav-add" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
+      {% endif %}
+    </div>
+  </td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Position</th>
+  {% for player in comp_skt %}
+  <td>{{ player.position_abbr }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Team</th>
+  {% for player in comp_skt %}
+  <td>{{ player.team.abbr }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Nation</th>
+  {% for player in comp_skt %}
+  <td>{{ player.nation_abbr }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Age</th>
+  {% for player in comp_skt %}
+  <td>{{ player.age }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Drafted</th>
+  {% for player in comp_skt %}
+  <td>{{ player.draft_number }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Year</th>
+  {% for player in comp_skt %}
+  <td>{{ player.draft_year }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Height</th>
+  {% for player in comp_skt %}
+  <td>{{ player.height }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Weight</th>
+  {% for player in comp_skt %}
+  <td>{{ player.weight }}</td>
+  {% endfor %}
+</tr>
+{% include 'players/partial_skaters_comparison_season_tot.html' %}

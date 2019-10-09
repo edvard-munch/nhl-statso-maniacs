@@ -1,0 +1,48 @@
+<tr>
+  <th scope="row">Games</th>
+  {% for player in comp_gls %}
+  <td>{{ player.games }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">W</th>
+  {% for player in comp_gls %}
+  <td>{{ player.wins }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">L</th>
+  {% for player in comp_gls %}
+  <td>{{ player.losses }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">OTL</th>
+  {% for player in comp_gls %}
+  <td>{{ player.ot_losses }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">GAA</th>
+  {% for player in comp_gls %}
+  <td>{{ player.goals_against_av|floatformat:2 }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">SV %</th>
+  {% for player in comp_gls %}
+  <td>{{ player.saves_perc|floatformat:3 }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">SV</th>
+  {% for player in comp_gls %}
+  <td>{{ player.saves }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">SHO</th>
+  {% for player in comp_gls %}
+  <td>{{ player.shotouts }}</td>
+  {% endfor %}
+</tr>

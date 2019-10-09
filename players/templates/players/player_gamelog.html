@@ -1,0 +1,153 @@
+    {% extends 'base.html' %}
+    {% load static %}
+    {% load tags %}
+
+    {% block title %}
+      {{ player.name }} - Game Log - NHL stats tracker
+    {% endblock title %}
+
+    {% block styles %}
+      <link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+    {% endblock styles %}
+
+    {% block content %}
+          <img class="rounded-circle account-img" src="{{ player.image.url }}">
+                 <h5>{{ player.name }} Game Log</h5>
+                 <a href="{% url 'player_detail' player.slug player.nhl_id %}">Return to the full profile</a><br>
+                <!-- GOALIES       -->
+                  {% if player.position_abbr == 'G' %}
+                  <!-- GAMELOG       -->
+                  <table id="tab1" class="tablesorter">
+                    <thead>
+                      <tr>
+                        <th class="sorter-date">Date</th>
+                        <th>Opp</th>
+                        <th>Res</th>
+                        <th>Min</th>
+                        <th>GA</th>
+                        <th>SV%</th>
+                        <th>SV</th>
+                        <th>SA</th>
+                        <th>SO</th>
+                      </tr>
+                    </thead>
+                    <!-- PAGER -->
+                    <tfoot>
+                      <tr class="tablesorter-ignoreRow">
+                        <th colspan="28" class="pager"></th>
+                      </tr>
+                      <tr class="tablesorter-ignoreRow">
+                        <th colspan="28" class="pager-g form-horizontal pager">
+                          <button type="button" class="btn first"><i class="small material-icons">first_page</i></button>
+                          <button type="button" class="btn prev"><i class="small material-icons">navigate_before</i></button>
+                          <span class="pagedisplay"></span>
+                          <button type="button" class="btn next"><i class="small material-icons white">navigate_next</i></button>
+                          <button type="button" class="btn last"><i class="small material-icons">last_page</i></button>
+                          <select class="pagesize browser-default" title="Select page size">
+                            <option selected="selected" value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="all">All</option>
+                          </select>
+                        </th>
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                    {% for game in player.gamelog_stats %}
+                      <tr>
+                        <td>{{ game.date }}</td>
+                        <td>{{ game.opponent.id }}</td>
+                        <td>{{ game.stat.decision }}</td>
+                        <td>{{ game.stat.timeOnIce }}</td>
+                        <td>{{ game.stat.goalsAgainst }}</td>
+                        <td>{{ game.stat.savePercentage|floatformat:3 }}</td>
+                        <td>{{ game.stat.saves }}</td>
+                        <td>{{ game.stat.shotsAgainst }}</td>
+                        <td>{{ game.stat.shutouts }}</td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+
+                  {% else %}
+                  <!-- SKATERS       -->
+                  <table id="tab2" class="sortable">
+                    <thead>
+                      <tr>
+                        <th class="sorter-date">Date</th>
+                        <th>Opp</th>
+                        <th>G</th>
+                        <th>A</th>
+                        <th>Pts</th>
+                        <th>+/-</th>
+                        <th>PIM</th>
+                        <th>SOG</th>
+                        <th>Hits</th>
+                        <th>Blk</th>
+                        <th>FW</th>
+                        <th>PPP</th>
+                        <th>SHP</th>
+                        <th class="sorter-countdown">TOI</th>
+                        <th class="sorter-countdown">TOI PP</th>
+                        <th class="sorter-countdown">TOI SH</th>
+                      </tr>
+                    </thead>
+                    <!-- PAGER -->
+                    <tfoot>
+                      <tr class="tablesorter-ignoreRow">
+                        <th colspan="28" class="pager"></th>
+                      </tr>
+                      <tr class="tablesorter-ignoreRow">
+                        <th colspan="28" class="pager-s form-horizontal pager">
+                          <button type="button" class="btn first"><i class="small material-icons">first_page</i></button>
+                          <button type="button" class="btn prev"><i class="small material-icons">navigate_before</i></button>
+                          <span class="pagedisplay"></span>
+                          <button type="button" class="btn next"><i class="small material-icons white">navigate_next</i></button>
+                          <button type="button" class="btn last"><i class="small material-icons">last_page</i></button>
+                          <select class="pagesize browser-default" title="Select page size">
+                            <option selected="selected" value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="all">All</option>
+                          </select>
+                        </th>
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                    {% for game in player.gamelog_stats %}
+                      <tr>
+                        <td>{{ game.date }}</td>
+                        <td>{{ game.opponent.id }}</td>
+                        <td>{{ game.stat.goals }}</td>
+                        <td>{{ game.stat.assists }}</td>
+                        <td>{{ game.stat.points }}</td>
+                        <td>{{ game.stat.plusMinus }}</td>
+                        <td>{{ game.stat.pim }}</td>
+                        <td>{{ game.stat.shots }}</td>
+                        <td>{{ game.stat.hits }}</td>
+                        <td>{{ game.stat.blocked }}</td>
+                        <td>{{ game.stat.faceOffWins }}</td>
+                        <td>{{ game.stat.powerPlayPoints }}</td>
+                        <td>{{ game.stat.shortHandedPoints }}</td>
+                        <td>{{ game.stat.timeOnIce }}</td>
+                        <td>{{ game.stat.powerPlayTimeOnIce }}</td>
+                        <td>{{ game.stat.shortHandedTimeOnIce }}</td>
+                      </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                  {% endif %}
+    {% endblock content %}
+
+    {% block scripts %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+    <!-- Widgets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/extras/jquery.tablesorter.pager.min.js"></script>
+
+    <script src="{% static 'players/parser-duration.js' %}"></script>
+    <script src="{% static 'players/parser-date.js' %}"></script>
+    <script src="{% static 'players/sorting_player_gamelog.js' %}"></script>
+    {% endblock scripts %}

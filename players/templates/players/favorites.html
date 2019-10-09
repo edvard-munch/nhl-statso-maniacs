@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Favorites - NHL stats tracker
+{% endblock title %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+{% endblock styles %}
+
+{% block content %}
+<h3>Favorites</h3><br>
+{% if user.is_authenticated %}
+{% if not favorites_g and not favorites_s %}
+<h3>You have no favorite players yet!</h3><br>
+<a class="sign_button gray-orange" href="{% url 'players' %}">Browse for some great players here</a>
+{% endif %}
+<div class="button-table-container">
+
+{% if favorites_s %}
+  <a id="js_skaters_switch" class="button left-side-button comparison-button current-tab" href="#">SKATERS ({{ numb_of_skaters }})</a>
+{% endif %}
+
+{% if favorites_g %}
+  <a id="js_goalies_switch" class="button left-side-button comparison-button" href="#">GOALIES ({{ numb_of_goalies }})</a><br><br>
+{% endif %}
+
+<!-- SKATERS LAST GAMES -->
+{% if favorites_s %}
+<div id="js_skaters_block">
+  <a id="js_switch_to_skaters_gamelog" class="tiny-button left-side-button tiny-comparison-button current-tab" href="#">Gamelog</a>
+  <a id="js_switch_to_skaters_season_tot" class="tiny-button left-side-button tiny-comparison-button" href="#">Season total stats</a>
+  <a id="js_switch_to_skaters_season_avg" class="tiny-button left-side-button tiny-comparison-button" href="#">Season average stats</a>
+  <br><br>
+  <input class="js_external_filter_skaters_log select left-side-button" type="select" data-column="0" placeholder="Input skater's name">
+  <input class="js_external_filter_skaters_log select left-side-button" type="select" data-column="1" placeholder="Input team's name">
+</div>
+
+<table id="js_skaters_log_table" class="tablesorter name-col1">
+  <thead>
+      {% include 'players/partial_skaters_gamelog_header.html' %}
+  </thead>
+
+  <!-- PAGER -->
+  {% if skaters_games|length > table_page_size %}
+    <tfoot>
+        {% include 'players/partial_pager.html' with id='skaters_games_options' pager_class='pager-skt-log' colspan='17' options=skaters_games_options %}
+    </tfoot>
+  {% endif %}
+    <tbody>
+        <!-- AJAX -->
+    </tbody>
+  </table>
+
+<!-- SKATERS TOTALS       -->
+<input class="js_external_filter_skaters_totals select left-side-button" type="select" data-column="2" placeholder="Input skater's name">
+<table id="js_skaters_total_table" class="tablesorter sortable">
+  <thead>
+    {% include 'players/partial_skaters_header.html' %}
+  </thead>
+
+  <!-- PAGER -->
+  {% if favorites_s|length > table_page_size %}
+  <tfoot>
+      {% include 'players/partial_pager.html' with id='skaters_totals_options' pager_class='pager-skt-tot' colspan='27' options=skaters_options %}
+  </tfoot>
+  {% endif %}
+<tbody>
+    <!-- AJAX -->
+</tbody>
+</table>
+
+{% endif %}
+
+<!-- GOALIES LAST GAMES -->
+{% if favorites_g %}
+<div id="js_goalies_block">
+  <a id="js_switch_to_goalies_gamelog" class="tiny-button left-side-button tiny-comparison-button current-tab" href="#">Gamelog</a>
+  <a id="js_switch_to_goalies_season_tot" class="tiny-button left-side-button tiny-comparison-button" href="#">Season total stats</a>
+  <br><br>
+  <input class="js_external_filter_goalies_log select left-side-button" type="select" data-column="0" placeholder="Input goalie's name">
+</div>
+
+<table id="js_goalies_log_table" class="tablesorter name-col1">
+  <thead>
+      {% include 'players/partial_goalies_gamelog_header.html' %}
+  </thead>
+
+<!-- PAGER -->
+{% if goalies_games|length > table_page_size %}
+  <tfoot>
+      {% include 'players/partial_pager.html' with id='goalies_games_options' pager_class='pager-gls-log' colspan='11' options=goalies_games_options %}
+  </tfoot>
+{% endif %}
+
+  <tbody>
+    <!-- AJAX -->
+  </tbody>
+</table>
+
+<!-- GOALIES TOTALS      -->
+<input class="js_external_filter_goalies_totals select left-side-button" type="select" data-column="2" placeholder="Input goalie's name">
+<table id="js_goalies_total_table" class="tablesorter sortable">
+  <thead>
+    {% include 'players/partial_goalies_header.html' %}
+  </thead>
+
+{% if favorites_g|length > table_page_size %}
+  <tfoot>
+    <!-- PAGER -->
+      {% include 'players/partial_pager.html' with id='goalies_totals_options' pager_class='pager-gls-tot' colspan='20' options=goalies_options %}
+  </tfoot>
+  {% endif %}
+<tbody>
+  <!-- AJAX -->
+</tbody>
+</table>
+{% endif %}
+</div>
+
+{% else %}
+<a class="sign_button" href="{% url 'register' %}">Start tracking your favorite players</a><br><br>
+
+<small class="text-muted">
+    Already Have An Account? <a class="ml-2" href="{% url 'login' %}">Sign In</a>
+</small>
+{% endif %}
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+<!-- Widgets -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/extras/jquery.tablesorter.pager.min.js"></script>
+
+<script src="{% static 'players/ajax_del_fav_favorite_page.js' %}"></script>
+<script src="{% static 'players/index_first_column.js' %}"></script>
+<script src="{% static 'players/last_name.js' %}"></script>
+<script src="{% static 'players/parser-date.js' %}"></script>
+<script src="{% static 'players/parser-duration.js' %}"></script>
+<script src="{% static 'players/height.js' %}"></script>
+<script src="{% static 'players/sorting_favorites.js' %}"></script>
+{% endblock scripts %}

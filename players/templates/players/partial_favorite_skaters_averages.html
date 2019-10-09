@@ -1,0 +1,46 @@
+{% for player in favorites_s %}
+<tr>
+  <td></td>
+  <td>
+    <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
+  </td>
+  <td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
+  <td>{{ player.position_abbr }}</td>
+  <td class="cell-with-tooltip">{{ player.team.abbr }}
+  <span class="css-tooltip cell-tooltip ">{{ player.team.name }}</span>
+  </td>
+  <td class="cell-with-tooltip">{{ player.nation_abbr }}
+  <span class="css-tooltip cell-tooltip ">{{ player.nation }}</span>
+  </td>
+  <td>{{ player.height }}</td>
+  <td>{{ player.weight }}</td>
+  <td>{{ player.birth_date|date:"Y-m-d" }}</td>
+  <td>{{ player.age }}</td>
+  {% if player.draft_year %}
+    <td>{{ player.draft_number }}</td>
+    <td>{{ player.draft_year }}</td>
+  {% else %}
+    <td class="cell-with-tooltip"> —
+      <span class="css-tooltip cell-tooltip ">Undrafted</span>
+    </td>
+        <td class="cell-with-tooltip"> —
+      <span class="css-tooltip cell-tooltip ">Undrafted</span>
+    </td>
+  {% endif %}
+  <td>{{ player.games }}</td>
+  <td>{{ player.goals_avg }}</td>
+  <td>{{ player.assists_avg }}</td>
+  <td>{{ player.points_avg }}</td>
+  <td>{{ player.plus_minus_avg }}</td>
+  <td>{{ player.penalty_min_avg }}</td>
+  <td>{{ player.shots_avg }}</td>
+  <td>{{ player.hits_avg }}</td>
+  <td>{{ player.blocks_avg }}</td>
+  <td>{{ player.faceoff_wins_avg }}</td>
+  <td>{{ player.pp_points_avg }}</td>
+  <td>{{ player.sh_points_avg }}</td>
+  <td>{{ player.time_on_ice }}</td>
+  <td>{{ player.time_on_ice_pp }}</td>
+  <td>{{ player.time_on_ice_sh }}</td>
+  </tr>
+{% endfor %}

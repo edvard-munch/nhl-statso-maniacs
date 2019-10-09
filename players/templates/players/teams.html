@@ -1,0 +1,16 @@
+    {% extends 'base.html' %}
+    {% load static %}
+
+    {% block title %}
+      Teams - NHL stats tracker
+    {% endblock title %}
+
+    {% block content %}
+    <div id="list4">
+        <ul>
+        {% for team in teams %}
+            <li><a href="{% url 'team_detail' team.slug team.nhl_id %}">{{ team.name }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    {% endblock content %}

@@ -1,0 +1,264 @@
+body {
+  background: #fafafa;
+  color: #333333;
+  margin-top: 5rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #444444;
+}
+
+ul {
+  margin: 0;
+}
+
+.bg-steel {
+  background-color: #5f788a;
+}
+
+.site-header .navbar-nav .nav-link {
+  color: #cbd5db;
+}
+
+.site-header .navbar-nav .nav-link:hover {
+  color: #ffffff;
+}
+
+.site-header .navbar-nav .nav-link.active {
+  font-weight: 500;
+}
+
+.content-section {
+  background: #ffffff;
+  padding: 10px 20px;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  margin-bottom: 20px;
+}
+
+.article-title {
+  color: #444444;
+}
+
+a.article-title:hover {
+  color: #428bca;
+  text-decoration: none;
+}
+
+.article-content {
+  white-space: pre-line;
+}
+
+.article-img {
+  height: 65px;
+  width: 65px;
+  margin-right: 16px;
+}
+
+.article-metadata {
+  padding-bottom: 1px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e3e3e3
+}
+
+.article-metadata a:hover {
+  color: #333;
+  text-decoration: none;
+}
+
+.article-svg {
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+}
+
+.account-img {
+  height: 125px;
+  width: 125px;
+  margin-right: 20px;
+  margin-bottom: 16px;
+}
+
+.account-heading {
+  font-size: 2.5rem;
+}
+
+.bold {
+  font-weight:bold;
+}
+
+.back-img {
+  background-repeat:no-repeat;
+  opacity: 0.3;
+}
+
+#favorite_section, #name_section, #twitter_section, #youtube_section, #image_section {
+    display: inline-block;
+}
+
+img.in-div {
+    position: absolute;
+    left: 200px;
+    top: -20px;
+    width: 100%; /* or any custom size */
+    height: 220px;
+}
+
+table.sortable th {
+  text-align: left;
+  min-width: 50px;
+}
+
+
+
+th.l-width {
+  min-width: 65px !important;
+}
+
+th.xl-width {
+  min-width: 75px !important;
+}
+
+td.goalie-name {
+  min-width: 140px !important;
+  text-align: left;
+}
+
+td.skater-name {
+  min-width: 160px !important;
+  text-align: left;
+}
+
+th.xs-width {
+  min-width: 25px !important;
+}
+
+th.s-width {
+  min-width: 40px !important;
+}
+
+th.m-width {
+  min-width: 55px !important;
+}
+
+table {
+  width: 100%;
+  font: 13px "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+table td,
+table th {
+    border: 1px solid silver;
+}
+
+th {
+  text-align: center;
+  background-color: #576b8b;
+  color: white;
+  padding: 10px 6px;
+  width: 1px;
+  white-space: nowrap;
+}
+
+td {
+  text-align: center;
+  padding: 6px;
+  vertical-align: middle;
+  width: 1px;
+  white-space: nowrap;
+}
+
+tr:nth-child(even) {background-color: #efeef4;}
+
+tr:hover {background-color: #ddd;}
+
+.static_row tr:last-child td {
+  font: bold 14px "Trebuchet MS", Arial, Helvetica, sans-serif;
+}
+
+/* Sorting arrows */
+
+.table-head-container {
+  position: relative;
+  max-width: 100px;
+}
+
+.table-head-background {
+  position: absolute;
+  top: -10;
+  left: 15;
+  bottom: 16px;
+  right: 0;
+  z-index: 1;
+  width: 0;
+}
+
+.table-head-background-name {
+  position: absolute;
+  top: -3px;
+  left: 117px;
+  bottom: 16px;
+  right: 0px;
+  z-index: 1;
+  width: 0;
+}
+
+.table-head-background-longname {
+  position: absolute;
+  top: -3px;
+  left: 140px;
+  bottom: 16px;
+  right: 0px;
+  z-index: 1;
+  width: 0;
+}
+
+.table-head-background > .right-text {
+  text-align: right;
+}
+
+.table-head-background > .right-text > .small-frame {
+  position: absolute;
+  left: -5px;
+  width: 5px !important;
+  word-wrap: break-word;
+}
+
+.table-head-background > .right-text > .small-frame > .up-arrow:hover, .table-head-background > .right-text > .small-frame > .down-arrow:hover {
+    color: blue !important;
+}
+
+.table-head-background-name > .right-text > .small-frame > .up-arrow:hover, .table-head-background-name> .right-text > .small-frame > .down-arrow:hover {
+    color: blue !important;
+}
+
+.table-head-background-longname > .right-text > .small-frame > .up-arrow:hover, .table-head-background-longname> .right-text > .small-frame > .down-arrow:hover {
+    color: blue !important;
+}
+
+.table-head-background > .right-text > .small-frame > .up-arrow, .table-head-background > .right-text > .small-frame > .down-arrow {
+font-size: .7em;
+}
+
+.table-head-background-name > .right-text > .small-frame > .up-arrow, .table-head-background-name > .right-text > .small-frame > .down-arrow {
+font-size: .7em;
+}
+
+.table-head-background-longname > .right-text > .small-frame > .up-arrow, .table-head-background-longname > .right-text > .small-frame > .down-arrow {
+font-size: .7em;
+}
+
+
+/* table.counter {
+    counter-reset: rowNumber;
+}
+
+table.counter tr > td:first-child {
+    counter-increment: rowNumber;
+}
+
+table.counter tr td:first-child::before {
+    content: counter(rowNumber);
+    min-width: 1em;
+    margin-right: 0.5em;
+} */

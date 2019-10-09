@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {{ team.name }} - NHL Stat Tracker
+{% endblock title %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+{% endblock styles %}
+
+{% block content %}
+
+<!-- FAVORITES MESSAGE -->
+<div id="team-det-fav-alert" class="alert alert-primary js-fav-alert" role="alert">
+  <span class="js-fav-message"></span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<h3>{{ team.name }}</h3><br>
+<b>Arena:</b> {{ team.arena_name }}, {{ team.arena_location }}<br>
+<b>Conference:</b> {{ team.conference }}<br>
+<b>Division:</b> {{ team.division }}<br>
+<p><b>NHL debut:</b> {{ team.nhl_debut }}</p>
+<p><a href="{{ team.off_site }}">Official Site</a></p>
+
+<div id="image_section">
+  <img src="{{ team.image.url }}" class="in-div">
+</div>
+
+  <h5>Goalies</h5>
+  <table id="tab1" class="tablesorter">
+    <thead>
+      <tr>
+        <th class="cell-with-tooltip">Rk
+          <span class="css-tooltip">Rank</span>
+        </th>
+        <th class="cell-with-tooltip">Fv
+          <span class="css-tooltip">Follow/Unfollow</span>
+        </th>
+        <th class="cell-with-tooltip">#
+          <span class="css-tooltip">Jersey number</span>
+        </th>
+        <th class="sorter-last-name">Name</th>
+        <th class="cell-with-tooltip">Pos
+          <span class="css-tooltip">Position</span>
+        </th>
+        <th class="cell-with-tooltip">Natl
+          <span class="css-tooltip">Nationality</span>
+        </th>
+        <th class="sorter-height cell-with-tooltip">Ht
+          <span class="css-tooltip">Height</span>
+        </th>
+        <th class="cell-with-tooltip">Wt
+          <span class="css-tooltip">Weight</span>
+        </th>
+        <th class="cell-with-tooltip">DOB
+          <span class="css-tooltip">Date of Birth</span>
+        </th>
+        <th class="cell-with-tooltip">DN
+          <span class="css-tooltip">Draft Number</span>
+        </th>
+        <th class="cell-with-tooltip">YOD
+          <span class="css-tooltip">Year Of Draft</span>
+        </th>
+        <th class="cell-with-tooltip">GP
+          <span class="css-tooltip">Games Played</span>
+        </th>
+        <th class="cell-with-tooltip">W
+          <span class="css-tooltip">Wins</span>
+        </th>
+        <th class="cell-with-tooltip">L
+          <span class="css-tooltip">Losses</span>
+        </th>
+        <th class="cell-with-tooltip">OTL
+          <span class="css-tooltip">Over time losses</span>
+        </th>
+        <th class="cell-with-tooltip">GAA
+          <span class="css-tooltip">Goals Against Average</span>
+        </th>
+        <th class="cell-with-tooltip">SV%
+          <span class="css-tooltip">Save Percentage</span>
+        </th>
+        <th class="cell-with-tooltip">SV
+          <span class="css-tooltip">Saves</span>
+        </th>
+        <th class="cell-with-tooltip">SO
+          <span class="css-tooltip">Shotouts</span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% include tbody_goalies %}
+    </tbody>
+  </table><br>
+
+    {% for object in skaters %}
+    <div id="js_{{ object.type|lower }}_sect">
+      <h5>{{ object.type }}</h5>
+
+      <div class='button-table-container'>
+      <a id="js_switch_to_avg_{{ object.type|lower }}" class="tiny-button left-side-button" href="{% url 'ajax_stats_switcher' team.slug team.nhl_id stat_type pos_filt %}">See average stats</a>
+
+      {% if object.type == 'Defencemen' %}
+        <a id="js_switch_to_join" class="tiny-button right-side-button green" href="{% url 'ajax_stats_switcher' team.slug team.nhl_id stat_type pos_filt %}">D + F in one table</a>
+      {% endif %}
+
+      <table id={{ object.table_id }} class="tablesorter">
+        <thead>
+          <tr>
+            <th class="cell-with-tooltip">Rk
+              <span class="css-tooltip">Rank</span>
+            </th>
+            <th class="cell-with-tooltip">Fv
+              <span class="css-tooltip">Follow/Unfollow</span>
+            </th>
+            <th class="cell-with-tooltip">#
+              <span class="css-tooltip">Jersey number</span>
+            </th>
+            <th class="sorter-last-name">Name</th>
+            <th class="cell-with-tooltip">Pos
+              <span class="css-tooltip">Position</span>
+            </th>
+            <th class="cell-with-tooltip">Natl
+              <span class="css-tooltip">Nationality</span>
+            </th>
+            <th class="sorter-height cell-with-tooltip">Ht
+              <span class="css-tooltip">Height</span>
+            </th>
+            <th class="cell-with-tooltip">Wt
+              <span class="css-tooltip">Weight</span>
+            </th>
+            <th class="cell-with-tooltip">DOB
+              <span class="css-tooltip">Date of Birth</span>
+            </th>
+            <th class="cell-with-tooltip">DN
+              <span class="css-tooltip">Draft Number</span>
+            </th>
+            <th class="cell-with-tooltip">YOD
+              <span class="css-tooltip">Year Of Draft</span>
+            </th>
+            <th class="cell-with-tooltip">GP
+              <span class="css-tooltip">Games Played</span>
+            </th>
+            <th class="cell-with-tooltip">G
+              <span class="css-tooltip">Goals</span>
+            </th>
+            <th class="cell-with-tooltip">A
+              <span class="css-tooltip">Assists</span>
+            </th>
+            <th class="cell-with-tooltip">Pts
+              <span class="css-tooltip">Points</span>
+            </th>
+            <th class="cell-with-tooltip">+/-
+              <span class="css-tooltip">Plus/Minus<span>
+            </th>
+            <th class="cell-with-tooltip">PIM
+              <span class="css-tooltip">Penalty in Minutes</span>
+            </th>
+            <th class="cell-with-tooltip">SOG
+              <span class="css-tooltip">Shots on Goal</span>
+            </th>
+            <th class="cell-with-tooltip">Hits
+              <span class="css-tooltip">Hits</span>
+            </th>
+            <th class="cell-with-tooltip">Blk
+              <span class="css-tooltip">Blocks</span>
+            </th>
+            <th class="cell-with-tooltip">FW
+              <span class="css-tooltip">Faceoff Wins</span>
+            </th>
+            <th class="cell-with-tooltip">PPP
+              <span class="css-tooltip">Power Play Points</span>
+            </th>
+            <th class="cell-with-tooltip">SHP
+              <span class="css-tooltip">Short-Handed Points</span>
+            </th>
+            <th class="cell-with-tooltip">ATOI
+              <span class="css-tooltip">Average Time on Ice</span>
+            </th>
+            <th class="cell-with-tooltip">ATOI PP
+              <span class="css-tooltip">Average Time on Ice in Power Play</span>
+            </th>
+            <th class="cell-with-tooltip">ATOI SH
+              <span class="css-tooltip">Average Time on Ice in Short-Handed</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+            {% include tbody_skaters %}
+        </tbody>
+      </table>
+      </div>
+    </div>
+    <br>
+      {% endfor %}
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+<!-- Widgets -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+
+<script src="{% static 'players/index_first_column.js' %}"></script>
+<script src="{% static 'players/last_name.js' %}"></script>
+<script src="{% static 'players/parser-duration.js' %}"></script>
+<script src="{% static 'players/height.js' %}"></script>
+<script src="{% static 'players/sorting_team_detail.js' %}"></script>
+<script src="{% static 'players/ajax_add_fav.js' %}"></script>
+<script src="{% static 'players/ajax_del_fav.js' %}"></script>
+<script src="{% static 'players/ajax_switch_stats.js' %}"></script>
+{% endblock scripts %}

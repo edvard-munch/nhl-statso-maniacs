@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Comparison - NHL stats tracker
+{% endblock title %}
+
+{% block styles %}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+{% endblock %}
+
+{% block content %}
+<!-- FAVORITES MESSAGE -->
+<div id="comp-fav-alert" class="alert alert-primary js-fav-alert" role="alert">
+  <span class="js-fav-message"></span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<!-- COMPARISON MESSAGE -->
+<div id="comp-comp-alert" class="alert alert-primary js-comp-alert" role="alert">
+  <span class="js-comp-message"></span>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<h3>Comparison</h3><br>
+
+{% if user.is_authenticated %}
+<!-- BUTTONS -->
+<div class="button-table-container">
+{% if comp_skt %}
+    <a id="js_skaters_switch" class="button left-side-button comparison-button current-tab" href="#">SKATERS ({{numb_of_skaters}})</a>
+{% endif %}
+
+{% if comp_gls %}
+    <a id="js_goalies_switch" class="button left-side-button comparison-button" href="#">GOALIES ({{numb_of_goalies}}) </a>
+{% endif %}
+    <br>
+
+{% if comp_skt %}
+    <div id="js_skaters_block">
+      <span></span>
+      <span></span><br>
+      <a id="js_switch_to_skaters_season_tot" class="tiny-button left-side-button tiny-comparison-button current-tab" href="{% url 'ajax_comparison_stat_switcher' player_type stat_type %}">Season total stats</a>
+      <a id="js_switch_to_skaters_season_avg" class="tiny-button left-side-button tiny-comparison-button" href="{% url 'ajax_comparison_stat_switcher' player_type stat_type %}">Season average stats</a>
+      <a id="js_switch_to_skaters_career_tot" class="tiny-button left-side-button tiny-comparison-button" href="{% url 'ajax_comparison_stat_switcher' player_type stat_type %}">Career total stats</a>
+      <a id="js_switch_to_skaters_career_avg" class="tiny-button left-side-button tiny-comparison-button" href="{% url 'ajax_comparison_stat_switcher' player_type stat_type %}">Career average stats</a>
+      <a id="js_clear_skaters_comparison" class="reset-icon left-side-button" title="RESET SKATERS" href="{% url 'reset_comparison' player_type %}"><i class="far fa-trash-alt fa-2x"></i></a>
+    </div>
+    <br>
+{% endif %}
+
+{% if comp_gls %}
+    <div id="js_goalies_block">
+      <a id="js_switch_to_goalies_season_tot" class="tiny-button tiny-comparison-button left-side-button" href="{% url 'ajax_comparison_stat_switcher' player_type stat_type %}">Season total stats</a>
+      <a id="js_switch_to_goalies_career_tot" class="tiny-button tiny-comparison-button left-side-button" href="{% url 'ajax_comparison_stat_switcher' player_type stat_type %}">Career total stats</a>
+      <a id="js_clear_goalies_comparison" class="reset-icon left-side-button" href="{% url 'reset_comparison' player_type %}" title="RESET GOALIES" ><i class="far fa-trash-alt fa-2x"></i></a>
+    </div>
+{% endif %}
+
+{% if comp_skt %}
+<!-- SKATERS -->
+<table id="skaters_table" class="fixed-900 no-border-table">
+  <colgroup>
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+  </colgroup>
+  <tbody>
+    {% include 'players/partial_skaters_comparison_base.html' %}
+  </tbody>
+</table>
+
+{% endif %}
+
+{% if empty %}
+  <h5 class="left-aligned">No players</h5>
+{% endif %}
+
+<h5 id='skaters_h5' class="left-aligned"></h5>
+
+{% if comp_gls %}
+<!-- GOALIES -->
+<table id="goalies_table" class="fixed-900 no-border-table">
+  <colgroup>
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+    <col style="width:17%">
+  </colgroup>
+  <tbody>
+      {% include 'players/partial_goalies_comparison_base.html' %}
+  </tbody>
+</table>
+</div>
+
+{% endif %}
+<h5 id='goalies_h5' class="left-aligned"></h5>
+{% else %}
+<a class="sign_button" href="{% url 'register' %}">Start comparing players</a><br><br>
+
+<small class="text-muted">
+  Already Have An Account? <a class="ml-2" href="{% url 'login' %}">Sign In</a>
+</small>
+{% endif %}
+
+{% endblock content %}
+
+{% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.js"></script>
+  <script src="{% static 'players/sorting_comparison.js' %}"></script>
+  <script src="{% static 'players/ajax_del_comp_skater.js' %}"></script>
+  <script src="{% static 'players/ajax_del_comp_goalie.js' %}"></script>
+  <script src="{% static 'players/ajax_add_comp.js' %}"></script>
+  <script src="{% static 'players/ajax_add_fav.js' %}"></script>
+  <script src="{% static 'players/ajax_del_fav.js' %}"></script>
+{% endblock scripts %}

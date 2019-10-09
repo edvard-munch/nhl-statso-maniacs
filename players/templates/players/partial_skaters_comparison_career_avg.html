@@ -1,0 +1,90 @@
+<tr>
+  <th scope="row">Games</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.games }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Goals</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.goals }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Assists</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.assists }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Points</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.points }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">+/-</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.plusMinus }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">PIM</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.pim }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">SOG</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.shots }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Hits</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.hits }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">Bks</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.blocked }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">FW</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.faceoffsWon }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">PPP</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.powerPlayPoints }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">SHP</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.shortHandedPoints }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">TOI</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.timeOnIcePerGame }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">TOI PP</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.powerPlayTimeOnIcePerGame }}</td>
+  {% endfor %}
+</tr>
+<tr>
+  <th scope="row">TOI SH</th>
+  {% for player in comp_skt %}
+    <td>{{ player.career_stats_avg.shortHandedTimeOnIcePerGame }}</td>
+  {% endfor %}
+</tr>

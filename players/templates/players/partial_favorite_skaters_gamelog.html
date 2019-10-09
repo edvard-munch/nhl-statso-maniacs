@@ -1,0 +1,21 @@
+{% for game in skaters_games %}
+  <tr>
+    <td class="name"><a class="name" href="{% url 'player_detail' game.player.slug game.player.nhl_id %}">{{ game.player.name }}</td>
+    <td>{{ game.team.abbr }}</td>
+    <td>{{ game.date }}</td>
+    <td>{{ game.opponent.id }}</td>
+    <td>{{ game.stat.goals }}</td>
+    <td>{{ game.stat.assists }}</td>
+    <td>{{ game.stat.points }}</td>
+    <td>{{ game.stat.plusMinus }}</td>
+    <td>{{ game.stat.pim }}</td>
+    <td>{{ game.stat.shots }}</td>
+    <td>{{ game.stat.hits }}</td>
+    <td>{{ game.stat.blocked }}</td>
+    <td>{{ game.stat.powerPlayPoints }}</td>
+    <td>{{ game.stat.shortHandedPoints }}</td>
+    <td>{{ game.stat.timeOnIce }}</td>
+    <td>{{ game.stat.powerPlayTimeOnIce }}</td>
+    <td>{{ game.stat.shortHandedTimeOnIce }}</td>
+  </tr>
+{% endfor %}

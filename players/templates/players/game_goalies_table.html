@@ -1,0 +1,56 @@
+<h5>Goalies</h5>
+<table id="tab1" class="tablesorter">
+<thead>
+<tr>
+  <th class="cell-with-tooltip">Fv
+    <span class="css-tooltip">Follow/Unfollow</span>
+  </th>
+  <th class="cell-with-tooltip">#
+    <span class="css-tooltip">Jersey number</span>
+  </th>
+  <th class="sorter-last-name">Name</th>
+  <th class="cell-with-tooltip">Age
+    <span class="css-tooltip">Current Age</span>
+  </th>
+  <th>Res</th>
+  <th>Min</th>
+  <th>GA</th>
+  <th class="cell-with-tooltip">SV%
+    <span class="css-tooltip">Save Percentage</span>
+  </th>
+  <th class="cell-with-tooltip">SV
+    <span class="css-tooltip">Saves</span>
+  </th>
+  <th>SA</th>
+</tr>
+</thead>
+
+<tbody>
+  {% for player in item.game_goalies_table.list %}
+  {% with date=game.gameday.day|to_str %}
+  {% with stats_dict=player.new_gamelog_stats|get_item:date %}
+  <tr>
+  <td>
+    <div id="favorite_section">
+      {% if player in favorites %}
+        <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
+      {% else %}
+        <a class="js-fav-add" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
+      {% endif %}
+    </div>
+  </td>
+  <td>{{ stats_dict.jerseyNumber }}</td>
+  <td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
+  <td>{{ player.age }}</td>
+  <td>{{ stats_dict.decision }}</td>
+  <td>{{ stats_dict.timeOnIce }}</td>
+  <td>{{ stats_dict.goalsAgainst }}</td>
+  <td>{{ stats_dict.savePercentage|floatformat:3 }}</td>
+  <td>{{ stats_dict.saves }}</td>
+  <td>{{ stats_dict.shots }}</td>
+  </tr>
+  {% endwith %}
+  {% endwith %}
+  {% endfor %}
+</tbody>
+</table>

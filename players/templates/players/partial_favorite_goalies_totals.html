@@ -1,0 +1,41 @@
+{% for player in favorites_g %}
+  <tr>
+  <td></td>
+  <td>
+    <div id="favorite_section">
+        <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
+    </div>
+  </td>
+  <td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
+  <td>{{ player.position_abbr }}</td>
+  <td class="cell-with-tooltip">{{ player.team.abbr }}
+  <span class="css-tooltip cell-tooltip ">{{ player.team.name }}</span>
+  </td>
+  <td class="cell-with-tooltip">{{ player.nation_abbr }}
+  <span class="css-tooltip cell-tooltip ">{{ player.nation }}</span>
+  </td>
+  <td>{{ player.height }}</td>
+  <td>{{ player.weight }}</td>
+  <td>{{ player.birth_date|date:"Y-m-d" }}</td>
+  <td>{{ player.age }}</td>
+  {% if player.draft_year %}
+    <td>{{ player.draft_number }}</td>
+    <td>{{ player.draft_year }}</td>
+  {% else %}
+    <td class="cell-with-tooltip"> —
+      <span class="css-tooltip cell-tooltip ">Undrafted</span>
+    </td>
+        <td class="cell-with-tooltip"> —
+      <span class="css-tooltip cell-tooltip ">Undrafted</span>
+    </td>
+  {% endif %}
+  <td>{{ player.games }}</td>
+  <td>{{ player.wins }}</td>
+  <td>{{ player.losses }}</td>
+  <td>{{ player.ot_losses }}</td>
+  <td>{{ player.goals_against_av|floatformat:2 }}</td>
+  <td>{{ player.saves_perc|floatformat:3 }}</td>
+  <td>{{ player.saves }}</td>
+  <td>{{ player.shotouts }}</td>
+  </tr>
+{% endfor %}

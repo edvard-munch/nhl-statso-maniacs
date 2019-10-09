@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+  Favorite goalies gamelog - NHL stats tracker
+{% endblock title %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+{% endblock styles %}
+
+{% block content %}
+<table id="goalies_log_table" class="tablesorter name-col1">
+  <thead>
+      {% include 'players/partial_goalies_gamelog_header.html' %}
+  </thead>
+
+  <!-- PAGER -->
+  {% if goalies_games|length > table_page_size %}
+    <tfoot>
+        {% include 'players/partial_pager.html' with pager_class='pager-gls-log' colspan='17' options=goalies_games_options %}
+    </tfoot>
+  {% endif %}
+    <tbody>
+        <!-- AJAX -->
+    </tbody>
+  </table>
+{% endblock content %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>
+<!-- Widgets -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/extras/jquery.tablesorter.pager.min.js"></script>
+
+<script src="{% static 'players/sorting_favorite_goalies_gamelog.js' %}"></script>
+{% endblock scripts %}
