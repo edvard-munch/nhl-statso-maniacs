@@ -72,22 +72,7 @@ class Command(BaseCommand):
                         nhl_id = int(key[2:])
                         player = get_player(nhl_id)
                         if player:
-                            try:
-                                dict = value['stats']['skaterStats']
-                                dict['powerPlayPoints'] = dict['powerPlayGoals'] + dict['powerPlayAssists']
-                                dict['shortHandedPoints'] = dict['shortHandedGoals'] + dict['shortHandedAssists']
-                                dict['jerseyNumber'] = value['jerseyNumber']
-                                val = dict
-                                away_skaters.append(player)
-                            except KeyError:
-                                try:
-                                    dict = value['stats']['goalieStats']
-                                    dict['goalsAgainst'] = dict['shots'] - dict['saves']
-                                    dict['jerseyNumber'] = value['jerseyNumber']
-                                    val = dict
-                                    away_goalies.append(player)
-                                except KeyError:
-                                    val = 'Scratched'
+                            val = add_player(value, player, away_skaters, away_goalies)
 
                             player.new_gamelog_stats[str(gameday_obj.day)] = val
                             player.save(update_fields=['new_gamelog_stats'])
@@ -98,22 +83,7 @@ class Command(BaseCommand):
                         nhl_id = int(key[2:])
                         player = get_player(nhl_id)
                         if player:
-                            try:
-                                dict = value['stats']['skaterStats']
-                                dict['powerPlayPoints'] = dict['powerPlayGoals'] + dict['powerPlayAssists']
-                                dict['shortHandedPoints'] = dict['shortHandedGoals'] + dict['shortHandedAssists']
-                                dict['jerseyNumber'] = value['jerseyNumber']
-                                val = dict
-                                home_skaters.append(player)
-                            except KeyError:
-                                try:
-                                    dict = value['stats']['goalieStats']
-                                    dict['goalsAgainst'] = dict['shots'] - dict['saves']
-                                    dict['jerseyNumber'] = value['jerseyNumber']
-                                    val = dict
-                                    home_goalies.append(player)
-                                except KeyError:
-                                    val = 'Scratched'
+                            val = add_player(value, player, home_skaters, home_goalies)
 
                             player.new_gamelog_stats[str(gameday_obj.day)] = val
                             player.save(update_fields=['new_gamelog_stats'])
@@ -125,6 +95,27 @@ class Command(BaseCommand):
                     game_obj.away_goalies.set(away_goalies)
                     game_obj.home_skaters.set(home_skaters)
                     game_obj.home_goalies.set(home_goalies)
+
+
+def add_player(value, player, skaters, goalies):
+    try:
+        dict = value['stats']['skaterStats']
+        dict['powerPlayPoints'] = dict['powerPlayGoals'] + dict['powerPlayAssists']
+        dict['shortHandedPoints'] = dict['shortHandedGoals'] + dict['shortHandedAssists']
+        dict['jerseyNumber'] = value['jerseyNumber']
+        val = dict
+        skaters.append(player)
+    except KeyError:
+        try:
+            dict = value['stats']['goalieStats']
+            dict['goalsAgainst'] = dict['shots'] - dict['saves']
+            dict['jerseyNumber'] = value['jerseyNumber']
+            val = dict
+            goalies.append(player)
+        except KeyError:
+            val = 'Scratched'
+
+    return val
 
 
 def save_game_side(team, side, game, date):
