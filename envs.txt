@@ -10,6 +10,9 @@ arkchib@gmail.com
 POSTGRES_DB
 nhl_web_app_heroku
 
+POSTGRES_USER
+postgres
+
 POSTGRES_DB_PASSWORD
 ark085075
 
