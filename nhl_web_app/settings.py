@@ -40,7 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'django_extensions',
-    'silk',
+    # 'silk',
     'django_celery_results',
     'storages',
     'debug_toolbar',
@@ -160,7 +160,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
-SILKY_PYTHON_PROFILER = True
+# SILKY_PYTHON_PROFILER = True
 
 CELERY_RESULT_BACKEND = 'django-db'
 # CELERY_RESULT_BACKEND = 'redis://localhost'

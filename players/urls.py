@@ -41,7 +41,7 @@ urlpatterns = [
          views.ajax_stats_switcher, name='ajax_stats_switcher'),
     path('ajax_comparison_stat_switcher/<str:player_type>/<str:stat_type>/',
          views.ajax_comparison_stat_switcher, name='ajax_comparison_stat_switcher'),
-    url(r'^silk/', include('silk.urls', namespace='silk')),
+    # url(r'^silk/', include('silk.urls', namespace='silk')),
     url(r'^ajax_calls/search/', views.autocomplete),
     path('auth_callback/', views.auth_callback, name='auth_callback'),
 ]
