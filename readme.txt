@@ -15,6 +15,7 @@ git fsck - Verifies the connectivity and validity of the objects in the database
 
 gedit ~/.profile
 ENV_VAR=value
+gnome-tweaks
 
 git config --global credential.helper "cache --timeout=3600"
 git config --global credential.helper store
