@@ -19,10 +19,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+# SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = 'c599ddf1e4dba4f4f29ea58a64253073a444cdabe336f82b'
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (os.getenv('DEBUG_VALUE') == 'True')
+# DEBUG = (os.getenv('DEBUG_VALUE') == 'True')
+DEBUG = True
 
 ALLOWED_HOSTS = ['nhlstatsomaniacs.herokuapp.com', '127.0.0.1']
 
@@ -89,8 +92,12 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'nhl_web_app_19_20',
         # 'NAME': os.getenv('POSTGRES_DB'),
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
+        # 'USER': os.getenv('POSTGRES_USER'),
+        'USER': 'arkadiy-dev',
+
+        # 'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
+        'PASSWORD': 'ark085075',
+
         'HOST': 'localhost',
         'PORT': '5432',
     }
