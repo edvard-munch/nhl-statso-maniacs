@@ -16,16 +16,11 @@ cd programming\py\nhl_web_app
 celery -A nhl_web_app worker -l info -P gevent
 
 
-d:
 cd programming\py\nhl_web_app
 django s
 from players.tasks import upd_pls
 upd_pls.delay()
 
-pyment [PATH or FILE] -o google -w
-
-
-d:
 cd programming\py\nhl_web_app
 git push heroku master
 heroku logs -t
