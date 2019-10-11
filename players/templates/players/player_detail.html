@@ -12,6 +12,8 @@
 {% endblock styles %}
 
 {% block content %}
+
+
 <!-- FAVORITES MESSAGE -->
 <div id="prof-fav-alert" class="alert alert-primary js-fav-alert test-class" role="alert">
   <span class="js-fav-message"></span>
@@ -155,7 +157,7 @@
       <td>{{ player.saves }}</td>
       <td>{{ player.shotouts }}</td>
     </tr>
-    {% if season_in_prog %}
+    {% if proj_stats %}
     <tr>
       <td>Projected</td>
       <td>{{ player.proj_stats.games }}</td>
@@ -316,7 +318,7 @@
       <td>{{player.time_on_ice_pp}}</td>
       <td>{{player.time_on_ice_sh}}</td>
     </tr>
-    {% if season_in_prog %}
+    {% if proj_stats %}
     <tr>
       <td>Projected</td>
       <td>{{player.proj_stats.games}}</td>
