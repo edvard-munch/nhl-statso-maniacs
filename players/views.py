@@ -349,7 +349,7 @@ def player_detail(request, slug, nhl_id):
         ],
 
         'last_gms': utils.last_games(player),
-        'season_in_prog': utils.season_in_prog(),
+        'proj_stats': utils.season_in_prog() and player.proj_stats,
         'note': utils.get_object(request, player, Note),
         'skater': skater,
         'note_max_length': Note._meta.get_field('text').max_length,
