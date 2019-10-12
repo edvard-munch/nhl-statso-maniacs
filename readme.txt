@@ -1,4 +1,5 @@
 cd programming/py/nhl_web_app
+source venv/bin/activate
 django r
 
 ctrl + shift + T / ctrl + shift + N
