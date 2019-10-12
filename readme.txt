@@ -7,8 +7,11 @@ ctrl + shift + T / ctrl + shift + N
 source venv/bin/activate
 python3 -m venv venv
 
+git status
 git diff / git diff --cached
+git add .
 git commit -am "MESSAGE"
+git checkout -b 'BRANCH_NAME'
 git push -u nhl_web_app master
 git pull nhl_web_app master
 git citool
