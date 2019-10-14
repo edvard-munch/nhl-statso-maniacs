@@ -2,7 +2,8 @@ cd programming/py/nhl_web_app
 source venv/bin/activate
 django r
 
-ctrl + shift + T / ctrl + shift + N
+Super + T
+Host(right Ctrl) + Alt + Tab
 
 source venv/bin/activate
 python3 -m venv venv
@@ -12,6 +13,7 @@ git diff / git diff --cached
 git add .
 git commit -am "MESSAGE"
 git checkout -b 'BRANCH_NAME'
+git branch -d 'BRANCH_NAME'
 git push -u nhl_web_app master
 git pull nhl_web_app master
 git citool
