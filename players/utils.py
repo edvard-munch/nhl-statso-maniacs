@@ -30,6 +30,7 @@ FAVORITES_QUOTA = 100
 COMPARISON_QUOTA = 5
 PAGE_SIZE_1 = 15
 PAGE_SIZE_2 = 25
+LAST_GAMES_TO_SHOW = 5
 SEASON_ENDS = datetime.datetime(2020, 4, 30, 10, 00)
 POSITIONS = ['G', 'D', 'C', 'LW', 'RW', 'L', 'R']
 STAT_TYPES = ['gls', 'tot', 'avg', 'skt_log', 'gls_log']
@@ -851,25 +852,34 @@ def get_user_compares(request):
     return context
 
 
-def last_games(player):
+def get_gamelog(player, *slicer):
     """
-    Returns a player's last five games from a JSONField
+    Returns a number of player's last games from a JSONField accordingly
+        to the *slicer argument
 
     Returns an empty list if JSONField is empty
 
     Args:
       player: object of Skater's or Goalie's models
+      *slicer: a tuple with an optional argument as a slicer
+          constructor ot slice the desired number of elements      
     """
-    if player.gamelog_stats:
-        return player.gamelog_stats[:5]
-    return []
+    log = player.gamelog_stats
+    if not log:
+        return []
+
+    sorted_log = [log[key] for key in sorted(list(log), reverse=True)]
+    if not slicer:
+        return sorted_log
+
+    return sorted_log[slicer[0]]
 
 
 def filter_position(queryset, positions, order):
     """
     Filter objects of Skater model by position.
 
-    Returns a QuerySet object. Sorted accordingly to order argument.
+    Returns a QuerySet object. Sorted accordingly to the order argument.
 
     Args:
       queryset: QuerySet object to lookup

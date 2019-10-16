@@ -332,6 +332,7 @@ def player_detail(request, slug, nhl_id):
             player = utils.adjust_measurements(player)
 
     skater = player.position_abbr in utils.POSITIONS[1:]
+    slicer = slice(utils.LAST_GAMES_TO_SHOW)
 
     context = {
         'player': player,
@@ -348,7 +349,7 @@ def player_detail(request, slug, nhl_id):
 
         ],
 
-        'last_gms': utils.last_games(player),
+        'last_gms': utils.get_gamelog(player, slicer),
         'proj_stats': utils.season_in_prog() and player.proj_stats,
         'note': utils.get_object(request, player, Note),
         'skater': skater,
@@ -370,13 +371,16 @@ def player_detail(request, slug, nhl_id):
     context = {**context, **utils.add_comp_info(request, player),
                **utils.add_fav_info(request, player)}
 
+       
     return render(request, 'players/player_detail.html', context)
 
 
 def player_gamelog(request, slug, nhl_id):
+    player = utils.get_player(nhl_id, slug)
     context = {
-        'player': utils.get_player(nhl_id, slug),
-    }
+        'player': player,
+        'gamelog': utils.get_gamelog(player),
+      }
 
     return render(request, 'players/player_gamelog.html', context)
 
