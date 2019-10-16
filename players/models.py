@@ -81,13 +81,12 @@ class Player(models.Model):
     alt_captain = models.BooleanField(default=False)
     sbs_stats = JSONField(null=True)
     career_stats = JSONField(null=True)
-    gamelog_stats = JSONField(null=True)
+    gamelog_stats = JSONField(default=dict, blank=True)
     games = models.IntegerField()
     multiteams_seasons = JSONField(null=True)
     seasons_count = models.IntegerField(null=True)
     proj_stats = JSONField(null=True)
     note = GenericRelation('Note')
-    new_gamelog_stats = JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f'{self.name}'
