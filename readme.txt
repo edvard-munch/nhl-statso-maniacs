@@ -7,15 +7,23 @@ Host(right Ctrl) + Alt + Tab
 
 source venv/bin/activate
 python3 -m venv venv
+/usr/bin/python3.6 -m venv venv  -  For some reason this creates a venv with python 3.7.4, I probably have 
+python 3.7 installed in a file with a name python3.6 
 
 git status
 git diff / git diff --cached
 git add .
 git commit -am "MESSAGE"
+git branch
+git branch -a
 git checkout -b 'BRANCH_NAME'
 git branch -d 'BRANCH_NAME'
-git push -u nhl_web_app master
+git branch -m OLD-BRANCH-NAME NEW-BRANCH-NAME
+git diff FIRST-BRANCH..SECOND-BRANCH
+git push -u nhl_web_app master / git push nhl_web_app master
 git pull nhl_web_app master
+git checkout master
+git merge MERGE_TO_BRANCH_INTO_MASTER
 git citool
 git fsck - Verifies the connectivity and validity of the objects in the database
 
