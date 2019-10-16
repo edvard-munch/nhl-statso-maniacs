@@ -22,7 +22,21 @@ SIDES = {
     'away': 'away',
     'home': 'home',
 }
-
+MONTHS_MAP = {
+    'Jan': 6,
+    'Feb': 7,
+    'Mar': 8,
+    'Apr': 9,
+    'May': 10,
+    'Jun': 11,
+    'Jul': 12,
+    'Aug': 1,
+    'Sep': 2,
+    'Oct': 3,
+    'Nov': 4,
+    'Dec': 5,
+}
+MONTH_ORDER = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08']
 
 class Command(BaseCommand):
 
@@ -92,9 +106,19 @@ def iterate_players(gameday_obj, players, skaters, goalies, opponent):
         player = get_player(nhl_id)
         if player:
             val = add_player(value, player, skaters, goalies, opponent)
+            format_date = date_convert(gameday_obj.day)
 
-            player.new_gamelog_stats[str(gameday_obj.day)] = val
-            player.save(update_fields=['new_gamelog_stats'])
+            if isinstance(val, dict):
+               val['format_date'] = format_date
+
+            player.gamelog_stats[str(gameday_obj.day)] = val
+            
+            player.save(update_fields=['gamelog_stats'])
+
+
+def date_convert(date):
+    date_str = date.strftime('%b %e')
+    return re.sub(r'\s+', ' ', date_str)
 
 
 def add_player(value, player, skaters, goalies, opponent):
