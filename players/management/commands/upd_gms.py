@@ -70,8 +70,11 @@ class Command(BaseCommand):
                     home_skaters = []
                     home_goalies = []
 
-                    iterate_players(gameday_obj, rosters['away']['players'], away_skaters, away_goalies)
-                    iterate_players(gameday_obj, rosters['home']['players'], home_skaters, home_goalies)
+                    away_team = team_objects[0].abbr
+                    home_team = team_objects[1].abbr
+
+                    iterate_players(gameday_obj, rosters['away']['players'], away_skaters, away_goalies, home_team)
+                    iterate_players(gameday_obj, rosters['home']['players'], home_skaters, home_goalies, away_team)
 
                     save_game_side(team_objects[0], SIDES['away'], game_obj, date["date"])
                     save_game_side(team_objects[1], SIDES['home'], game_obj, date["date"])
@@ -82,31 +85,34 @@ class Command(BaseCommand):
                     game_obj.home_goalies.set(home_goalies)
 
 
-def iterate_players(gameday_obj, players, skaters, goalies):
+# make skaters, goalies variable names more concise
+def iterate_players(gameday_obj, players, skaters, goalies, opponent):
     for key, value in players.items():
         nhl_id = int(key[2:])
         player = get_player(nhl_id)
         if player:
-            val = add_player(value, player, skaters, goalies)
+            val = add_player(value, player, skaters, goalies, opponent)
 
             player.new_gamelog_stats[str(gameday_obj.day)] = val
             player.save(update_fields=['new_gamelog_stats'])
 
 
-def add_player(value, player, skaters, goalies):
+def add_player(value, player, skaters, goalies, opponent):
     try:
-        dict = value['stats']['skaterStats']
-        dict['powerPlayPoints'] = dict['powerPlayGoals'] + dict['powerPlayAssists']
-        dict['shortHandedPoints'] = dict['shortHandedGoals'] + dict['shortHandedAssists']
-        dict['jerseyNumber'] = value['jerseyNumber']
-        val = dict
+        dict_ = value['stats']['skaterStats']
+        dict_['powerPlayPoints'] = dict_['powerPlayGoals'] + dict_['powerPlayAssists']
+        dict_['shortHandedPoints'] = dict_['shortHandedGoals'] + dict_['shortHandedAssists']
+        dict_['jerseyNumber'] = value['jerseyNumber']
+        dict_['opponent'] = opponent
+        val = dict_
         skaters.append(player)
     except KeyError:
         try:
-            dict = value['stats']['goalieStats']
-            dict['goalsAgainst'] = dict['shots'] - dict['saves']
-            dict['jerseyNumber'] = value['jerseyNumber']
-            val = dict
+            dict_ = value['stats']['goalieStats']
+            dict_['goalsAgainst'] = dict_['shots'] - dict_['saves']
+            dict_['jerseyNumber'] = value['jerseyNumber']
+            dict_['opponent'] = opponent     
+            val = dict_
             goalies.append(player)
         except KeyError:
             val = 'Scratched'
