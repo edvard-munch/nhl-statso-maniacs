@@ -11,6 +11,7 @@
     {% endblock styles %}
 
     {% block content %}
+
           <img class="rounded-circle account-img" src="{{ player.image.url }}">
                  <h5>{{ player.name }} Game Log</h5>
                  <a href="{% url 'player_detail' player.slug player.nhl_id %}">Return to the full profile</a><br>
@@ -54,17 +55,17 @@
                       </tr>
                     </tfoot>
                     <tbody>
-                    {% for game in player.gamelog_stats %}
+                    {% for game in gamelog %}
                       <tr>
-                        <td>{{ game.date }}</td>
-                        <td>{{ game.opponent.id }}</td>
-                        <td>{{ game.stat.decision }}</td>
-                        <td>{{ game.stat.timeOnIce }}</td>
-                        <td>{{ game.stat.goalsAgainst }}</td>
-                        <td>{{ game.stat.savePercentage|floatformat:3 }}</td>
-                        <td>{{ game.stat.saves }}</td>
-                        <td>{{ game.stat.shotsAgainst }}</td>
-                        <td>{{ game.stat.shutouts }}</td>
+                        <td>{{ game.format_date }}</td>
+                        <td>{{ game.opponent }}</td>
+                        <td>{{ game.decision }}</td>
+                        <td>{{ game.timeOnIce }}</td>
+                        <td>{{ game.goalsAgainst }}</td>
+                        <td>{{ game.savePercentage|floatformat:3 }}</td>
+                        <td>{{ game.saves }}</td>
+                        <td>{{ game.shots }}</td>
+                        <td>{{ game.shutouts }}</td>
                       </tr>
                     {% endfor %}
                     </tbody>
@@ -79,7 +80,6 @@
                         <th>Opp</th>
                         <th>G</th>
                         <th>A</th>
-                        <th>Pts</th>
                         <th>+/-</th>
                         <th>PIM</th>
                         <th>SOG</th>
@@ -116,24 +116,23 @@
                       </tr>
                     </tfoot>
                     <tbody>
-                    {% for game in player.gamelog_stats %}
+                      {% for game in gamelog %}
                       <tr>
-                        <td>{{ game.date }}</td>
-                        <td>{{ game.opponent.id }}</td>
-                        <td>{{ game.stat.goals }}</td>
-                        <td>{{ game.stat.assists }}</td>
-                        <td>{{ game.stat.points }}</td>
-                        <td>{{ game.stat.plusMinus }}</td>
-                        <td>{{ game.stat.pim }}</td>
-                        <td>{{ game.stat.shots }}</td>
-                        <td>{{ game.stat.hits }}</td>
-                        <td>{{ game.stat.blocked }}</td>
-                        <td>{{ game.stat.faceOffWins }}</td>
-                        <td>{{ game.stat.powerPlayPoints }}</td>
-                        <td>{{ game.stat.shortHandedPoints }}</td>
-                        <td>{{ game.stat.timeOnIce }}</td>
-                        <td>{{ game.stat.powerPlayTimeOnIce }}</td>
-                        <td>{{ game.stat.shortHandedTimeOnIce }}</td>
+                        <td>{{ game.format_date }}</td>
+                        <td>{{ game.opponent }}</td>
+                        <td>{{ game.goals }}</td>
+                        <td>{{ game.assists }}</td>
+                        <td>{{ game.plusMinus }}</td>
+                        <td>{{ game.penaltyMinutes }}</td>
+                        <td>{{ game.shots }}</td>
+                        <td>{{ game.hits }}</td>
+                        <td>{{ game.blocked }}</td>
+                        <td>{{ game.faceOffWins }}</td>
+                        <td>{{ game.powerPlayPoints }}</td>
+                        <td>{{ game.shortHandedPoints }}</td>
+                        <td>{{ game.timeOnIce }}</td>
+                        <td>{{ game.powerPlayTimeOnIce }}</td>
+                        <td>{{ game.shortHandedTimeOnIce }}</td>
                       </tr>
                     {% endfor %}
                     </tbody>
