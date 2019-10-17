@@ -36,7 +36,7 @@ MONTHS_MAP = {
     'Nov': 4,
     'Dec': 5,
 }
-MONTH_ORDER = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08']
+MONTHS_ORDER = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08']
 
 class Command(BaseCommand):
 
@@ -55,13 +55,18 @@ class Command(BaseCommand):
                         linescore["teams"]['home']['team']['id'],
                     ]
 
+                    away_goalies_count = len(rosters['away']['goalies'])
+                    home_goalies_count = len(rosters['home']['goalies'])
+
                     team_objects = [
                         Team.objects.get(nhl_id=team_nhl_ids[0]),
                         Team.objects.get(nhl_id=team_nhl_ids[1]),
                     ]
 
                     team_names = [item.name for item in team_objects]
-                    score = f'{linescore["teams"]["away"]["goals"]}:{linescore["teams"]["home"]["goals"]}'
+                    away_score = linescore["teams"]["away"]["goals"]
+                    home_score = linescore["teams"]["home"]["goals"]
+                    score = f'{away_score}:{home_score}'
 
                     # ADD 'GAME IN PROGRESS' if it's not finished
                     if linescore['currentPeriod'] > REGULAR_PERIODS_AMOUNT:
@@ -73,7 +78,8 @@ class Command(BaseCommand):
                         'gameday': gameday_obj,
                     }
 
-                    game_obj, created = Game.objects.update_or_create(nhl_id=game["gamePk"], defaults=defaults)
+                    game_obj, created = Game.objects.update_or_create(nhl_id=game["gamePk"],
+                                                                      defaults=defaults)
 
                     if created:
                         game_obj.slug = slugify(" - ".join(team_names) + str(game_obj.gameday.day))
@@ -87,8 +93,10 @@ class Command(BaseCommand):
                     away_team = team_objects[0].abbr
                     home_team = team_objects[1].abbr
 
-                    iterate_players(gameday_obj, rosters['away']['players'], away_skaters, away_goalies, home_team)
-                    iterate_players(gameday_obj, rosters['home']['players'], home_skaters, home_goalies, away_team)
+                    iterate_players(gameday_obj, rosters['away']['players'], away_skaters,
+                                    away_goalies, home_team, away_goalies_count)
+                    iterate_players(gameday_obj, rosters['home']['players'], home_skaters,
+                                    home_goalies, away_team, home_goalies_count)
 
                     save_game_side(team_objects[0], SIDES['away'], game_obj, date["date"])
                     save_game_side(team_objects[1], SIDES['home'], game_obj, date["date"])
@@ -100,12 +108,12 @@ class Command(BaseCommand):
 
 
 # make skaters, goalies variable names more concise
-def iterate_players(gameday_obj, players, skaters, goalies, opponent):
-    for key, value in players.items():
+def iterate_players(gameday_obj, roster, skaters_list, goalies_list, opponent, goalies_count):
+    for key, value in roster.items():
         nhl_id = int(key[2:])
         player = get_player(nhl_id)
         if player:
-            val = add_player(value, player, skaters, goalies, opponent)
+            val = add_player(value, player, skaters_list, goalies_list, opponent, goalies_count)
             format_date = date_convert(gameday_obj.day)
 
             if isinstance(val, dict):
@@ -121,7 +129,7 @@ def date_convert(date):
     return re.sub(r'\s+', ' ', date_str)
 
 
-def add_player(value, player, skaters, goalies, opponent):
+def add_player(value, player, skaters_list, goalies_list, opponent, goalies_count):
     try:
         dict_ = value['stats']['skaterStats']
         dict_['powerPlayPoints'] = dict_['powerPlayGoals'] + dict_['powerPlayAssists']
@@ -129,15 +137,22 @@ def add_player(value, player, skaters, goalies, opponent):
         dict_['jerseyNumber'] = value['jerseyNumber']
         dict_['opponent'] = opponent
         val = dict_
-        skaters.append(player)
+        skaters_list.append(player)
     except KeyError:
         try:
             dict_ = value['stats']['goalieStats']
             dict_['goalsAgainst'] = dict_['shots'] - dict_['saves']
             dict_['jerseyNumber'] = value['jerseyNumber']
-            dict_['opponent'] = opponent     
+            dict_['opponent'] = opponent
+            dict_['savePercentage'] = dict_['savePercentage'] / 100
+
+            if dict_['goalsAgainst'] == 0 and goalies_count == 1:
+                dict_['shutout'] = 1
+            else:
+                dict_['shutout'] = 0
+
             val = dict_
-            goalies.append(player)
+            goalies_list.append(player)
         except KeyError:
             val = 'Scratched'
 
