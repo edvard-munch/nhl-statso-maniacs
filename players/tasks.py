@@ -9,7 +9,6 @@ def upd_pls():
     management.call_command('upd_pls')
     management.call_command('upd_pls_tot')
     management.call_command('upd_gms')
-    management.call_command('upd_pls_log')
     management.call_command('upd_pls_sbs')
     management.call_command('upd_pls_proj')
     # management.call_command('upd_pls_fw')
