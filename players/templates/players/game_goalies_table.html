@@ -28,7 +28,7 @@
 <tbody>
   {% for player in item.game_goalies_table.list %}
   {% with date=game.gameday.day|to_str %}
-  {% with stats_dict=player.new_gamelog_stats|get_item:date %}
+  {% with stats_dict=player.gamelog_stats|get_item:date %}
   <tr>
   <td>
     <div id="favorite_section">
