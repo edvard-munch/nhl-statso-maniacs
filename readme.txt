@@ -1,3 +1,6 @@
+git commit -m $'Commit title\n\nRest of commit message...'
+
+
 cd programming/py/nhl_web_app
 source venv/bin/activate
 django r
