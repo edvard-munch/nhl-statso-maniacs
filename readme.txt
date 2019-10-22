@@ -1,5 +1,14 @@
 git commit -m $'Commit title\n\nRest of commit message...'
 
+cd programming/py/nhl_web_app
+source venv/bin/activate
+celery -A nhl_web_app worker -l info -P gevent
+
+cd programming\py\nhl_web_app
+source venv/bin/activate
+django s
+from players.tasks import upd_pls
+upd_pls.delay()
 
 cd programming/py/nhl_web_app
 source venv/bin/activate
@@ -36,14 +45,6 @@ gnome-tweaks
 
 git config --global credential.helper "cache --timeout=3600"
 git config --global credential.helper store
-
-cd programming/py/nhl_web_app
-celery -A nhl_web_app worker -l info -P gevent
-
-cd programming\py\nhl_web_app
-django s
-from players.tasks import upd_pls
-upd_pls.delay()
 
 sudo -u postgres psql
 sudo -u postgres createuser owning_user / sudo -u postgres createuser arkadiy-dev
