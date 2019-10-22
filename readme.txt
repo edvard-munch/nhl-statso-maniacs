@@ -1,3 +1,4 @@
+DOESN'T WORK!!!!!!!!!!!!!!!
 git commit -m $'Commit title\n\nRest of commit message...'
 
 cd programming/py/nhl_web_app
