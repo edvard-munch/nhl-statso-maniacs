@@ -121,22 +121,19 @@ class Command(BaseCommand):
                         game_obj.home_goalies.set(home_goalies)
 
 
-
-# make skaters, goalies variable names more concise
 def iterate_players(gameday_obj, roster, skaters_list, goalies_list, opponent, goalies_count):
     for key, value in roster.items():
         nhl_id = int(key[2:])
         player = get_player(nhl_id)
         if player:
-            val = add_player(value, player, skaters_list, goalies_list, opponent, goalies_count)
+            game_stats = add_player(value, player, skaters_list, goalies_list, opponent, goalies_count)
             format_date = date_convert(gameday_obj.day)
 
-            if isinstance(val, dict):
-               val['format_date'] = format_date
-
-            player.gamelog_stats[str(gameday_obj.day)] = val
-            
-            player.save(update_fields=['gamelog_stats'])
+            # chek if not 'Scratched'
+            if game_stats:
+                game_stats['format_date'] = format_date
+                player.gamelog_stats[str(gameday_obj.day)] = game_stats
+                player.save(update_fields=['gamelog_stats'])
 
 
 def date_convert(date):
