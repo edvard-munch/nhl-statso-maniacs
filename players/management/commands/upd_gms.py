@@ -1,11 +1,9 @@
-import json
 import re
-
+from tqdm import tqdm
 import requests
 from django.core.management.base import BaseCommand
-from django.shortcuts import get_object_or_404 as get_object
 from django.utils.text import slugify
-from tqdm import tqdm
+
 from datetime import datetime, timedelta
 from pytz import timezone
 
@@ -17,6 +15,8 @@ URL_LINESCORE = "http://statsapi.web.nhl.com/api/v1/game/{}/linescore"
 URL_SCHED = "https://statsapi.web.nhl.com/api/v1/schedule"
 REG_SEAS_CODE = '02'
 SEASON_START = "2019-10-02"
+
+
 SEASON_END = "2020-04-04"
 REGULAR_PERIODS_AMOUNT = 3
 GAME_FINISHED = 'Final'
@@ -143,32 +143,36 @@ def date_convert(date):
 
 def add_player(value, player, skaters_list, goalies_list, opponent, goalies_count):
     try:
-        dict_ = value['stats']['skaterStats']
-        dict_['powerPlayPoints'] = dict_['powerPlayGoals'] + dict_['powerPlayAssists']
-        dict_['shortHandedPoints'] = dict_['shortHandedGoals'] + dict_['shortHandedAssists']
-        dict_['jerseyNumber'] = value['jerseyNumber']
-        dict_['opponent'] = opponent
-        val = dict_
+        game_stats = value['stats']['skaterStats']
+        game_stats['powerPlayPoints'] = game_stats['powerPlayGoals'] + game_stats['powerPlayAssists']
+        game_stats['shortHandedPoints'] = game_stats['shortHandedGoals'] + game_stats['shortHandedAssists']
+        add_values(game_stats, value['jerseyNumber'], opponent)
+
         skaters_list.append(player)
+
     except KeyError:
         try:
-            dict_ = value['stats']['goalieStats']
-            dict_['goalsAgainst'] = dict_['shots'] - dict_['saves']
-            dict_['jerseyNumber'] = value['jerseyNumber']
-            dict_['opponent'] = opponent
-            dict_['savePercentage'] = dict_['savePercentage'] / 100
+            game_stats = value['stats']['goalieStats']
+            game_stats['goalsAgainst'] = game_stats['shots'] - game_stats['saves']
+            game_stats['savePercentage'] = game_stats['savePercentage'] / 100
+            add_values(game_stats, value['jerseyNumber'], opponent)
 
-            if dict_['goalsAgainst'] == 0 and goalies_count == 1:
-                dict_['shutout'] = 1
+            if game_stats['goalsAgainst'] == 0 and goalies_count == 1:
+                game_stats['shutout'] = 1
             else:
-                dict_['shutout'] = 0
+                game_stats['shutout'] = 0
 
-            val = dict_
             goalies_list.append(player)
+ 
         except KeyError:
-            val = 'Scratched'
+            return None
 
-    return val
+    return game_stats
+
+
+def add_values(game_stats, jersey_number, opponent):
+    game_stats['jerseyNumber'] = jersey_number
+    game_stats['opponent'] = opponent
 
 
 def save_game_side(team, side, game, date):
