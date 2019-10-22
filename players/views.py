@@ -99,6 +99,7 @@ def auth_callback(request):
         'title': 'auth_callback',
         'code': request.GET.get("code"),
     }
+
     return render(request, 'auth_callback.html', context)
 
 
