@@ -160,13 +160,14 @@ def add_player(value, player, skaters_list, goalies_list, opponent, goalies_coun
 
 
 def save_game_side(team, side, game, date):
-        defaults = {
-            'team': team,
-            'side': side,
-            'game': game,
-        }
-        Side.objects.update_or_create(nhl_side_id=get_gameside_id(date, team),
-                                      defaults=defaults)
+    defaults = {
+        'team': team,
+        'side': side,
+        'game': game,
+    }
+
+    Side.objects.update_or_create(nhl_side_id=get_gameside_id(date, team),
+                                  defaults=defaults)
 
 
 def get_gameside_id(date, team):
