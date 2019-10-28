@@ -6,6 +6,8 @@ import django
 
 
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, '/home/arkadiy-dev/programming/py/nhl_web_app')
+sys.path.insert(0, '/home/arkadiy-dev/programming/py/nhl_web_app/nhl_web_app')
 os.environ['DJANGO_SETTINGS_MODULE'] = 'nhl_web_app.settings'
 django.setup()
 

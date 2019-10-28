@@ -10,6 +10,8 @@ Welcome to nhl_web_app's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   modules
+
 
 
 Indices and tables
