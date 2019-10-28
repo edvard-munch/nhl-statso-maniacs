@@ -1,6 +1,9 @@
 DOESN'T WORK!!!!!!!!!!!!!!!
 git commit -m $'Commit title\n\nRest of commit message...'
 
+Check python version architecture
+python -c "import struct; print(struct.calcsize('P')*8)"
+
 cd programming/py/nhl_web_app
 source venv/bin/activate
 celery -A nhl_web_app worker -l info -P gevent
@@ -26,7 +29,7 @@ python 3.7 installed in a file with a name python3.6
 git status
 git diff / git diff --cached
 git add .
-git commit -am "MESSAGE"
+git commit -m "MESSAGE" / git commit -am "MESSAGE" (-a stages all diff files)
 git branch
 git branch -a
 git checkout -b 'BRANCH_NAME'
