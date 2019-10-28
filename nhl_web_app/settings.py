@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'crispy_forms',
     'django_extensions',
-    # 'silk',
+    'nhl_web_app',
     'django_celery_results',
     'storages',
     'debug_toolbar',
