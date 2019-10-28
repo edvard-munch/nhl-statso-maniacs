@@ -862,7 +862,7 @@ def get_gamelog(player, *slicer):
     Args:
       player: object of Skater's or Goalie's models
       *slicer: a tuple with an optional argument as a slicer
-          constructor ot slice the desired number of elements      
+          constructor to slice the desired number of elements   
     """
     log = player.gamelog_stats
     if not log:
