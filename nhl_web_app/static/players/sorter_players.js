@@ -61,33 +61,26 @@ function adjustUrl(url, table) {
           tablePagerConf.page = table['nextPage'] - 1;
       }
     }
+
     let pageNumRegex = /page\=(\d{1,2})/gm;
     table['pageNumbersArr'].push(pageNumRegex.exec(url)[1]);
     return url;
 };
 
-
 $("#tab1")
   .tablesorter({
       sortInitialOrder: 'desc',
       sortRestart: true,
-      headers: headers(tab1['headersCount'], tab1['ascOrderCols'], [0], [0, 1, 2]),
+      headers: headers(tab1['headersCount'], tab1['ascOrderCols'], [0], [0, 1, 2, 7, 9]),
       widgets: ['filter'],
       widgetOptions: {
-        filter_functions: {
-          7: {
-            "< 180"      : function(e, n, f, i, $r, c, data) {return n < 180;},
-            "180 to 220" : function(e, n, f, i, $r, c, data) {return n >= 180 && n <= 220;},
-            "> 220"      : function(e, n, f, i, $r, c, data) {return n > 220;},
-          }
-        },
 
         filter_selectSource : {
             ".filter-select" : function() { return null; }
         },
 
       filter_reset: '.js_reset_skaters',
-      filter_external : "#js_external_filter_skaters",
+      filter_external : ".search_skaters",
   }
 })
 
@@ -245,11 +238,13 @@ $('body').on('change', '.js_rookie_filter_gls', function(){
 
 $('.js_reset_skaters').on('click', function(){
   $('.js_rookie_filter_skt').prop('checked', false);
+  $("#tab1").show();
   $("#tab1").data('filter_value', $(this).is(":checked")).trigger('pagerUpdate');
 });
 
 $('.js_reset_goalies').on('click', function(){
   $('.js_rookie_filter_gls').prop('checked', false);
+  $("#tab2").show();
   $("#tab2").data('filter_value', $(this).is(":checked")).trigger('pagerUpdate');
 });
 
@@ -303,3 +298,28 @@ $('body').on('close.bs.alert', '#pls-fav-alert', function(event){
   event.preventDefault();
   $('.js-fav-alert').hide();
 });
+
+
+function sliderFilter(values, label, sliderObject) {
+  $(sliderObject).slider({
+    range: true,
+    min: values[0],
+    max: values[1],
+    values: values,
+    slide: function(event, ui ) {
+      $(label).val(ui.values[0] + " - " + ui.values[1]);
+      // maybe use filterUpdate or something?
+      $('table:visible').trigger('update');
+    }
+  });
+
+  $(label).val($(sliderObject).slider("values", 0) +
+    " - " + $(sliderObject).slider("values", 1));
+
+  // without this line it's just resetting my css style for cursor to a default instead of a pointer
+  $(".ui-slider, .ui-slider-handle").css('cursor', 'pointer');
+
+ };
+
+sliderFilter([18, 42], "#age", "#age-range")
+sliderFilter([160, 280], "#weight", "#weight-range")
