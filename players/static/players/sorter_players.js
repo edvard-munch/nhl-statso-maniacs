@@ -61,33 +61,39 @@ function adjustUrl(url, table) {
           tablePagerConf.page = table['nextPage'] - 1;
       }
     }
+
     let pageNumRegex = /page\=(\d{1,2})/gm;
     table['pageNumbersArr'].push(pageNumRegex.exec(url)[1]);
     return url;
 };
 
 
+// let ranges = {
+//   'ageRanges': [],
+//   'weightRanges': [],
+// }
+
+
+// $("#age").on("click", function() {
+//     console.log($("#age").val())
+// });
+
+// console.log($("#age").val())
+
 $("#tab1")
   .tablesorter({
       sortInitialOrder: 'desc',
       sortRestart: true,
-      headers: headers(tab1['headersCount'], tab1['ascOrderCols'], [0], [0, 1, 2]),
+      headers: headers(tab1['headersCount'], tab1['ascOrderCols'], [0], [0, 1, 2, 7, 9]),
       widgets: ['filter'],
       widgetOptions: {
-        filter_functions: {
-          7: {
-            "< 180"      : function(e, n, f, i, $r, c, data) {return n < 180;},
-            "180 to 220" : function(e, n, f, i, $r, c, data) {return n >= 180 && n <= 220;},
-            "> 220"      : function(e, n, f, i, $r, c, data) {return n > 220;},
-          }
-        },
 
         filter_selectSource : {
             ".filter-select" : function() { return null; }
         },
 
       filter_reset: '.js_reset_skaters',
-      filter_external : "#js_external_filter_skaters",
+      filter_external: ".search_skaters",
   }
 })
 
@@ -98,6 +104,8 @@ $("#tab1")
     savePages: false,
     ajaxUrl: 'http://127.0.0.1:8000/ajax_players?/page={page+1}/size={size}/{sort:col}/{filter:fcol}',
     customAjaxUrl: function(table, url) {
+      let addUrl = '';
+
       urlParts = url.split('?');
       url = urlParts[0] + `/${statType}` + urlParts[1];
 
@@ -105,15 +113,62 @@ $("#tab1")
 
       if ($("#tab1").data('filter_value')) {
             url += '/rookie_filter=' + $("#tab1").data('filter_value');
-            return url
-      };
-            url += '/rookie_filter=';
+
+            $("#age-range").on("slide", function() {
+                // console.log($(this).attr('id'));
+                url += $(this).attr('id');
+                console.log(`AGE RANGE CHANGED: ${url}`);
+                return url;
+            });
+
+            $("#weight-range").on("slide", function() {
+                // console.log($(this).attr('id'));
+                url += $(this).attr('id');
+                console.log(`WEIGHT RANGE CHANGED: ${url}`);
+                return url;
+            });
+
+            console.log(`BEFORE RETURN: ${url}`);     
             return url;
+      } else {
+            url += '/rookie_filter=';
+            // console.log(addUrl);
+
+            $("#age-range").on("slide", function() {
+                // console.log($(this).attr('id'));
+                url += $(this).attr('id');
+                console.log(`AGE RANGE CHANGED: ${url}`);
+                return url
+            });
+
+            $("#weight-range").on("slide", function() {
+                // console.log($(this).attr('id'));
+                url += $(this).attr('id');
+                console.log(`WEIGHT RANGE CHANGED: ${url}`);
+                return url
+            });
+
+            console.log(`BEFORE RETURN: ${url}`); 
+            return url;
+         };
     },
 
     ajaxObject: {
         success: function(data) {
         $(data['fav_alert_div']).prependTo('body');
+        // console.log(data['age_range'])
+        // console.log(data['weight_range'])
+        // ranges['ageRanges'].push(data['age_range'])
+        // ranges['weightRanges'].push(data['weight_range'])
+
+        // if age_range changes:
+        // sliderFilter(data['weight_range'], "#weight", "#weight-range")
+        // if one range filter is used: change other than that one
+        // THINK OF OTHER WAY. YOU ARE REALLY COULD NOT run slidefilter just once,
+        // it needs to be ran when you updated your filter, hence sending AJAX request
+        // SOMEHOW catch what slider been actually slided, use mousehover, keyup or something
+        sliderFilter(data['age_range'], "#age", "#age-range")
+        sliderFilter(data['weight_range'], "#weight", "#weight-range")
 
         togglePager(data['total'], $('.pager-s'), $('#tab1'), $('#tab1_pager_options'));
 
@@ -245,23 +300,25 @@ $('body').on('change', '.js_rookie_filter_gls', function(){
 
 $('.js_reset_skaters').on('click', function(){
   $('.js_rookie_filter_skt').prop('checked', false);
+  $("#tab1").show();
   $("#tab1").data('filter_value', $(this).is(":checked")).trigger('pagerUpdate');
 });
 
 $('.js_reset_goalies').on('click', function(){
   $('.js_rookie_filter_gls').prop('checked', false);
+  $("#tab2").show();
   $("#tab2").data('filter_value', $(this).is(":checked")).trigger('pagerUpdate');
 });
 
 $('body').on('click', '#js_total_stats', function(){
-  statType = 'tot'
+  statType = 'tot';
   $("#tab1").trigger('pagerUpdate');
   $(this).attr('id', 'js_avg_stats');
   $(this).html('See average stats');
 });
 
 $('body').on('click', '#js_avg_stats', function(){
-  statType = 'avg'
+  statType = 'avg';
   $("#tab1").trigger('pagerUpdate');
   $(this).attr('id', 'js_total_stats');
   $(this).html('See total stats');
@@ -303,3 +360,32 @@ $('body').on('close.bs.alert', '#pls-fav-alert', function(event){
   event.preventDefault();
   $('.js-fav-alert').hide();
 });
+
+function sliderFilter(values, label, sliderObject) {
+  $(sliderObject).slider({
+    range: true,
+    min: values[0],
+    max: values[1],
+    values: values,
+    slide: function(event, ui ) {
+      $(label).val(ui.values[0] + " - " + ui.values[1]);
+      // maybe use filterUpdate or something?
+      $('table:visible').trigger('update');
+      // console.log(sliderObject);
+    }
+  });
+
+  $(label).val($(sliderObject).slider("values", 0) +
+    " - " + $(sliderObject).slider("values", 1));
+
+  // without this line it's just resetting my css style for cursor to a default instead of a pointer
+  $(".ui-slider, .ui-slider-handle").css('cursor', 'pointer');
+
+ };
+
+// sliderFilter([18, 42], "#age", "#age-range")
+// sliderFilter([160, 280], "#weight", "#weight-range")
+
+
+// GET RANGE CHANGES, CATH RANGE SLIDES
+// since it's not possible to catch 'input' for readonly
