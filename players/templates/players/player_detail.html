@@ -13,7 +13,6 @@
 
 {% block content %}
 
-
 <!-- FAVORITES MESSAGE -->
 <div id="prof-fav-alert" class="alert alert-primary js-fav-alert test-class" role="alert">
   <span class="js-fav-message"></span>
@@ -85,19 +84,19 @@
 
     <!-- POSITION FORM -->
     <div id="inline-section">
-    <p class="expand-one">
+    <p class="expander">
       <span title='Edit positions'><i class="fas fa-edit"></i></span>
     </p>
     </div>
     <form method="POST" action="{% url 'player_positions' player.slug player.nhl_id %}" class="js-save-positions">
       {% csrf_token %}
-      <p class="content-one">
+      <div class="content">
         {% for key, val in checked_dict.items %}
         <input type="checkbox" name="check" value="{{ key }}" {{ val }}> {{ key }}<br>
         {% endfor %}
         <br><input type="submit" value="Save">
         <input type="reset" value="Cancel">
-      </p>
+      </div>
     </form>
     {% endif %}
 
