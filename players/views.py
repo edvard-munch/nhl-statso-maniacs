@@ -6,6 +6,7 @@ from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
+from django.db.models import Min, Max
 
 from . import utils
 from .forms import NoteForm, PositionsForm
@@ -242,6 +243,22 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
         **utils.filter_select_opts(players, 5, 'nation'),
     }
 
+
+    data['age_range'] = [
+        players.aggregate(Min('age'))['age__min'],
+        players.aggregate(Max('age'))['age__max']
+    ]
+
+    data['weight_range'] = [
+        players.aggregate(Min('weight'))['weight__min'],
+        players.aggregate(Max('weight'))['weight__max']
+    ]
+
+    # IF FILTERING CONTAINS RANGES - GET what range used (check in ARRAY with all range fields)
+    # and pass it to range_applied
+
+    # data['range_applied'] = 
+    print(filtering)
     data['fav_alert_div'] = utils.get_fav_alert_div()
 
     return JsonResponse(data, safe=False)
@@ -479,7 +496,6 @@ def comparison(request):
 def player_compare(request, slug, nhl_id):
     data = {}
     user = request.user
-    print(user)
     if user.is_authenticated:
         data['authenticated'] = True
         player = utils.get_player(nhl_id, slug)
