@@ -11,12 +11,7 @@
 {% endblock styles %}
 
 {% block content %}
-
-<input id="js_external_filter_goalies" class="select" type="select" data-column="2" placeholder="Input goalies's name">
-<input id="js_external_filter_skaters" class="select" type="select" data-column="2" placeholder="Input skater's name"><br>
-<input type="checkbox" class="js_rookie_filter_skt" title="Show only rookies">
-<input type="checkbox" class="js_rookie_filter_gls" title="Show only rookies"> rookie
-<br><br><br>
+  {% include 'players/players_filters.html' %}
 
 <div class="button-table-container">
 <a id="js_avg_stats" class="left-side-button button" href="#">See average stats</a>
@@ -56,6 +51,7 @@
 </tbody>
 </table>
 </div>
+
 {% endblock content %}
 
 {% block scripts %}
@@ -63,7 +59,8 @@
 <!-- Widgets -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/extras/jquery.tablesorter.pager.min.js"></script>
-
+<script src="{% static 'players/_formatter.js' %}"></script>
+<script src="{% static 'players/toggler.js' %}"></script>
 <script src="{% static 'players/sorter_players.js' %}"></script>
 <script src="{% static 'players/ajax_add_fav.js' %}"></script>
 <script src="{% static 'players/ajax_del_fav.js' %}"></script>

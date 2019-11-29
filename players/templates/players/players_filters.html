@@ -1,0 +1,19 @@
+{# FILTERS #}
+<div class="expander">
+  <span title='Filters'><i class="fas fa-filter fa-lg"></i></span>
+</div>
+
+<div class="content">
+{# AGE FILTER #}
+  {% include 'players/players_range_filter.html' with id='age' column='9' %}
+{# WEIGHT FILTER #}
+  {% include 'players/players_range_filter.html' with id='weight' column='7' %}
+</div><br>
+
+<input id="js_external_filter_goalies" class="select" type="select" data-column="2" placeholder="Input goalies's name">
+
+<input id="js_external_filter_skaters" class="select search_skaters" type="select" data-column="2" placeholder="Input skater's name"><br>
+
+<input type="checkbox" class="js_rookie_filter_skt" title="Show only rookies">
+<input type="checkbox" class="js_rookie_filter_gls" title="Show only rookies"> rookie
+<br><br><br>
