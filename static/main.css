@@ -12,6 +12,10 @@ a.curr-day {
   color: red;
 }
 
+.slider-filter {
+  width: 200px;
+}
+
 .center-aligned {
   text-align: center;
 }
@@ -102,11 +106,6 @@ tr:not(:last-child):hover td {
 /* tr:nth-child(even) td {
     background: red;
 } */
-
-/* COLLAPSED PARAGRAPH  */
-p.content-one {
-    display: none;
-}
 
 /* FILTERS */
 .input.tablesorter-filter {
@@ -487,7 +486,7 @@ a.sm-button:active, a.act-button:active {
   top: 0px !important;
 }
 
-a.button, a.sign_button {
+a.button, a.sign_button, p.button {
   width: 250px;
   text-align: center;
   background-color: #30749b;
@@ -716,4 +715,13 @@ a.current-tab:active {
 
 .reset-icon {
   margin-left: 20px;
+}
+
+div.expander, p.expander {
+  cursor: pointer;
+}
+
+/* COLLAPSED PARAGRAPH  */
+div.content {
+  display: none;
 }
