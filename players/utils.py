@@ -11,6 +11,7 @@ from django.template.loader import render_to_string
 from . import models
 from pytz import timezone
 
+RANGE_FIELDS = ['weight', 'age']
 GAMES_PER_PAGE = 6
 TEAM_URL = 'team'
 AUTOSEARCH_CSS_PLAYER = 'player'
@@ -183,7 +184,8 @@ FAV_ALERT_DIV = [
     "<span aria-hidden=start\"true\">&times;</span></button></div>",
 ]
 SORT_COL_REGEX = r'^\w{3}\[(\d{1,2})\]\=(\d)'
-FILT_COL_REGEX = r'^\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})'
+# FILT_COL_REGEX = r'^\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})'
+FILT_COL_REGEX = r'\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})\ ?\-?\ ?([a-zA-Z0-9 ]{1,})?'
 PLAYER_URL = 'player'
 FAVORITE_URL = 'player_favorite'
 TEMPLATES = [
@@ -546,14 +548,18 @@ def apply_filters(players_query, filtering, columns):
     kwargs = {}
     for sub_list in filtering:
         field = columns[int(sub_list[0])]
-        # filter team name
-        if field == columns[4]:
-            kwargs[f'{field}__abbr__icontains'] = sub_list[1]
-        # filter full nation name
-        elif field == columns[5]:
-            kwargs[f'{EXTRA_FIELDS[2]}__icontains'] = sub_list[1]
+        if len(sub_list) > 2:
+            kwargs[f'{field}__range'] = (sub_list[1], sub_list[2])
         else:
-            kwargs[f'{field}__icontains'] = sub_list[1]
+            # filter team name
+            if field == columns[4]:
+                kwargs[f'{field}__abbr__icontains'] = sub_list[1]
+            # filter full nation name
+            elif field == columns[5]:
+                kwargs[f'{EXTRA_FIELDS[2]}__icontains'] = sub_list[1]
+            else:
+                kwargs[f'{field}__icontains'] = sub_list[1]
+
     return players_query.filter(**kwargs)
 
 
@@ -590,6 +596,8 @@ def filter_columns(filt_col):
             array[index].append(matches[1])
             # Removes extra whitespaces between first and last name
             array[index].append(' '.join(matches[2].split()))
+            if matches[3]:
+                array[index].append(' '.join(matches[3].split()))
 
     return array
 
