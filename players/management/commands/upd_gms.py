@@ -104,8 +104,8 @@ class Command(BaseCommand):
                         home_skaters = []
                         home_goalies = []
 
-                        away_team = team_objects[0].abbr
-                        home_team = team_objects[1].abbr
+                        away_team = team_objects[0]
+                        home_team = team_objects[1]
 
                         iterate_players(gameday_obj, rosters['away']['players'], away_skaters,
                                         away_goalies, home_team, away_goalies_count)
@@ -173,6 +173,9 @@ def add_player(value, player, skaters_list, goalies_list, opponent, goalies_coun
 def add_values(game_stats, jersey_number, opponent):
     game_stats['jerseyNumber'] = jersey_number
     game_stats['opponent'] = opponent
+    game_stats['team'] = {}
+    game_stats['team']['name'] = team.name
+    game_stats['team']['abbr'] = team.abbr
 
 
 def save_game_side(team, side, game, date):
