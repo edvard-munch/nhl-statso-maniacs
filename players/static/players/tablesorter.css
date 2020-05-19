@@ -1,3 +1,7 @@
+ .tablesorter-default .tablesorter-filter-row {
+ 	display: none;
+}
+
 .tablesorter-default .header,
 .tablesorter-default .tablesorter-header {
 
@@ -33,6 +37,23 @@
 	cursor: default;
 	padding: 4px
 }
+
+/*tr.tablesorter-filter-row input.disabled {
+    display: none;
+}*/
+
+/*.tablesorter-default .tablesorter-filter-row td {
+	background-color: green;
+	border-bottom: #ccc 1px solid;
+	line-height: normal;
+	text-align: center;
+	-webkit-transition: line-height .1s ease;
+	-moz-transition: line-height .1s ease;
+	-o-transition: line-height .1s ease;
+	transition: line-height .1s ease
+}*/
+
+
 
 /* .tablesorter-default tfoot .tablesorter-headerAsc,
 .tablesorter-default tfoot .tablesorter-headerDesc,
@@ -95,25 +116,6 @@
 	background-color: #fff
 } */
 
-/* .tablesorter-default .tablesorter-filter-row {
-	background-color: #eee
-}
-
-.tablesorter-default .tablesorter-filter-row td {
-	background-color: #eee;
-	border-bottom: #ccc 1px solid;
-	line-height: normal;
-	text-align: center;
-	-webkit-transition: line-height .1s ease;
-	-moz-transition: line-height .1s ease;
-	-o-transition: line-height .1s ease;
-	transition: line-height .1s ease
-}
-
-.tablesorter-default .tablesorter-filter-row .disabled {
-	opacity: .5;
-	cursor: not-allowed
-} */
 
 /* .tablesorter-default .tablesorter-filter-row.hideme td {
 	padding: 2px;
