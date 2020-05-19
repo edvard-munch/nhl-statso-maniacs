@@ -155,7 +155,7 @@ class Skater(Player):
     sh_points = models.IntegerField()
     sh_points_avg = models.FloatField()
     time_on_ice = models.CharField(max_length=128)
-    time_on_ice_pp = models.CharField(max_length=128,)
+    time_on_ice_pp = models.CharField(max_length=128)
     time_on_ice_sh = models.CharField(max_length=128)
     fw_stats = JSONField(default=dict, blank=True)
     sbs_stats_avg = JSONField(default=dict, blank=True)
