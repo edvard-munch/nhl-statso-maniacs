@@ -18,8 +18,8 @@ $("#js_goalies_log_table").data['pageSizesArr'] = [];
 $("#js_goalies_log_table").data['pageNumbersArr'] = [];
 
 js_goalies_log_table['statType'] = 'gls_log';
-js_skaters_log_table['ascOrderCols'] = [0, 1, 3];
-js_skaters_log_table['headersCount'] = $("#js_goalies_log_table > thead > tr:first > th").length;
+js_goalies_log_table['ascOrderCols'] = [0, 1, 3];
+js_goalies_log_table['headersCount'] = $("#js_goalies_log_table > thead > tr:first > th").length;
 
 js_skaters_log_table['statType'] = 'skt_log';
 js_skaters_log_table['ascOrderCols'] = [0, 1, 3];
@@ -120,6 +120,8 @@ $('table').on("sortEnd", function(){
     $(this).trigger('pageSet', 1);
 });
 
+// console.log(js_skaters_log_table['headersCount'])
+
 // SKATERS GAMELOG TABLESORTER
 function skatersGamelog() {
 $("#js_skaters_log_table")
@@ -153,7 +155,7 @@ $("#js_skaters_log_table")
 });
 };
 
-// SKATERS TOTALS TABLESORTER
+// SKATERS TOTALS and AVERAGES TABLESORTER
 function skatersTotals() {
 $("#js_skaters_total_table")
   .tablesorter({
