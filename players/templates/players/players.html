@@ -8,10 +8,12 @@
 {% block styles %}
   <link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
   <link rel="stylesheet" href="https://mottie.github.io/tablesorter/css/filter.formatter.css">
+  
 {% endblock styles %}
 
 {% block content %}
-  {% include 'players/players_filters.html' %}
+
+{% include 'players/players_filters.html' %}
 
 <div class="button-table-container">
 <a id="js_avg_stats" class="left-side-button button" href="#">See average stats</a>
@@ -20,14 +22,14 @@
 <button type="button" class="reset js_reset_skaters">Reset filters</button>
 <button type="button" class="reset js_reset_goalies">Reset filters</button>
 
-<table id="tab1" class="tablesorter sortable">
+<table id="skaters_table" class="tablesorter sortable">
   <thead>
     {% include 'players/partial_skaters_header.html' %}
   </thead>
 
 <!-- PAGER -->
 <tfoot>
-  {% include 'players/partial_pager.html' with id='tab1_pager_options' pager_class='pager-s' colspan='27'%}
+  {% include 'players/partial_pager.html' with id='skaters_table_pager_options' pager_class='pager-s' colspan='27'%}
 </tfoot>
 
 <tbody>
@@ -36,14 +38,14 @@
 </table>
 
 <!-- GOALIES -->
-<table id="tab2" class="tablesorter sortable">
+<table id="goalies_table" class="tablesorter sortable">
 <thead>
   {% include 'players/partial_goalies_header.html' %}
 </thead>
 
 <!-- PAGER -->
 <tfoot>
-  {% include 'players/partial_pager.html' with id="tab2_pager_options" pager_class='pager-g' colspan='20'%}
+  {% include 'players/partial_pager.html' with id="goalies_table_pager_options" pager_class='pager-g' colspan='20'%}
 </tfoot>
 
 <tbody>
