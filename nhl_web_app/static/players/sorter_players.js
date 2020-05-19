@@ -31,6 +31,9 @@ function headers(headersCount, ascOrderCols, noSorterCols, noFilterCols) {
         if (ascOrderCols.includes(column)) {
             headers[column]['sortInitialOrder'] = 'asc'
         };
+        // if (column == 4) {
+        //     headers[column]['sorter'] = 'checkbox'
+        // }
     };
     return headers;
 };
@@ -107,6 +110,8 @@ $("#tab1")
     ajaxObject: {
         success: function(data) {
         $(data['fav_alert_div']).prependTo('body');
+        // console.log(data['teams']);
+        $('#teams').html(data['teams']);
 
         togglePager(data['total'], $('.pager-s'), $('#tab1'), $('#tab1_pager_options'));
 
