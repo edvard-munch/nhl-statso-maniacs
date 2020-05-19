@@ -61,7 +61,7 @@
   </thead>
 
   <!-- PAGER -->
-  {% if favorites_s|length > table_page_size %}
+  {% if numb_of_skaters > table_page_size %}
   <tfoot>
       {% include 'players/partial_pager.html' with id='skaters_totals_options' pager_class='pager-skt-tot' colspan='27' options=skaters_options %}
   </tfoot>
@@ -106,7 +106,7 @@
     {% include 'players/partial_goalies_header.html' %}
   </thead>
 
-{% if favorites_g|length > table_page_size %}
+{% if numb_of_goalies > table_page_size %}
   <tfoot>
     <!-- PAGER -->
       {% include 'players/partial_pager.html' with id='goalies_totals_options' pager_class='pager-gls-tot' colspan='20' options=goalies_options %}
