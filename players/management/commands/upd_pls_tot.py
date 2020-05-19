@@ -31,6 +31,7 @@ class Command(BaseCommand):
         team_name = get_data(data, ['currentTeam', 'name'])
 
         defaults = {
+            'first_name': get_data(data, ['firstName']),
             'height': get_data(data, ['height']),
             'position_abbr': get_data(data, ['primaryPosition', 'abbreviation']),
             'position_name': get_data(data, ['primaryPosition', 'name']),
