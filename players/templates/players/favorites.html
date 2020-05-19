@@ -43,11 +43,10 @@
   </thead>
 
   <!-- PAGER -->
-  {% if skaters_games|length > table_page_size %}
     <tfoot>
         {% include 'players/partial_pager.html' with id='skaters_games_options' pager_class='pager-skt-log' colspan='18' options=skaters_games_options %}
     </tfoot>
-  {% endif %}
+
     <tbody>
         <!-- AJAX -->
     </tbody>
@@ -66,6 +65,7 @@
       {% include 'players/partial_pager.html' with id='skaters_totals_options' pager_class='pager-skt-tot' colspan='27' options=skaters_options %}
   </tfoot>
   {% endif %}
+
 <tbody>
     <!-- AJAX -->
 </tbody>
@@ -88,11 +88,9 @@
   </thead>
 
 <!-- PAGER -->
-{% if goalies_games|length > table_page_size %}
   <tfoot>
       {% include 'players/partial_pager.html' with id='goalies_games_options' pager_class='pager-gls-log' colspan='11' options=goalies_games_options %}
   </tfoot>
-{% endif %}
 
   <tbody>
     <!-- AJAX -->
@@ -112,6 +110,7 @@
       {% include 'players/partial_pager.html' with id='goalies_totals_options' pager_class='pager-gls-tot' colspan='20' options=goalies_options %}
   </tfoot>
   {% endif %}
+
 <tbody>
   <!-- AJAX -->
 </tbody>
