@@ -93,8 +93,11 @@ class Player(models.Model):
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
-        if is_new:
+        no_slug = not self.slug
+
+        if is_new or no_slug:
             self.slug = slugify(self.name)
+
         super(Player, self).save(*args, **kwargs)
 
     class Meta:
