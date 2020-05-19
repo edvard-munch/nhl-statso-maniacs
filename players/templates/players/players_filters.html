@@ -10,6 +10,12 @@
   {% include 'players/players_range_filter.html' with id='height' column='6' %}
 {# WEIGHT FILTER #}
   {% include 'players/players_range_filter.html' with id='weight' column='7' %}
+{# TEAMS FILTER #}
+  {% include 'players/players_checkboxradio_filter.html' with id='teams' %}
+{# NATIONS FILTER #}
+  {% include 'players/players_checkboxradio_filter.html' with id='nations' %}
+{# POSITIONS FILTER #}
+  {% include 'players/players_checkboxradio_filter.html' with id='positions' %}  
 </div><br>
 
 <input id="js_external_filter_goalies" class="select search_goalies" type="select" data-column="2" placeholder="Input goalies's name">
