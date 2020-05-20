@@ -137,9 +137,7 @@ def favorites(request):
 
         context = {
             'favorites_g': fav_goalies,
-            'goalies_games': goalies_games[:200],
             'favorites_s': fav_skaters,
-            'skaters_games': skaters_games[:200],
             'numb_of_goalies': numb_of_goalies,
             'numb_of_skaters': numb_of_skaters,
             'table_page_size': utils.PAGE_SIZE_2,
