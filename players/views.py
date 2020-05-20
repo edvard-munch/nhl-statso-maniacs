@@ -164,7 +164,7 @@ def ajax_fav_players_gamelog(request, stat_type, page, size, sort_col, filt_col)
         all_games = utils.favorite_players_gamelog(fav_players)
 
         if utils.ALL_ROWS in size:
-            size = all_games.count()
+            size = len(all_games)
         else:
             size = utils.parse_url_param(size)
 
