@@ -578,6 +578,20 @@ def apply_filters(players_query, filtering, columns):
     return players_query.filter(**kwargs)
 
 
+def sort_height_list(height_list):
+    dict_height = {}
+    for value in height_list:
+        match = re.search(HEIGHT_REGEX, value)
+
+        # to sort None and empty string values with integers
+        if match:
+            dict_height[value] = (bool(value), int(match[1]), int(match[2]))
+        else:
+            dict_height[value] = (bool(value), value, value)
+
+    sorted_by_value = sorted(dict_height.items(), key=lambda item: item[1])
+
+    return [element[0] for element in sorted_by_value]
 def filter_select_opts(players_query, col_number, field_name):
     uniques = list(players_query.values_list(field_name, flat=True).distinct())
     sorted_opts = sorted(uniques, key=lambda x: (x is None, x))
