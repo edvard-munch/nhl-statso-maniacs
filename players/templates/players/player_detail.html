@@ -242,7 +242,7 @@
     {% for game in last_gms %}
     <tr>
       <td>{{ game.format_date }}</td>
-      <td>{{ game.opponent }}</td>
+      <td>{{ game.opponent.abbr }}</td>
       <td>{{ game.decision }}</td>
       <td>{{ game.timeOnIce }}</td>
       <td>{{ game.goalsAgainst }}</td>
@@ -439,7 +439,7 @@
     {% for game in last_gms %}
     <tr>
       <td>{{ game.format_date }}</td>
-      <td>{{ game.opponent }}</td>
+      <td>{{ game.opponent.abbr }}</td>
       <td>{{ game.goals }}</td>
       <td>{{ game.assists }}</td>
       <td>{{ game.plusMinus }}</td>
