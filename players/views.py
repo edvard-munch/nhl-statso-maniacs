@@ -222,9 +222,9 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     filtering = utils.filter_columns(filt_col)
     if filtering:
         players = utils.apply_filters(players, filtering, columns)
+    # if utils.rookie_filter(rookie_filt):
+    #     players = players.filter(rookie=True)
 
-    if utils.rookie_filter(rookie_filt):
-        players = players.filter(rookie=True)
 
     sorting = utils.sorting_columns(sort_col)
     one_page_slice = utils.sort_table(request, stat_type, sorting, players, columns)[start:end]
