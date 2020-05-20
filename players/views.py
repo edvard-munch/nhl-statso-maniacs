@@ -393,9 +393,16 @@ def player_detail(request, slug, nhl_id):
 
 def player_gamelog(request, slug, nhl_id):
     player = utils.get_player(nhl_id, slug)
+    gamelog = utils.get_gamelog(player)
+    options = utils.PAGE_SIZE_OPTIONS
+    gamelog_size = len(gamelog)
+    gamelog_options = [option for option in options if option < gamelog_size]
+
     context = {
         'player': player,
-        'gamelog': utils.get_gamelog(player),
+        'gamelog': gamelog,
+        'gamelog_options': gamelog_options,
+        'pager': gamelog_size > utils.PAGE_SIZE_2,
       }
 
     return render(request, 'players/player_gamelog.html', context)
