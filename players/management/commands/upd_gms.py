@@ -144,6 +144,7 @@ def date_convert(date):
 def add_player(value, player, skaters_list, goalies_list, opponent, goalies_count):
     try:
         game_stats = value['stats']['skaterStats']
+        game_stats['points'] = game_stats['goals'] + game_stats['assists']
         game_stats['powerPlayPoints'] = game_stats['powerPlayGoals'] + game_stats['powerPlayAssists']
         game_stats['shortHandedPoints'] = game_stats['shortHandedGoals'] + game_stats['shortHandedAssists']
         add_values(game_stats, value['jerseyNumber'], opponent)
