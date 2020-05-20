@@ -262,6 +262,9 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     return JsonResponse(data, safe=False)
 
 
+def get_range(players, column):
+    return (players.aggregate(Min(f'{column}'))[f'{column}__min'],
+            players.aggregate(Max(f'{column}'))[f'{column}__max'])
 def search(request):
     if 'q' in request.GET and request.GET['q']:
         query = request.GET['q'].strip()
