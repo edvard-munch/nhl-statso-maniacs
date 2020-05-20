@@ -262,6 +262,25 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     return JsonResponse(data, safe=False)
 
 
+def checkbox(array, checkbox_class, **kwargs):
+    html_string = ''
+
+    for index, option in enumerate(array):
+        try:
+            if kwargs['checked']:
+                if option[0] in kwargs['checked']:
+                    kwargs['check_this'] = True
+                else:
+                    kwargs['check_this'] = False
+        except KeyError:
+            kwargs['check_this'] = False
+
+        html_string += utils.checkbox_option(option, checkbox_class, **kwargs)
+
+        if (index+1) % 8 == 0:
+            html_string += "<br>"
+
+    return html_string
 def get_range(players, column):
     return (players.aggregate(Min(f'{column}'))[f'{column}__min'],
             players.aggregate(Max(f'{column}'))[f'{column}__max'])

@@ -208,6 +208,21 @@ SUBTRACT_PERIOD = 1
 TIMEZONE = 'US/Pacific'
 DATE_TEMPLATE = '%Y-%m-%d'
 
+def checkbox_option(option, checkbox_class, **kwargs):
+    classes = TOOLTIP_CSS_CLASSES
+
+    if kwargs['tip']:
+        start = f'<label for=\"{option[0]}\" class=\"{checkbox_class} {classes[0]}\">{option[0]} <span class=\"{classes[1]}\">{option[1]}</span></label>'
+    else:
+        start = f'<label for=\"{option[0]}\" class=\"{checkbox_class} {classes[0]}\">{option[0]} </label>'
+
+    if kwargs['check_this']:
+        end = f'<input type=\"checkbox\" class=\"{checkbox_class} checkbox_button\" value=\"{option[0]}\" id=\"{option[0]}\" checked> &nbsp'
+    else:
+        end = f'<input type=\"checkbox\" class=\"{checkbox_class} checkbox_button\" value=\"{option[0]}\" id=\"{option[0]}\"> &nbsp'
+
+    return start + end
+
 
 def get_us_pacific_date():
     pacific_datetime = datetime.datetime.now(timezone(TIMEZONE))
