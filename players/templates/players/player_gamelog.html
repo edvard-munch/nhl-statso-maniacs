@@ -43,7 +43,9 @@
                     {% for game in gamelog %}
                       <tr>
                         <td>{{ game.format_date }}</td>
-                        <td>{{ game.opponent }}</td>
+                        <td class="cell-with-tooltip">{{ game.opponent.abbr }}
+                           <span class="css-tooltip">{{ game.opponent.name }}</span>
+                        </td>
                         <td>{{ game.decision }}</td>
                         <td>{{ game.timeOnIce }}</td>
                         <td>{{ game.goalsAgainst }}</td>
@@ -88,7 +90,9 @@
                       {% for game in gamelog %}
                       <tr>
                         <td>{{ game.format_date }}</td>
-                        <td>{{ game.opponent }}</td>
+                        <td class="cell-with-tooltip">{{ game.opponent.abbr }}
+                           <span class="css-tooltip">{{ game.opponent.name }}</span>
+                        </td>
                         <td>{{ game.goals }}</td>
                         <td>{{ game.assists }}</td>
                         <td>{{ game.plusMinus }}</td>
