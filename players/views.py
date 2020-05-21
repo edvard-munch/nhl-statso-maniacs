@@ -235,11 +235,6 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     total_rows = players.count()
     data = utils.process_json(request, columns, domain, players_json, total_rows, start)
 
-    data['filter_select'] = {
-        **utils.filter_select_opts(players, 3, 'position_abbr'),
-        **utils.filter_select_opts(players, 4, 'team__abbr'),
-        **utils.filter_select_opts(players, 5, 'nation'),
-    }
 
 
     data['age_range'] = [
