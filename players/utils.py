@@ -734,8 +734,9 @@ def favorite_players_gamelog(fav_players):
         a data for one NHL game of a player
     """
     games_list = []
+
     for player in fav_players.iterator():
-        for game in player.gamelog_stats:
+        for _, game in player.gamelog_stats.items():
             games_list.append(game)
 
     return sorted(games_list, reverse=True,
