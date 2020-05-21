@@ -503,6 +503,8 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
                 tip = get_cell_value(game, column, 'name')
                 cell_value = make_tooltip(value, tip)
 
+            if column == COLUMNS_GOALIES_GAMELOG[7]:
+                cell_value = "%.3f" % cell_value
             try:
                 data["rows"][index].append(cell_value)
             except IndexError:
