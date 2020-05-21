@@ -622,11 +622,6 @@ def sort_height_list(height_list):
     sorted_by_value = sorted(dict_height.items(), key=lambda item: item[1])
 
     return [element[0] for element in sorted_by_value]
-def filter_select_opts(players_query, col_number, field_name):
-    uniques = list(players_query.values_list(field_name, flat=True).distinct())
-    sorted_opts = sorted(uniques, key=lambda x: (x is None, x))
-    value = [el if el is not None else '—' for el in sorted_opts]
-    return {col_number: value}
 
 
 def sorting_columns(sort_col):
