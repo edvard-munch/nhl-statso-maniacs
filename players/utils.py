@@ -5,12 +5,13 @@ import datetime
 import re
 import os
 import functools
-from itertools import chain
+from itertools import chain, zip_longest
 from django.template.loader import render_to_string
 
 from . import models
 from pytz import timezone
 
+EMPTY_LIST = []
 RANGE_FIELDS = ['weight', 'age']
 GAMES_PER_PAGE = 6
 TEAM_URL = 'team'
@@ -606,6 +607,25 @@ def apply_filters(request, players_query, filtering, columns):
                 kwargs[f'{field}__icontains'] = sub_list[1]
 
     return players_query.filter(**kwargs)
+def filter_checkbox_opts(players_query, field_names):
+    sorted_opts = []
+    for field in field_names:
+        sorted_opts.append(sort_list(get_uniques(players_query, field)))
+
+    if len(sorted_opts) > 1:
+        sorted_opts = zip(sorted_opts[0], sorted_opts[1])
+    else:
+        sorted_opts = zip_longest(sorted_opts[0], EMPTY_LIST)
+
+    return [el if el is not None else '—' for el in sorted_opts]
+
+
+def get_uniques(queryset, field):
+    return list(queryset.values_list(field, flat=True).distinct())
+
+
+def sort_list(array):
+    return sorted(array, key=lambda x: (x is None, x))
 
 
 def sort_height_list(height_list):
