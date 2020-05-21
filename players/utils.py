@@ -740,7 +740,7 @@ def favorite_players_gamelog(fav_players):
             games_list.append(game)
 
     return sorted(games_list, reverse=True,
-                  key=lambda x: (MONTHS_MAP[x['date'][:3]], int(x['date'][4:])))
+                  key=lambda x: (MONTHS_MAP[x['format_date'][:3]], int(x['format_date'][4:])))
 
 
 def get_checked_dict(player, positions_extra):
