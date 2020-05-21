@@ -362,6 +362,8 @@ def sort_gamelog(sorting, games, columns):
     return games
 
 
+# REWRITE FIRST TWO IFS
+# ALSO INVESTIGATE WHY TOI SORTING WORKS in players
 def get_sorting_value(game, column):
     value = get_cell_value(game, column)
     if 'date' in column:
@@ -369,6 +371,11 @@ def get_sorting_value(game, column):
 
     if 'name' in column:
         return value.split()[1]
+
+    # TOI sorting
+    if column in COLUMNS_SKATERS_GAMELOG[15:17]:
+        min_, sec = value.split(':')
+        return int(min_*60) + int(sec)
 
     return value
 
