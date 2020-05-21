@@ -186,6 +186,7 @@ FAV_ALERT_DIV = [
 SORT_COL_REGEX = r'^\w{3}\[(\d{1,2})\]\=(\d)'
 # FILT_COL_REGEX = r'^\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})'
 FILT_COL_REGEX = r'\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})\ ?\-?\ ?([a-zA-Z0-9 ]{1,})?'
+HEIGHT_REGEX = r"(\d)\' (\d{1,2})\""
 PLAYER_URL = 'player'
 FAVORITE_URL = 'player_favorite'
 TEMPLATES = [
