@@ -321,7 +321,9 @@ def process_json(request, columns, domain, json, total_rows, start):
 
 
 def measurements_format_is_euro(user):
-    return user.profile.measurements_format == MEASUREMENTS_FORMATS[1]
+    if user.is_authenticated:
+        return user.profile.measurements_format == MEASUREMENTS_FORMATS[1]
+    return False
 
 
 def adjust_measurements(player):
