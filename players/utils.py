@@ -505,10 +505,8 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
 
             if column == COLUMNS_GOALIES_GAMELOG[7]:
                 cell_value = "%.3f" % cell_value
-            try:
-                data["rows"][index].append(cell_value)
-            except IndexError:
-                data["rows"][index].append(cell_value)
+
+            data["rows"][index].append(cell_value)
 
     return data
 
