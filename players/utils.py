@@ -164,6 +164,12 @@ EXTRA_FIELDS = [
     'nation',
     'weight_kg',
 ]
+
+EURO_MEASUREMENTS = {
+    'height': 'height_cm',
+    'weight': 'weight_kg',
+}
+
 TOOLTIP_CSS_CLASSES = [
     'cell-with-tooltip',
     'css-tooltip',
@@ -574,12 +580,21 @@ def sort_table(request, stat_type, sorting, players_query, columns):
     return players_query.order_by(*sorting_args)
 
 
-def apply_filters(players_query, filtering, columns):
+def apply_filters(request, players_query, filtering, columns):
     kwargs = {}
+    user = request.user
     for sub_list in filtering:
         field = columns[int(sub_list[0])]
         if len(sub_list) > 2:
-            kwargs[f'{field}__range'] = (sub_list[1], sub_list[2])
+            if user.is_authenticated:
+                if measurements_format_is_euro(user):  
+                    if field == columns[6] or field == columns[7]:
+                        kwargs[f'{EURO_MEASUREMENTS[field]}__range'] = (sub_list[1], sub_list[2])
+                    else:
+                        kwargs[f'{field}__range'] = (sub_list[1], sub_list[2])
+
+                else:
+                    kwargs[f'{field}__range'] = (sub_list[1], sub_list[2])
         else:
             # filter team name
             if field == columns[4]:
