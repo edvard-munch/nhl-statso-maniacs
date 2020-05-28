@@ -188,7 +188,7 @@ def ajax_fav_players_gamelog(request, stat_type, page, size, sort_col, filt_col)
         return JsonResponse(data, safe=False)
 
 
-def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt, fav_filt=None):
+def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt, checkbox_filt, fav_filt=None):
     page = utils.parse_url_param(page)
     user = request.user
     favorites = False
@@ -228,6 +228,11 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     start = size*(page - 1)
     end = start + size
 
+    # ALL CHECKBOX OPTIONS BEFORE STANDARDFILTERING
+    positions_before_position_filt = utils.filter_checkbox_opts(players, ('position_abbr', 'position_name'))
+    teams_before_team_filt = utils.filter_checkbox_opts(players, ('team__abbr', 'team__name'))
+    nations_before_nation_filt = utils.filter_checkbox_opts(players, ('nation',))
+
     filtering = utils.filter_columns(filt_col)
     if filtering:
         players = utils.apply_filters(players, filtering, columns)
@@ -235,9 +240,26 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
         if adjust_range:
             pass
             # adjust range call
+
     # if utils.rookie_filter(rookie_filt):
     #     players = players.filter(rookie=True)
 
+    # ALL CHECKBOX OPTIONS JUST AFTER STANDARD FILTERING
+    all_positions = utils.filter_checkbox_opts(players, ('position_abbr', 'position_name'))
+    all_teams = utils.filter_checkbox_opts(players, ('team__abbr', 'team__name'))
+    all_nations = utils.filter_checkbox_opts(players, ('nation',))
+
+    filtered_teams = utils.checkbox_filter(checkbox_filt, 'teams')
+    if filtered_teams:
+        players = players.filter(team__abbr__in=filtered_teams)  # .prefetch_related()
+
+    filtered_positions = utils.checkbox_filter(checkbox_filt, 'positions')
+    if filtered_positions:
+        players = players.filter(position_abbr__in=filtered_positions)  # .prefetch_related()
+
+    filtered_nations = utils.checkbox_filter(checkbox_filt, 'nations')
+    if filtered_nations:
+        players = players.filter(nation__in=filtered_nations)  # .prefetch_related()
 
     sorting = utils.sorting_columns(sort_col)
     one_page_slice = utils.sort_table(request, stat_type, sorting, players, columns)[start:end]
@@ -259,6 +281,41 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
 
     data['fav_alert_div'] = utils.get_fav_alert_div()
 
+    # CHECK AND OPTIMIZE ALL OF THE IF BRANCHES HERE
+
+    # GET HTML for checkbox OPTIONS after standard filtering have been applied or not
+    data['all_teams'] = checkbox(all_teams, 'team_checkboxradio_skt', tip=True)
+    data['all_nations'] = checkbox(all_nations, 'nation_checkboxradio_skt', tip=False)
+    data['all_positions'] = checkbox(all_positions, 'position_checkboxradio_skt', tip=True)
+
+        
+    # All below is for getting HTML for checkbox OPTIONS if  STANDARD of CHECKBOX filtering have been applied 
+
+    # remove or make not active teams that doesn't have players for current filter set besides checkbox filters
+    if filtering:
+        data['all_teams'] = checkbox(all_teams, 'team_checkboxradio_skt', tip=True)
+        data['all_nations'] = checkbox(all_nations, 'nation_checkboxradio_skt', tip=False)
+        data['all_positions'] = checkbox(all_positions, 'position_checkboxradio_skt', tip=True)
+
+# IF CHECKED
+    if(utils.checkbox_filter(checkbox_filt, 'teams')):
+        data['all_teams'] = checkbox(all_teams, 'team_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'teams'), tip=True)
+        # remove or make not active teams that doesn't have players for current filter set besides checkbox filters
+        if filtering:
+        # make a special players list without filtering by team and make a teams list from it
+        # it works fine before check any team, then it leaves only currrently checked team
+        # because there really a filtering and when you also check a team, it's obviously leaves only this team as an option
+            data['all_teams'] = checkbox(teams_before_team_filt, 'team_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'teams'), tip=True)
+
+    if(utils.checkbox_filter(checkbox_filt, 'positions')):
+        data['all_positions'] = checkbox(all_positions, 'position_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'positions'), tip=True)
+        if filtering:
+            data['all_positions'] = checkbox(positions_before_position_filt, 'position_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'positions'), tip=True)
+
+    if(utils.checkbox_filter(checkbox_filt, 'nations')):
+        data['all_nations'] = checkbox(all_nations, 'nation_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'nations'), tip=False)
+        if filtering:
+            data['all_nations'] = checkbox(nations_before_nation_filt, 'nation_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'nations'), tip=False)
 
     uniques_height_cm = utils.get_uniques(players, 'height_cm')
     uniques_height_cm = utils.sort_list(uniques_height_cm)
@@ -298,9 +355,13 @@ def checkbox(array, checkbox_class, **kwargs):
             html_string += "<br>"
 
     return html_string
+
+
 def get_range(players, column):
     return (players.aggregate(Min(f'{column}'))[f'{column}__min'],
             players.aggregate(Max(f'{column}'))[f'{column}__max'])
+
+
 def search(request):
     if 'q' in request.GET and request.GET['q']:
         query = request.GET['q'].strip()
@@ -401,7 +462,6 @@ def player_detail(request, slug, nhl_id):
                 'title': 'Career',
                 'total': player.career_stats,
             },
-
         ],
 
         'last_gms': utils.get_gamelog(player, slicer),
@@ -426,7 +486,6 @@ def player_detail(request, slug, nhl_id):
     context = {**context, **utils.add_comp_info(request, player),
                **utils.add_fav_info(request, player)}
 
-       
     return render(request, 'players/player_detail.html', context)
 
 
