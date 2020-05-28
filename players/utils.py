@@ -196,6 +196,7 @@ FAV_ALERT_DIV = [
     "data-dismiss=\"alert\" aria-label=\"Close\">",
     "<span aria-hidden=start\"true\">&times;</span></button></div>",
 ]
+
 SORT_COL_REGEX = r'^\w{3}\[(\d{1,2})\]\=(\d)'
 # FILT_COL_REGEX = r'^\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})'
 FILT_COL_REGEX = r'\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})\ ?\-?\ ?([a-zA-Z0-9 ]{1,})?'
@@ -269,6 +270,7 @@ def get_default_date():
     return date_now.replace(year=date_now.year - SUBTRACT_PERIOD)
 
 
+# CHANGE NAME OF a json argument
 def process_json(request, columns, domain, json, total_rows, start):
     user = request.user
     data = {}
@@ -326,6 +328,7 @@ def process_json(request, columns, domain, json, total_rows, start):
 
             if column == COLUMNS_GOALIES[4]:
                 player['fields'][column] = "%.3f" % player['fields'][column] 
+
             if player['fields'][column] is None:
                 player['fields'][column] = '—'
 
@@ -395,7 +398,9 @@ def get_sorting_value(game, column):
 
 
 def get_cell_value(game, column, *args):
+
     keys = column.split('.')
+
     if args:
         return game[keys[0]][args[0]]
 
@@ -511,9 +516,13 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
             if column == COLUMNS_SKATERS_GAMELOG[0]:
                 cell_value = make_name_link(player_name, link)
 
+            # team_abbr, opponent.id??? it is proba
             if column in (COLUMNS_SKATERS_GAMELOG[1], COLUMNS_SKATERS_GAMELOG[3]):
                 value = cell_value
+                # what is 'name'?
+                # was needed with fields like team.name and opponent.name 
                 tip = get_cell_value(game, column, 'name')
+                # tip = get_cell_value(game, column)
                 cell_value = make_tooltip(value, tip)
 
             if column == COLUMNS_GOALIES_GAMELOG[7]:
@@ -584,6 +593,7 @@ def sort_table(request, stat_type, sorting, players_query, columns):
         sorting_args.append('pk')
     else:
         sorting_args = DEFAULT_SORTING[stat_type]
+
     return players_query.order_by(*sorting_args)
 
 
@@ -616,6 +626,7 @@ def apply_filters(request, players_query, filtering, columns):
             adjust_range = True
 
     return (players_query.filter(**kwargs), adjust_range)
+
 
 def filter_checkbox_opts(players_query, field_names):
     sorted_opts = []
@@ -670,7 +681,6 @@ def sorting_columns(sort_col):
 
 def filter_columns(filt_col):
     columns = filt_col.split('&')
-
     array = []
     for index, column in enumerate(columns):
         matches = re.search(FILT_COL_REGEX, column)
@@ -977,7 +987,6 @@ def get_gamelog(player, *slicer):
     sorted_log = [log[key] for key in sorted(list(log), reverse=True)]
     if not slicer:
         return sorted_log
-
     return sorted_log[slicer[0]]
 
 
