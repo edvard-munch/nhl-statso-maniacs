@@ -1,3 +1,7 @@
+// http://127.0.0.1:8000/ajax_players/tot/page%3D1/size%3D25/col/fcol/rookie_filter%3D/teams_filter%3DBOS/
+// // why = got replaced with  %3D in case od BOS?
+
+// http://127.0.0.1:8000/ajax_players/tot/page=1/size=25/col/fcol/rookie_filter=/teams_filter=CAR
 
 let statType = 'tot';
 $(".js_rookie_filter_gls").hide();
@@ -20,7 +24,6 @@ goalies_table['allCols'] = [...Array(goalies_table['headersCount']).keys()];
 
 function headers(headersCount, ascOrderCols, noSorterCols, noFilterCols) {
     let headers = {};
-
     for (let column = 0; column < headersCount; column++) {
         headers[column] = {}
         if (noSorterCols.includes(column)) {
@@ -38,7 +41,7 @@ function headers(headersCount, ascOrderCols, noSorterCols, noFilterCols) {
 
 function adjustUrl(url, table) {
   tablePagerConf = table[0].config.pager;
-  table = table.data
+  table = table.data()
   table['currentPageSize'] = tablePagerConf.size;
 
   if (table['pageSizesArr'].length > 0){
@@ -121,6 +124,7 @@ $("#skaters_table")
       sortInitialOrder: 'desc',
       sortRestart: true,
       headers: headers(skaters_table['headersCount'], skaters_table['ascOrderCols'], [0], []),
+
       widgets: ['filter'],
       widgetOptions: {
 
@@ -145,10 +149,10 @@ $("#skaters_table")
       urlParts = url.split('?');
       url = urlParts[0] + `/${statType}` + urlParts[1];
 
-      url = adjustUrl(url, $("#tab1"));
+      url = adjustUrl(url, $("#skaters_table"));
 
-      if ($("#tab1").data('filter_value')) {
-            url += '/rookie_filter=' + $("#tab1").data('filter_value');
+      if ($("#skaters_table").data('rookie_filter_value')) {
+            url += '/rookie_filter=' + $("#skaters_table").data('rookie_filter_value');
 
             // $("#age-range").on("slide", function() {
             //     // console.log($(this).attr('id'));
@@ -187,7 +191,15 @@ $("#skaters_table")
             // console.log(`BEFORE RETURN: ${url}`); 
             // return url;
          };
+
+         if ($("#skaters_table").data('team_checkboxradio')) {
+            radio = JSON.stringify($("#skaters_table").data('team_checkboxradio'));
+            url += '/checkbox_filter=' + radio + '/'; 
+         } else {
+            url += '/checkbox_filter=/'
          };
+
+         return url;
     },
 
     ajaxObject: {
@@ -203,16 +215,28 @@ $("#skaters_table")
         // if one range filter is used: change other than that one
         // THINK OF OTHER WAY. YOU ARE REALLY COULD NOT run slidefilter just once,
         // it needs to be ran when you updated your filter, hence sending AJAX request
-        // SOMEHOW catch what slider been actually slided, use mousehover, keyup or something
-        sliderFilter(data['age_range'], "#age", "#age-range")
-        sliderFilter(data['weight_range'], "#weight", "#weight-range")
+        // SOMEHOW catch which slider have been actually slided, use mousehover, keyup or something
 
-        togglePager(data['total'], $('.pager-s'), $('#tab1'), $('#tab1_pager_options'));
+        $('#teams').html(data['all_teams']); //IT'S probably rewrites changed class for goalies team filters
+        $('#nations').html(data['all_nations']);
+        $('#positions').html(data['all_positions']);
 
-        options = data['filter_select'];
-          for (let column = 3; column <= 5; column++) {
-              $.tablesorter.filter.buildSelect($("#tab1"), column, options[column], true);
-          };
+        $(".checkbox_button").checkboxradio( { icon:false } );
+
+        set_to_widest($('#teams'));
+        set_to_widest($('#nations'));
+        set_to_widest($('#positions'));
+
+        sliderFilter(data['initial_age_range'], data['age_range'], "#age", "#age-range")
+        sliderFilter(data['initial_weight_range'], data['weight_range'], "#weight", "#weight-range")
+        sliderFilter(data['initial_height_range'], data['height_range'], "#height", "#height-range", data['height_values'])
+
+        togglePager(data['total'], $('.pager-s'), $('#skaters_table'), $('#skaters_table_pager_options'));
+
+        // options = data['filter_select'];
+        // for (let column = 3; column <= 5; column++) {
+        //     $.tablesorter.filter.buildSelect($("#skaters_table"), column, options[column], true);
+        // };
         },
         dataType: 'json',
         type: 'GET'
@@ -220,13 +244,28 @@ $("#skaters_table")
     });
 };
 
+
+// set all labels widths equal the widest one
+function set_to_widest(div) {
+  labels = div.find('label');
+  if (labels.is(':visible')) {
+    var widest_label = Math.max.apply(Math, labels.map(function() { 
+      return $(this).width(); 
+    }));
+
+    labels.width(widest_label);
+  };
 };
 
+
+function goaliesTotals() {
 $("#goalies_table")
 .tablesorter({
     sortInitialOrder: 'desc',
     sortRestart: true,
-    headers: headers(tab2['headersCount'], tab2['ascOrderCols'], [0], [0, 1, 2, 3]),
+    // headers: headers(goalies_table['headersCount'], goalies_table['ascOrderCols'], [0], goalies_table['allCols']),
+    headers: headers(goalies_table['headersCount'], goalies_table['ascOrderCols'], [0], []),
+
     widgets: ['filter'],
     widgetOptions: {
       filter_functions: {
@@ -237,7 +276,7 @@ $("#goalies_table")
           ".filter-select" : function() { return null; }
       },
     filter_reset: '.js_reset_goalies',
-    filter_external : "#js_external_filter_goalies",
+    filter_external: '.search_goalies',
 }
 })
 
@@ -249,38 +288,52 @@ $("#goalies_table")
   fixedHeight: false,
   ajaxUrl: 'http://127.0.0.1:8000/ajax_players/gls/page={page+1}/size={size}/{sort:col}/{filter:fcol}',
   customAjaxUrl: function(table, url) {
-    url = adjustUrl(url, $("#tab2"));
+    url = adjustUrl(url, $("#goalies_table"));
 
-    if ($("#tab2").data('filter_value')) {
-          url += '/rookie_filter=' + $("#tab2").data('filter_value');
-          return url;
-    };
+    if ($("#goalies_table").data('rookie_filter_value')) {
+          url += '/rookie_filter=' + $("#goalies_table").data('rookie_filter_value');
+    } else {
           url += '/rookie_filter=';
-          return url;
-  },
+  };
+     if ($("#goalies_table").data('team_checkboxradio')) {
+      url += '/checkbox_filter=' + $("#goalies_table").data('team_checkboxradio') + '/'; 
+   } else {
+      url += '/checkbox_filter=/'
+   };
+
+   return url
+   },
 
   ajaxObject: {
       success: function(data) {
         $(data['fav_alert_div']).prependTo('body');
-        togglePager(data['total'], $('.pager-g'), $('#tab2'), $('#tab2_pager_options'))
-        options = data['filter_select'];
 
-        for (let column = 3; column <= 5; column++) {
-            $.tablesorter.filter.buildSelect($("#tab2"), column, options[column], true);
-        };
+        sliderFilter(data['initial_age_range'], data['age_range'], "#age", "#age-range")
+        sliderFilter(data['initial_weight_range'], data['weight_range'], "#weight", "#weight-range")
+        sliderFilter(data['initial_height_range'], data['height_range'], "#height", "#height-range", data['height_values'])
+
+        // $('#teams').html(data['all_teams']); THE reason for rewriting reset_gls classes
+        togglePager(data['total'], $('.pager-g'), $('#goalies_table'), $('#goalies_table_pager_options'))
+        // options = data['filter_select'];
+        // for (let column = 3; column <= 5; column++) {
+        //     $.tablesorter.filter.buildSelect($("#goalies_table"), column, options[column], true);
+        // };
       },
       dataType: 'json',
       type: 'GET'
-    },
-  });
+      },
+
+    });
+};
 
 $('table').bind("sortEnd", function(){
     $(this).trigger('pageSet', 1);
   });
 
+
 $('body').on('change', '.js_rookie_filter_skt', function(){
     let checked = $(this).is(":checked");
-    $("#tab1").data('filter_value', checked).trigger('pagerUpdate', 1);
+    $("#skaters_table").data('rookie_filter_value', checked).trigger('pagerUpdate', 1);
     if (checked) {
       $(this).attr('title', 'Show all players')
     } else {
@@ -290,7 +343,7 @@ $('body').on('change', '.js_rookie_filter_skt', function(){
 
 $('body').on('change', '.js_rookie_filter_gls', function(){
     let checked = $(this).is(":checked");
-    $("#tab2").data('filter_value', checked).trigger('pagerUpdate', 1);
+    $("#goalies_table").data('rookie_filter_value', checked).trigger('pagerUpdate', 1);
     if (checked) {
       $(this).attr('title', 'Show all players')
     } else {
@@ -298,36 +351,75 @@ $('body').on('change', '.js_rookie_filter_gls', function(){
     };
 });
 
-$('.js_reset_skaters').on('click', function(){
-  $('.js_rookie_filter_skt').prop('checked', false);
-  $("#tab1").show();
-  $("#tab1").data('filter_value', $(this).is(":checked")).trigger('pagerUpdate');
-});
+function resetRookieFilter(event) {
+  $(event.data.filter).prop('checked', false);
+  $(event.data.table).show();
+  $(event.data.table).data('rookie_filter_value', $(this).is(":checked"))//.trigger('pagerUpdate');
+};
 
-$('.js_reset_goalies').on('click', function(){
-  $('.js_rookie_filter_gls').prop('checked', false);
-  $("#tab2").show();
-  $("#tab2").data('filter_value', $(this).is(":checked")).trigger('pagerUpdate');
-});
+// MAKE A PRETTY FITERS checkbox
+// REFACTOR FILTERS IN A VIEW
 
-$('body').on('click', '#js_total_stats', function(){
-  statType = 'tot';
-  $("#tab1").trigger('pagerUpdate');
-  $(this).attr('id', 'js_avg_stats');
-  $(this).html('See average stats');
-});
+let teams = [];
+let nations = [];
+let positions = [];
+let checkbox_obj = {};
 
-$('body').on('click', '#js_avg_stats', function(){
-  statType = 'avg';
-  $("#tab1").trigger('pagerUpdate');
-  $(this).attr('id', 'js_total_stats');
-  $(this).html('See total stats');
-});
 
+// REMOVES ALL teams from options
+$('body').on('change', '.team_checkboxradio_skt', {'table': $("#skaters_table"), 'array': teams, 'key': 'teams'}, checkbox);
+$('body').on('change', '.nation_checkboxradio_skt', {'table': $("#skaters_table"), 'array': nations, 'key': 'nations'}, checkbox);
+$('body').on('change', '.position_checkboxradio_skt', {'table': $("#skaters_table"), 'array': positions, 'key': 'positions'}, checkbox);
+
+$('body').on('change', '.team_checkboxradio_gls', {'table': $("#goalies_table"), 'array': teams, 'column': 'team_checkboxradio'}, checkbox);
+
+function checkbox(event){
+  if (event.target.checked) {
+    event.data.array.push(event.target.value);
+  } else {
+      event.data.array.splice($.inArray(event.target.value, event.data.array), 1); 
+  };
+
+  checkbox_obj[event.data.key] = event.data.array;
+  event.data.table.data('team_checkboxradio', checkbox_obj).trigger('pagerUpdate', 1);
+};
+
+
+function resetCheckboxFilter(event) {
+  $(event.data.filter).prop('checked', false);
+  $(event.data.table).show();
+  event.data.array.length = 0;
+  checkbox_obj[event.data.key] = event.data.array;
+
+  $(event.data.table).data('team_checkboxradio', checkbox_obj).trigger('pagerUpdate');
+};
+
+$('body').on('click', '.js_reset_skaters', {'table': '#skaters_table', 'filter': '.js_rookie_filter_skt'}, resetRookieFilter);
+$('body').on('click', '.js_reset_skaters', {'table': '#skaters_table', 'filter': '.team_checkboxradio_skt', 'array': teams, 'key': 'teams'}, resetCheckboxFilter);
+$('body').on('click', '.js_reset_skaters', {'table': '#skaters_table', 'filter': '.nation_checkboxradio_skt', 'array': nations, 'key': 'nations'}, resetCheckboxFilter);
+$('body').on('click', '.js_reset_skaters', {'table': '#skaters_table', 'filter': '.position_checkboxradio_skt', 'array': positions, 'key': 'positions'}, resetCheckboxFilter);
+
+
+$('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.js_rookie_filter_gls'}, resetRookieFilter);
+// $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.team_checkboxradio_gls', array: 'teams'}, resetCheckboxFilter);
+// $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.nation_checkboxradio_skt', array: 'nations'}, resetCheckboxFilter);
+// $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.position_checkboxradio_skt', array: 'positions'}, resetCheckboxFilter);
+
+
+// THERE IS NO AJAX call IF there is second time in the session I push the button
+// and there is 2 calls when you add a reset skaters button, strangely for BOTH tables
+// THE REASON IS HTML REWRITING TEAMS FROM AJAX callback function
 $('body').on('click', '#js_gls_stats', function(){
+  // $('.js_reset_skaters').click(); // gls classes switches back to skt AS a RESULT of resetting skaters table
+  $('.search_skaters').toggleClass("search_skaters search_goalies");
+
+  $('.team_checkboxradio_skt').toggleClass("team_checkboxradio_skt team_checkboxradio_gls");
+  // you need to put goalies ranges after this step
   $('#js_gls_stats').hide();
   $("#skaters_table").hide();
   $("#goalies_table").show();
+  goaliesTotals();
+ $(".js_rookie_filter_skt").hide();
   $(".js_rookie_filter_gls").show();
   $('.js_reset_skaters').hide();
   $('.js_reset_goalies').show();
@@ -337,13 +429,18 @@ $('body').on('click', '#js_gls_stats', function(){
   $('#js_avg_stats').attr('id', 'js_skaters_stats');
   $('#js_total_stats').html('See skaters stats');
   $('#js_total_stats').attr('id', 'js_skaters_stats');
+
 });
 
 $('body').on('click', '#js_skaters_stats', function(){
   statType = 'tot';
+  $('.js_reset_goalies').click();
+  $('.search_goalies').toggleClass('search_goalies search_skaters');
+  $('.team_checkboxradio_gls').toggleClass("team_checkboxradio_gls team_checkboxradio_skt");
+  // you need to put goalies ranges after this step
   $('#js_gls_stats').show();
-  $("#tab2").hide();
-  $("#tab1").show();
+  $("#goalies_table").hide();
+  $("#skaters_table").show();
   $(".js_rookie_filter_gls").hide()
   $(".js_rookie_filter_skt").show();
   $('.js_reset_goalies').hide();
@@ -355,36 +452,89 @@ $('body').on('click', '#js_skaters_stats', function(){
   $(this).html('See average stats');
 });
 
-$('body').on('close.bs.alert', '#pls-fav-alert', function(event){
+$('body').on('click', '#js_total_stats', function(){
+  statType = 'tot';
+  $("#skaters_table").trigger('pagerUpdate');
+  $(this).attr('id', 'js_avg_stats');
+  $(this).html('See average stats');
+});
+
+$('body').on('click', '#js_avg_stats', function(){
+  statType = 'avg';
+  $("#skaters_table").trigger('pagerUpdate');
+  $(this).attr('id', 'js_total_stats');
+  $(this).html('See total stats');
+});
+
+$('body').on('close.bs.alert', '#pls-fav-alert', function(event) {
   event.preventDefault();
   $('.js-fav-alert').hide();
 });
 
-function sliderFilter(values, label, sliderObject) {
+
+// convert values to euro system before sending them to URL !!!
+// or parse the values in django
+function sliderFilter(min_max, values, label, sliderObject, optional_obj=false) {
+
   $(sliderObject).slider({
     range: true,
-    min: values[0],
-    max: values[1],
+    min: min_max[0],
+    max: min_max[1],
+    step: 1,
     values: values,
-    slide: function(event, ui ) {
-      $(label).val(ui.values[0] + " - " + ui.values[1]);
+
+    slide: function(event, ui) {
+      if (isObject(optional_obj)) {
+          if (!(ui.values[0] in optional_obj) || !(ui.values[1] in optional_obj)) return false;
+          $(label).val(optional_obj[ui.values[0]] + " - " + optional_obj[ui.values[1]]);
+
+      } else {
+          if (optional_obj) {
+
+            if (!(optional_obj.includes(ui.values[0])) || !(optional_obj.includes(ui.values[1]))) return false;
+            $(label).val(ui.values[0] + " - " + ui.values[1]);
+
+          } else {
+            $(label).val(ui.values[0] + " - " + ui.values[1]);
+          }
+      };
+
       // maybe use filterUpdate or something?
       $('table:visible').trigger('update');
-      // console.log(sliderObject);
     }
-  });
+  }); // $(sliderObject).slider
 
+  // needed for initial loading of a label
   $(label).val($(sliderObject).slider("values", 0) +
     " - " + $(sliderObject).slider("values", 1));
+
+if (isObject(optional_obj)) {
+  val_min = optional_obj[$(sliderObject).slider("values", 0)]
+  val_max = optional_obj[$(sliderObject).slider("values", 1)]
+
+  $(label).val(val_min + " - " + val_max);
+
+};
 
   // without this line it's just resetting my css style for cursor to a default instead of a pointer
   $(".ui-slider, .ui-slider-handle").css('cursor', 'pointer');
 
- };
+ }; //function sliderFilter
+
+
+function isObject(obj) {
+  return obj != null && obj.constructor.name === "Object"
+}
+
+skatersTotals();
+$("#goalies_table").hide();
 
 // sliderFilter([18, 42], "#age", "#age-range")
 // sliderFilter([160, 280], "#weight", "#weight-range")
 
 
-// GET RANGE CHANGES, CATH RANGE SLIDES
+// GET RANGE CHANGES, CATCH RANGE SLIDES
 // since it's not possible to catch 'input' for readonly
+
+// console.log($('label[for="NYI"]').width());
+// console.log($('label[for="CAR"]').width());
