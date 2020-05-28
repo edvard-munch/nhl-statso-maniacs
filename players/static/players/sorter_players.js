@@ -115,12 +115,6 @@ function pageSizeOptions(filteredRows, selectedPageSize) {
 // }
 
 
-// $("#age").on("click", function() {
-//     console.log($("#age").val())
-// });
-
-// console.log($("#age").val())
-
 function skatersTotals() {
 $("#skaters_table")
   .tablesorter({
