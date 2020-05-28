@@ -83,6 +83,31 @@ function togglePager(filteredRows, pager, table, select) {
   }
 };
 
+function pageSizeOptions(filteredRows, selectedPageSize) {
+  let pageSizeOptionsArr = [25, 50, 100, 200];
+  let optionsHtml = '';
+  let selected;
+  let selectAll;
+  let currOpts = [];
+  for (const option of pageSizeOptionsArr) {
+    if (option < filteredRows) {
+        currOpts.push(option);
+        if (option === selectedPageSize){
+          selected = 'selected';
+        } else {
+          selected = '';
+        }
+        optionsHtml += `<option ${selected} value="${option}">${option}</option>`
+    }
+  }
+  if (Math.max(...currOpts) < selectedPageSize){
+    selectAll = 'selected';
+  } else {
+    selectAll = '';
+  }
+  return `${optionsHtml} <option ${selectAll} value="All">All</option>`
+};
+
 
 // let ranges = {
 //   'ageRanges': [],
@@ -200,29 +225,6 @@ $("#skaters_table")
     });
 };
 
-function pageSizeOptions(filteredRows, selectedPageSize) {
-  let pageSizeOptionsArr = [25, 50, 100, 200];
-  let optionsHtml = '';
-  let selected;
-  let selectAll;
-  let currOpts = [];
-  for (const option of pageSizeOptionsArr) {
-    if (option < filteredRows) {
-        currOpts.push(option);
-        if (option === selectedPageSize){
-          selected = 'selected';
-        } else {
-          selected = '';
-        }
-        optionsHtml += `<option ${selected} value="${option}">${option}</option>`
-    }
-  }
-  if (Math.max(...currOpts) < selectedPageSize){
-    selectAll = 'selected';
-  } else {
-    selectAll = '';
-  }
-  return `${optionsHtml} <option ${selectAll} value="All">All</option>`
 };
 
 $("#goalies_table")
