@@ -682,6 +682,19 @@ def rookie_filter(rookie_filt):
     return False
 
 
+def checkbox_filter(checkbox_filt, column):
+    if checkbox_filt.split('=')[1]:
+        team_str = checkbox_filt.split('=')[1]
+        team_str = json.loads(team_str)
+
+        try:
+            return team_str[column]
+        except (KeyError, TypeError):
+            return False
+
+    return False
+
+
 def add_comp_info(request, player):
     """
     Sets HTML attributes for initial load on a player_detail page
