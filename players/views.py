@@ -235,7 +235,7 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
 
     filtering = utils.filter_columns(filt_col)
     if filtering:
-        players = utils.apply_filters(players, filtering, columns)
+        players = utils.apply_filters(request, players, filtering, columns)[0]
         adjust_range = utils.apply_filters(request, players, filtering, columns)[1]
         if adjust_range:
             pass

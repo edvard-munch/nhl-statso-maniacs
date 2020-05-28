@@ -605,7 +605,7 @@ def apply_filters(request, players_query, filtering, columns):
         field = columns[int(sub_list[0])]
         if len(sub_list) > 2:
             if user.is_authenticated:
-                if measurements_format_is_euro(user):  
+                if measurements_format_is_euro(user):
                     if field == columns[6] or field == columns[7]:
                         kwargs[f'{EURO_MEASUREMENTS[field]}__range'] = (sub_list[1], sub_list[2])
                     else:
