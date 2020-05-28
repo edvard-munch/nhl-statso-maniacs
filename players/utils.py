@@ -161,11 +161,15 @@ COLUMNS_GOALIES = [
     'saves',
     'shotouts',
 ]
+
+# 'team.name' and 'opponent.name' not being used now
 EXTRA_FIELDS = [
     'last_name',
     'height_cm',
     'nation',
     'weight_kg',
+    'team.name',
+    'opponent.name',
 ]
 
 EURO_MEASUREMENTS = {
