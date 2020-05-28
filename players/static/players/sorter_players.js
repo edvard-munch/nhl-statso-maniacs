@@ -68,6 +68,21 @@ function adjustUrl(url, table) {
     return url;
 };
 
+function togglePager(filteredRows, pager, table, select) {
+  if (filteredRows <= 25) {
+    pager.hide();
+    if (filteredRows < 1) {
+      // $('<br><br><h5>No results matched the query</h5>').insertAfter($(this));
+        table.hide();
+    } else if (filteredRows > 0) {
+        table.show();
+    }
+  } else if (filteredRows > 25) {
+      pager.show();
+      select.html(pageSizeOptions(filteredRows, table.data['currentPageSize']))
+  }
+};
+
 
 // let ranges = {
 //   'ageRanges': [],
@@ -183,20 +198,6 @@ $("#skaters_table")
         type: 'GET'
       },
     });
-
-function togglePager(filteredRows, pager, table, select) {
-  if (filteredRows <= 25) {
-    pager.hide();
-    if (filteredRows < 1) {
-      // $('<br><br><h5>No results matched the query</h5>').insertAfter($(this));
-        table.hide();
-    } else if (filteredRows > 0) {
-        table.show();
-    }
-  } else if (filteredRows > 25) {
-      pager.show();
-      select.html(pageSizeOptions(filteredRows, table.data['currentPageSize']))
-  }
 };
 
 function pageSizeOptions(filteredRows, selectedPageSize) {
