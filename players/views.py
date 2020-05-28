@@ -211,6 +211,15 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
         else:
             players = Skater.objects.select_related('team')
 
+    init_age_range = get_range(players, 'age')
+
+    if utils.measurements_format_is_euro(user):
+        init_weight_range = get_range(players, 'weight_kg')
+    else:
+        init_weight_range = get_range(players, 'weight')
+
+    init_height_range = get_range(players, 'height_cm')
+
     if utils.ALL_ROWS in size:
         size = players.count()
     else:
@@ -239,24 +248,33 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     total_rows = players.count()
     data = utils.process_json(request, columns, domain, players_json, total_rows, start)
 
+    data['initial_age_range'] = init_age_range
+    data['initial_weight_range'] = init_weight_range
+    data['initial_height_range'] = init_height_range
 
+    # data['pager'] = total_rows < utils.PAGE_SIZE_2
 
-    data['age_range'] = [
-        players.aggregate(Min('age'))['age__min'],
-        players.aggregate(Max('age'))['age__max']
-    ]
-
-    data['weight_range'] = [
-        players.aggregate(Min('weight'))['weight__min'],
-        players.aggregate(Max('weight'))['weight__max']
-    ]
-
-    # IF FILTERING CONTAINS RANGES - GET what range used (check in ARRAY with all range fields)
+    # IF FILTERING CONTAINS RANGES - GET what range is used (check in ARRAY with all range fields)
     # and pass it to range_applied
 
-    # data['range_applied'] = 
-    print(filtering)
     data['fav_alert_div'] = utils.get_fav_alert_div()
+
+
+    uniques_height_cm = utils.get_uniques(players, 'height_cm')
+    uniques_height_cm = utils.sort_list(uniques_height_cm)
+    uniques_height = utils.get_uniques(players, 'height')
+    uniques_height = utils.sort_height_list(uniques_height)
+    height_map_dict = dict(zip(uniques_height_cm, uniques_height))
+
+    if utils.measurements_format_is_euro(user):
+        data['weight_range'] = get_range(players, 'weight_kg')
+        data['height_values'] = uniques_height_cm
+    else:
+        data['weight_range'] = get_range(players, 'weight')
+        data['height_values'] = height_map_dict
+
+    data['height_range'] = get_range(players, 'height_cm')
+    data['age_range'] = get_range(players, 'age')
 
     return JsonResponse(data, safe=False)
 
