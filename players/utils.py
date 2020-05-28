@@ -590,6 +590,7 @@ def sort_table(request, stat_type, sorting, players_query, columns):
 def apply_filters(request, players_query, filtering, columns):
     kwargs = {}
     user = request.user
+    adjust_range = False
     for sub_list in filtering:
         field = columns[int(sub_list[0])]
         if len(sub_list) > 2:
@@ -612,7 +613,10 @@ def apply_filters(request, players_query, filtering, columns):
             else:
                 kwargs[f'{field}__icontains'] = sub_list[1]
 
-    return players_query.filter(**kwargs)
+            adjust_range = True
+
+    return (players_query.filter(**kwargs), adjust_range)
+
 def filter_checkbox_opts(players_query, field_names):
     sorted_opts = []
     for field in field_names:
