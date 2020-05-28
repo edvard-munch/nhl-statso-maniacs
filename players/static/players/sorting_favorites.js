@@ -1,5 +1,6 @@
 const favoritesParam = 'fav_filt=True';
 const rookiesParam = 'rookie_filter=';
+const checkboxParam = 'checkbox_filter=';
 const goaliesLogParam = 'gls_log';
 const skatersLogParam = 'skt_log';
 const goaliesTotalsParam = 'gls';
@@ -173,7 +174,7 @@ $("#js_skaters_total_table")
     size: 25,
     output: '{page} / {totalPages}',
     savePages: false,
-    ajaxUrl: `http://127.0.0.1:8000/ajax_players/${statType}/page={page+1}/size={size}/{sort:col}/{filter:fcol}/${rookiesParam}/${favoritesParam}`,
+  ajaxUrl: `http://127.0.0.1:8000/ajax_players/${statType}/page={page+1}/size={size}/{sort:col}/{filter:fcol}/${rookiesParam}/${checkboxParam}/${favoritesParam}`,
     customAjaxUrl: function(table, url) {
         return adjustUrl(url, $("#js_skaters_total_table"));
     },
@@ -238,7 +239,7 @@ $("#js_goalies_total_table")
     size: 25,
     output: '{page} / {totalPages}',
     savePages: false,
-    ajaxUrl: `http://127.0.0.1:8000/ajax_players/${goaliesTotalsParam}/page={page+1}/size={size}/{sort:col}/{filter:fcol}/${rookiesParam}/${favoritesParam}`,
+    ajaxUrl: `http://127.0.0.1:8000/ajax_players/${goaliesTotalsParam}/page={page+1}/size={size}/{sort:col}/{filter:fcol}/${rookiesParam}/${checkboxParam}/${favoritesParam}`,
     customAjaxUrl: function(table, url) {
         return adjustUrl(url, $("#js_goalies_total_table"));
     },
