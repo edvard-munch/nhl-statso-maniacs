@@ -1,21 +1,22 @@
+
 let statType = 'tot';
-$("#tab2").hide();
 $(".js_rookie_filter_gls").hide();
 $('.js_reset_goalies').hide();
 $("#js_external_filter_goalies").hide();
 
-tab1 = $("#tab1").data;
-tab2 = $("#tab2").data;
-tab1['pageSizesArr'] = [];
-tab1['pageNumbersArr'] = [];
-tab2['pageSizesArr'] = [];
-tab2['pageNumbersArr'] = [];
+skaters_table = $("#skaters_table").data();
+goalies_table = $("#goalies_table").data();
+skaters_table['pageSizesArr'] = [];
+skaters_table['pageNumbersArr'] = [];
+goalies_table['pageSizesArr'] = [];
+goalies_table['pageNumbersArr'] = [];
 
-tab1['ascOrderCols'] = [...Array(12).keys()];
-tab1['headersCount'] = $("#tab1 > thead > tr:first > th").length;
-
-tab2['ascOrderCols'] = [...Array(12).keys()];
-tab2['headersCount'] = $("#tab2 > thead > tr:first > th").length;
+skaters_table['ascOrderCols'] = [...Array(12).keys()];
+skaters_table['headersCount'] = $("#skaters_table > thead > tr:first > th").length;
+skaters_table['allCols'] = [...Array(skaters_table['headersCount']).keys()];
+goalies_table['ascOrderCols'] = [...Array(12).keys()];
+goalies_table['headersCount'] = $("#goalies_table > thead > tr:first > th").length;
+goalies_table['allCols'] = [...Array(goalies_table['headersCount']).keys()];
 
 function headers(headersCount, ascOrderCols, noSorterCols, noFilterCols) {
     let headers = {};
@@ -80,11 +81,12 @@ function adjustUrl(url, table) {
 
 // console.log($("#age").val())
 
-$("#tab1")
+function skatersTotals() {
+$("#skaters_table")
   .tablesorter({
       sortInitialOrder: 'desc',
       sortRestart: true,
-      headers: headers(tab1['headersCount'], tab1['ascOrderCols'], [0], [0, 1, 2, 7, 9]),
+      headers: headers(skaters_table['headersCount'], skaters_table['ascOrderCols'], [0], []),
       widgets: ['filter'],
       widgetOptions: {
 
@@ -222,7 +224,7 @@ function pageSizeOptions(filteredRows, selectedPageSize) {
   return `${optionsHtml} <option ${selectAll} value="All">All</option>`
 };
 
-$("#tab2")
+$("#goalies_table")
 .tablesorter({
     sortInitialOrder: 'desc',
     sortRestart: true,
@@ -326,9 +328,8 @@ $('body').on('click', '#js_avg_stats', function(){
 
 $('body').on('click', '#js_gls_stats', function(){
   $('#js_gls_stats').hide();
-  $("#tab1").hide();
-  $("#tab2").show();
-  $(".js_rookie_filter_skt").hide();
+  $("#skaters_table").hide();
+  $("#goalies_table").show();
   $(".js_rookie_filter_gls").show();
   $('.js_reset_skaters').hide();
   $('.js_reset_goalies').show();
@@ -351,7 +352,7 @@ $('body').on('click', '#js_skaters_stats', function(){
   $('.js_reset_skaters').show();
   $("#js_external_filter_goalies").hide();
   $("#js_external_filter_skaters").show();
-  $("#tab1").trigger('pagerUpdate');
+  $("#skaters_table").trigger('pagerUpdate');
   $(this).attr('id', 'js_avg_stats');
   $(this).html('See average stats');
 });
