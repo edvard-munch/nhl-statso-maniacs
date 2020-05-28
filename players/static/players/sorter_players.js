@@ -150,42 +150,43 @@ $("#skaters_table")
       if ($("#tab1").data('filter_value')) {
             url += '/rookie_filter=' + $("#tab1").data('filter_value');
 
-            $("#age-range").on("slide", function() {
-                // console.log($(this).attr('id'));
-                url += $(this).attr('id');
-                console.log(`AGE RANGE CHANGED: ${url}`);
-                return url;
-            });
+            // $("#age-range").on("slide", function() {
+            //     // console.log($(this).attr('id'));
+            //     url += $(this).attr('id');
+            //     // console.log(`AGE RANGE CHANGED: ${url}`);
+            //     return url;
+            // });
 
-            $("#weight-range").on("slide", function() {
-                // console.log($(this).attr('id'));
-                url += $(this).attr('id');
-                console.log(`WEIGHT RANGE CHANGED: ${url}`);
-                return url;
-            });
+            // $("#weight-range").on("slide", function() {
+            //     // console.log($(this).attr('id'));
+            //     url += $(this).attr('id');
+            //     // console.log(`WEIGHT RANGE CHANGED: ${url}`);
+            //     return url;
+            // });
 
-            console.log(`BEFORE RETURN: ${url}`);     
-            return url;
+            // console.log(`BEFORE RETURN: ${url}`);     
+            // return url;
       } else {
             url += '/rookie_filter=';
             // console.log(addUrl);
 
-            $("#age-range").on("slide", function() {
-                // console.log($(this).attr('id'));
-                url += $(this).attr('id');
-                console.log(`AGE RANGE CHANGED: ${url}`);
-                return url
-            });
+            // $("#age-range").on("slide", function() {
+            //     // console.log($(this).attr('id'));
+            //     url += $(this).attr('id');
+            //     console.log(`AGE RANGE CHANGED: ${url}`);
+            //     return url
+            // });
 
-            $("#weight-range").on("slide", function() {
-                // console.log($(this).attr('id'));
-                url += $(this).attr('id');
-                console.log(`WEIGHT RANGE CHANGED: ${url}`);
-                return url
-            });
+            // $("#weight-range").on("slide", function() {
+            //     // console.log($(this).attr('id'));
+            //     url += $(this).attr('id');
+            //     // console.log(`WEIGHT RANGE CHANGED: ${url}`);
+            //     return url
+            // });
 
-            console.log(`BEFORE RETURN: ${url}`); 
-            return url;
+            // console.log(`BEFORE RETURN: ${url}`); 
+            // return url;
+         };
          };
     },
 
