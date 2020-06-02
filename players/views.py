@@ -24,7 +24,10 @@ def about(request):
 def games(request, date=utils.get_us_pacific_date()):
     context = {}
     gamedays = list(Gameday.objects.all().order_by('day'))
-    today = Gameday.objects.get(day=date)
+    try:
+        today = Gameday.objects.get(day=date)
+    except Gameday.DoesNotExist:
+        today = Gameday.objects.last()
     days_per_page = utils.get_adjacent(gamedays, today, utils.GAMES_PER_PAGE)
 
     context = {
