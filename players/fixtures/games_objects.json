@@ -1,0 +1,338 @@
+[
+{
+  "model": "players.game",
+  "pk": 2653,
+  "fields": {
+    "nhl_id": 2019020001,
+    "slug": "ottawa-senators-toronto-maple-leafs2019-10-02",
+    "gameday": 398,
+    "result": "Ottawa Senators - Toronto Maple Leafs 3:5",
+    "away_skaters": [
+      2332,
+      1818,
+      2550,
+      1750,
+      1942,
+      1748,
+      2292,
+      2322,
+      1871,
+      2220,
+      1996,
+      2283,
+      2441,
+      2467,
+      2499,
+      2242,
+      2145,
+      2432
+    ],
+    "away_goalies": [
+      238
+    ],
+    "home_skaters": [
+      2207,
+      1883,
+      2265,
+      2264,
+      2135,
+      2103,
+      1812,
+      2259,
+      2354,
+      1808,
+      2092,
+      2537,
+      2153,
+      1986,
+      1988,
+      2434,
+      2210,
+      1985
+    ],
+    "home_goalies": [
+      223
+    ]
+  }
+},
+{
+  "model": "players.game",
+  "pk": 2654,
+  "fields": {
+    "nhl_id": 2019020002,
+    "slug": "washington-capitals-st-louis-blues2019-10-02",
+    "gameday": 398,
+    "result": "Washington Capitals - St. Louis Blues 3:2 OT",
+    "away_skaters": [
+      1981,
+      2397,
+      2203,
+      1850,
+      2201,
+      1976,
+      1879,
+      2198,
+      2035,
+      2383,
+      2478,
+      2251,
+      2199,
+      1736,
+      2504,
+      2456,
+      2551,
+      2243
+    ],
+    "away_goalies": [
+      192
+    ],
+    "home_skaters": [
+      2303,
+      2237,
+      1788,
+      2395,
+      2427,
+      1969,
+      2160,
+      2159,
+      1774,
+      2317,
+      2475,
+      1963,
+      2527,
+      2216,
+      1731,
+      2084,
+      2435,
+      1921
+    ],
+    "home_goalies": [
+      179
+    ]
+  }
+},
+{
+  "model": "players.game",
+  "pk": 2655,
+  "fields": {
+    "nhl_id": 2019020003,
+    "slug": "vancouver-canucks-edmonton-oilers2019-10-02",
+    "gameday": 398,
+    "result": "Vancouver Canucks - Edmonton Oilers 2:3",
+    "away_skaters": [
+      2428,
+      2521,
+      2196,
+      2356,
+      2419,
+      2162,
+      1934,
+      2125,
+      1933,
+      1707,
+      2186,
+      2566,
+      2280,
+      2405,
+      2502,
+      2053,
+      1955,
+      1729
+    ],
+    "away_goalies": [
+      198
+    ],
+    "home_skaters": [
+      2589,
+      2555,
+      2586,
+      2582,
+      2549,
+      2161,
+      2575,
+      2542,
+      2572,
+      1834,
+      2149,
+      1763,
+      2469,
+      2532,
+      2531,
+      2530,
+      2528,
+      2240
+    ],
+    "home_goalies": [
+      252
+    ]
+  }
+},
+{
+  "model": "players.game",
+  "pk": 2656,
+  "fields": {
+    "nhl_id": 2019020004,
+    "slug": "san-jose-sharks-vegas-golden-knights2019-10-02",
+    "gameday": 398,
+    "result": "San Jose Sharks - Vegas Golden Knights 1:4",
+    "away_skaters": [
+      2142,
+      2301,
+      2171,
+      2106,
+      2520,
+      1745,
+      1839,
+      2447,
+      2190,
+      2188,
+      2380,
+      2185,
+      1928,
+      2087,
+      1893,
+      1828,
+      2392,
+      2403
+    ],
+    "away_goalies": [
+      239
+    ],
+    "home_skaters": [
+      1759,
+      1950,
+      2011,
+      2545,
+      2005,
+      2232,
+      2231,
+      2006,
+      2008,
+      2484,
+      2483,
+      2007,
+      2544,
+      2448,
+      2284,
+      2155,
+      1862,
+      2401
+    ],
+    "home_goalies": [
+      183
+    ]
+  }
+},
+{
+  "model": "players.game",
+  "pk": 2657,
+  "fields": {
+    "nhl_id": 2019020005,
+    "slug": "florida-panthers-tampa-bay-lightning2019-10-03",
+    "gameday": 399,
+    "result": "Florida Panthers - Tampa Bay Lightning 2:5",
+    "away_skaters": [
+      2367,
+      2333,
+      2425,
+      2039,
+      2324,
+      2421,
+      2004,
+      2384,
+      2481,
+      1744,
+      2126,
+      2540,
+      2539,
+      2538,
+      1992,
+      2215,
+      2214,
+      2306
+    ],
+    "away_goalies": [
+      218
+    ],
+    "home_skaters": [
+      2462,
+      2429,
+      2588,
+      2460,
+      2486,
+      2416,
+      2482,
+      2001,
+      2480,
+      1743,
+      1773,
+      1995,
+      1860,
+      1991,
+      1990,
+      1989,
+      2212,
+      2211
+    ],
+    "home_goalies": [
+      200
+    ]
+  }
+},
+{
+  "model": "players.game",
+  "pk": 2658,
+  "fields": {
+    "nhl_id": 2019020006,
+    "slug": "winnipeg-jets-new-york-rangers2019-10-03",
+    "gameday": 399,
+    "result": "Winnipeg Jets - New York Rangers 4:6",
+    "away_skaters": [
+      2175,
+      2522,
+      1849,
+      2072,
+      2391,
+      1716,
+      2192,
+      1770,
+      2316,
+      1994,
+      1961,
+      2217,
+      2150,
+      2470,
+      2277,
+      2052,
+      1722,
+      1824
+    ],
+    "away_goalies": [
+      195
+    ],
+    "home_skaters": [
+      2174,
+      2365,
+      2524,
+      2137,
+      1746,
+      2078,
+      2194,
+      2036,
+      1780,
+      1875,
+      2258,
+      2204,
+      2172,
+      2076,
+      2252,
+      2123,
+      2529,
+      2176
+    ],
+    "home_goalies": [
+      249
+    ]
+  }
+}
+]

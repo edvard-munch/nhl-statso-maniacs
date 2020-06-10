@@ -1,0 +1,62 @@
+[
+{
+  "model": "players.side",
+  "pk": 5305,
+  "fields": {
+    "nhl_side_id": 201910029,
+    "team": 71,
+    "game": 2653,
+    "side": "away"
+  }
+},
+{
+  "model": "players.side",
+  "pk": 5306,
+  "fields": {
+    "nhl_side_id": 2019100210,
+    "team": 72,
+    "game": 2653,
+    "side": "home"
+  }
+},
+{
+  "model": "players.side",
+  "pk": 5307,
+  "fields": {
+    "nhl_side_id": 2019100215,
+    "team": 76,
+    "game": 2654,
+    "side": "away"
+  }
+},
+{
+  "model": "players.side",
+  "pk": 5308,
+  "fields": {
+    "nhl_side_id": 2019100219,
+    "team": 80,
+    "game": 2654,
+    "side": "home"
+  }
+},
+{
+  "model": "players.side",
+  "pk": 5309,
+  "fields": {
+    "nhl_side_id": 2019100223,
+    "team": 84,
+    "game": 2655,
+    "side": "away"
+  }
+},
+{
+  "model": "players.side",
+  "pk": 5310,
+  "fields": {
+    "nhl_side_id": 2019100222,
+    "team": 83,
+    "game": 2655,
+    "side": "home"
+  }
+}
+]

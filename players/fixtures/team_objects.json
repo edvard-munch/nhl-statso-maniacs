@@ -1,0 +1,529 @@
+[
+{
+  "model": "players.team",
+  "pk": 65,
+  "fields": {
+    "name": "New York Rangers",
+    "nhl_id": 3,
+    "abbr": "NYR",
+    "slug": "new-york-rangers",
+    "image": "teams_logos/new-york-rangers.svg",
+    "arena_name": "Madison Square Garden",
+    "arena_location": "New York",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.newyorkrangers.com/",
+    "nhl_debut": "1926"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 66,
+  "fields": {
+    "name": "Philadelphia Flyers",
+    "nhl_id": 4,
+    "abbr": "PHI",
+    "slug": "philadelphia-flyers",
+    "image": "teams_logos/philadelphia-flyers.svg",
+    "arena_name": "Wells Fargo Center",
+    "arena_location": "Philadelphia",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.philadelphiaflyers.com/",
+    "nhl_debut": "1967"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 68,
+  "fields": {
+    "name": "Boston Bruins",
+    "nhl_id": 6,
+    "abbr": "BOS",
+    "slug": "boston-bruins",
+    "image": "teams_logos/boston-bruins.svg",
+    "arena_name": "TD Garden",
+    "arena_location": "Boston",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.bostonbruins.com/",
+    "nhl_debut": "1924"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 69,
+  "fields": {
+    "name": "Buffalo Sabres",
+    "nhl_id": 7,
+    "abbr": "BUF",
+    "slug": "buffalo-sabres",
+    "image": "teams_logos/buffalo-sabres.svg",
+    "arena_name": "KeyBank Center",
+    "arena_location": "Buffalo",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.sabres.com/",
+    "nhl_debut": "1970"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 70,
+  "fields": {
+    "name": "Montr\u00e9al Canadiens",
+    "nhl_id": 8,
+    "abbr": "MTL",
+    "slug": "montreal-canadiens",
+    "image": "teams_logos/montreal-canadiens.svg",
+    "arena_name": "Bell Centre",
+    "arena_location": "Montr\u00e9al",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.canadiens.com/",
+    "nhl_debut": "1909"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 71,
+  "fields": {
+    "name": "Ottawa Senators",
+    "nhl_id": 9,
+    "abbr": "OTT",
+    "slug": "ottawa-senators",
+    "image": "teams_logos/ottawa-senators.svg",
+    "arena_name": "Canadian Tire Centre",
+    "arena_location": "Ottawa",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.ottawasenators.com/",
+    "nhl_debut": "1990"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 72,
+  "fields": {
+    "name": "Toronto Maple Leafs",
+    "nhl_id": 10,
+    "abbr": "TOR",
+    "slug": "toronto-maple-leafs",
+    "image": "teams_logos/toronto-maple-leafs.svg",
+    "arena_name": "Scotiabank Arena",
+    "arena_location": "Toronto",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.mapleleafs.com/",
+    "nhl_debut": "1917"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 73,
+  "fields": {
+    "name": "Carolina Hurricanes",
+    "nhl_id": 12,
+    "abbr": "CAR",
+    "slug": "carolina-hurricanes",
+    "image": "teams_logos/carolina-hurricanes.svg",
+    "arena_name": "PNC Arena",
+    "arena_location": "Raleigh",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.carolinahurricanes.com/",
+    "nhl_debut": "1979"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 74,
+  "fields": {
+    "name": "Florida Panthers",
+    "nhl_id": 13,
+    "abbr": "FLA",
+    "slug": "florida-panthers",
+    "image": "teams_logos/florida-panthers.svg",
+    "arena_name": "BB&T Center",
+    "arena_location": "Sunrise",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.floridapanthers.com/",
+    "nhl_debut": "1993"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 75,
+  "fields": {
+    "name": "Tampa Bay Lightning",
+    "nhl_id": 14,
+    "abbr": "TBL",
+    "slug": "tampa-bay-lightning",
+    "image": "teams_logos/tampa-bay-lightning.svg",
+    "arena_name": "AMALIE Arena",
+    "arena_location": "Tampa",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.tampabaylightning.com/",
+    "nhl_debut": "1991"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 76,
+  "fields": {
+    "name": "Washington Capitals",
+    "nhl_id": 15,
+    "abbr": "WSH",
+    "slug": "washington-capitals",
+    "image": "teams_logos/washington-capitals.svg",
+    "arena_name": "Capital One Arena",
+    "arena_location": "Washington",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.washingtoncapitals.com/",
+    "nhl_debut": "1974"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 77,
+  "fields": {
+    "name": "Chicago Blackhawks",
+    "nhl_id": 16,
+    "abbr": "CHI",
+    "slug": "chicago-blackhawks",
+    "image": "teams_logos/chicago-blackhawks.svg",
+    "arena_name": "United Center",
+    "arena_location": "Chicago",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://www.chicagoblackhawks.com/",
+    "nhl_debut": "1926"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 78,
+  "fields": {
+    "name": "Detroit Red Wings",
+    "nhl_id": 17,
+    "abbr": "DET",
+    "slug": "detroit-red-wings",
+    "image": "teams_logos/detroit-red-wings.svg",
+    "arena_name": "Little Caesars Arena",
+    "arena_location": "Detroit",
+    "division": "Atlantic",
+    "conference": "Eastern",
+    "off_site": "http://www.detroitredwings.com/",
+    "nhl_debut": "1926"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 79,
+  "fields": {
+    "name": "Nashville Predators",
+    "nhl_id": 18,
+    "abbr": "NSH",
+    "slug": "nashville-predators",
+    "image": "teams_logos/nashville-predators.svg",
+    "arena_name": "Bridgestone Arena",
+    "arena_location": "Nashville",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://www.nashvillepredators.com/",
+    "nhl_debut": "1997"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 80,
+  "fields": {
+    "name": "St. Louis Blues",
+    "nhl_id": 19,
+    "abbr": "STL",
+    "slug": "st-louis-blues",
+    "image": "teams_logos/st-louis-blues.svg",
+    "arena_name": "Enterprise Center",
+    "arena_location": "St. Louis",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://www.stlouisblues.com/",
+    "nhl_debut": "1967"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 81,
+  "fields": {
+    "name": "Calgary Flames",
+    "nhl_id": 20,
+    "abbr": "CGY",
+    "slug": "calgary-flames",
+    "image": "teams_logos/calgary-flames.svg",
+    "arena_name": "Scotiabank Saddledome",
+    "arena_location": "Calgary",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.calgaryflames.com/",
+    "nhl_debut": "1980"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 82,
+  "fields": {
+    "name": "Colorado Avalanche",
+    "nhl_id": 21,
+    "abbr": "COL",
+    "slug": "colorado-avalanche",
+    "image": "teams_logos/colorado-avalanche.svg",
+    "arena_name": "Pepsi Center",
+    "arena_location": "Denver",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://www.coloradoavalanche.com/",
+    "nhl_debut": "1979"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 83,
+  "fields": {
+    "name": "Edmonton Oilers",
+    "nhl_id": 22,
+    "abbr": "EDM",
+    "slug": "edmonton-oilers",
+    "image": "teams_logos/edmonton-oilers.svg",
+    "arena_name": "Rogers Place",
+    "arena_location": "Edmonton",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.edmontonoilers.com/",
+    "nhl_debut": "1979"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 84,
+  "fields": {
+    "name": "Vancouver Canucks",
+    "nhl_id": 23,
+    "abbr": "VAN",
+    "slug": "vancouver-canucks",
+    "image": "teams_logos/vancouver-canucks.svg",
+    "arena_name": "Rogers Arena",
+    "arena_location": "Vancouver",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.canucks.com/",
+    "nhl_debut": "1970"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 85,
+  "fields": {
+    "name": "Anaheim Ducks",
+    "nhl_id": 24,
+    "abbr": "ANA",
+    "slug": "anaheim-ducks",
+    "image": "teams_logos/anaheim-ducks.svg",
+    "arena_name": "Honda Center",
+    "arena_location": "Anaheim",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.anaheimducks.com/",
+    "nhl_debut": "1993"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 86,
+  "fields": {
+    "name": "Dallas Stars",
+    "nhl_id": 25,
+    "abbr": "DAL",
+    "slug": "dallas-stars",
+    "image": "teams_logos/dallas-stars.svg",
+    "arena_name": "American Airlines Center",
+    "arena_location": "Dallas",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://www.dallasstars.com/",
+    "nhl_debut": "1967"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 87,
+  "fields": {
+    "name": "Los Angeles Kings",
+    "nhl_id": 26,
+    "abbr": "LAK",
+    "slug": "los-angeles-kings",
+    "image": "teams_logos/los-angeles-kings.svg",
+    "arena_name": "STAPLES Center",
+    "arena_location": "Los Angeles",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.lakings.com/",
+    "nhl_debut": "1967"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 88,
+  "fields": {
+    "name": "San Jose Sharks",
+    "nhl_id": 28,
+    "abbr": "SJS",
+    "slug": "san-jose-sharks",
+    "image": "teams_logos/san-jose-sharks.svg",
+    "arena_name": "SAP Center at San Jose",
+    "arena_location": "San Jose",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.sjsharks.com/",
+    "nhl_debut": "1990"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 89,
+  "fields": {
+    "name": "Columbus Blue Jackets",
+    "nhl_id": 29,
+    "abbr": "CBJ",
+    "slug": "columbus-blue-jackets",
+    "image": "teams_logos/columbus-blue-jackets.svg",
+    "arena_name": "Nationwide Arena",
+    "arena_location": "Columbus",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.bluejackets.com/",
+    "nhl_debut": "1997"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 90,
+  "fields": {
+    "name": "Minnesota Wild",
+    "nhl_id": 30,
+    "abbr": "MIN",
+    "slug": "minnesota-wild",
+    "image": "teams_logos/minnesota-wild.svg",
+    "arena_name": "Xcel Energy Center",
+    "arena_location": "St. Paul",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://www.wild.com/",
+    "nhl_debut": "1997"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 91,
+  "fields": {
+    "name": "Winnipeg Jets",
+    "nhl_id": 52,
+    "abbr": "WPG",
+    "slug": "winnipeg-jets",
+    "image": "teams_logos/winnipeg-jets.svg",
+    "arena_name": "Bell MTS Place",
+    "arena_location": "Winnipeg",
+    "division": "Central",
+    "conference": "Western",
+    "off_site": "http://winnipegjets.com/",
+    "nhl_debut": "2011"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 92,
+  "fields": {
+    "name": "Arizona Coyotes",
+    "nhl_id": 53,
+    "abbr": "ARI",
+    "slug": "arizona-coyotes",
+    "image": "teams_logos/arizona-coyotes.svg",
+    "arena_name": "Gila River Arena",
+    "arena_location": "Glendale",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.arizonacoyotes.com/",
+    "nhl_debut": "1979"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 93,
+  "fields": {
+    "name": "Vegas Golden Knights",
+    "nhl_id": 54,
+    "abbr": "VGK",
+    "slug": "vegas-golden-knights",
+    "image": "teams_logos/vegas-golden-knights.svg",
+    "arena_name": "T-Mobile Arena",
+    "arena_location": "Las Vegas",
+    "division": "Pacific",
+    "conference": "Western",
+    "off_site": "http://www.vegasgoldenknights.com/",
+    "nhl_debut": "2016"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 67,
+  "fields": {
+    "name": "Pittsburgh Penguins",
+    "nhl_id": 5,
+    "abbr": "PIT",
+    "slug": "pittsburgh-penguins",
+    "image": "teams_logos/pittsburgh-penguins.svg",
+    "arena_name": "PPG Paints Arena",
+    "arena_location": "Pittsburgh",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://pittsburghpenguins.com/",
+    "nhl_debut": "1967"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 63,
+  "fields": {
+    "name": "New Jersey Devils",
+    "nhl_id": 1,
+    "abbr": "NJD",
+    "slug": "new-jersey-devils",
+    "image": "teams_logos/new-jersey-devils.svg",
+    "arena_name": "Prudential Center",
+    "arena_location": "Newark",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.newjerseydevils.com/",
+    "nhl_debut": "1982"
+  }
+},
+{
+  "model": "players.team",
+  "pk": 64,
+  "fields": {
+    "name": "New York Islanders",
+    "nhl_id": 2,
+    "abbr": "NYI",
+    "slug": "new-york-islanders",
+    "image": "teams_logos/new-york-islanders.svg",
+    "arena_name": "Barclays Center",
+    "arena_location": "Brooklyn",
+    "division": "Metropolitan",
+    "conference": "Eastern",
+    "off_site": "http://www.newyorkislanders.com/",
+    "nhl_debut": "1972"
+  }
+}
+]

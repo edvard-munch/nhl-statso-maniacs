@@ -1,0 +1,1101 @@
+[
+{
+  "model": "players.gameday",
+  "pk": 398,
+  "fields": {
+    "day": "2019-10-02"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 399,
+  "fields": {
+    "day": "2019-10-03"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 400,
+  "fields": {
+    "day": "2019-10-04"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 401,
+  "fields": {
+    "day": "2019-10-05"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 402,
+  "fields": {
+    "day": "2019-10-06"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 403,
+  "fields": {
+    "day": "2019-10-07"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 404,
+  "fields": {
+    "day": "2019-10-08"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 405,
+  "fields": {
+    "day": "2019-10-09"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 406,
+  "fields": {
+    "day": "2019-10-10"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 407,
+  "fields": {
+    "day": "2019-10-11"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 408,
+  "fields": {
+    "day": "2019-10-12"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 409,
+  "fields": {
+    "day": "2019-10-13"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 410,
+  "fields": {
+    "day": "2019-10-14"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 411,
+  "fields": {
+    "day": "2019-10-15"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 412,
+  "fields": {
+    "day": "2019-10-16"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 413,
+  "fields": {
+    "day": "2019-10-17"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 414,
+  "fields": {
+    "day": "2019-10-18"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 415,
+  "fields": {
+    "day": "2019-10-19"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 416,
+  "fields": {
+    "day": "2019-10-20"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 417,
+  "fields": {
+    "day": "2019-10-21"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 418,
+  "fields": {
+    "day": "2019-10-22"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 419,
+  "fields": {
+    "day": "2019-10-23"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 420,
+  "fields": {
+    "day": "2019-10-24"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 421,
+  "fields": {
+    "day": "2019-10-25"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 422,
+  "fields": {
+    "day": "2019-10-26"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 423,
+  "fields": {
+    "day": "2019-10-27"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 424,
+  "fields": {
+    "day": "2019-10-28"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 425,
+  "fields": {
+    "day": "2019-10-29"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 426,
+  "fields": {
+    "day": "2019-10-30"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 427,
+  "fields": {
+    "day": "2019-10-31"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 428,
+  "fields": {
+    "day": "2019-11-01"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 429,
+  "fields": {
+    "day": "2019-11-02"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 430,
+  "fields": {
+    "day": "2019-11-03"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 431,
+  "fields": {
+    "day": "2019-11-04"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 432,
+  "fields": {
+    "day": "2019-11-05"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 433,
+  "fields": {
+    "day": "2019-11-06"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 434,
+  "fields": {
+    "day": "2019-11-07"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 435,
+  "fields": {
+    "day": "2019-11-08"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 436,
+  "fields": {
+    "day": "2019-11-09"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 437,
+  "fields": {
+    "day": "2019-11-10"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 438,
+  "fields": {
+    "day": "2019-11-11"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 439,
+  "fields": {
+    "day": "2019-11-12"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 440,
+  "fields": {
+    "day": "2019-11-13"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 441,
+  "fields": {
+    "day": "2019-11-14"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 442,
+  "fields": {
+    "day": "2019-11-15"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 443,
+  "fields": {
+    "day": "2019-11-16"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 444,
+  "fields": {
+    "day": "2019-11-17"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 445,
+  "fields": {
+    "day": "2019-11-18"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 446,
+  "fields": {
+    "day": "2019-11-19"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 447,
+  "fields": {
+    "day": "2019-11-20"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 448,
+  "fields": {
+    "day": "2019-11-21"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 449,
+  "fields": {
+    "day": "2019-11-22"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 450,
+  "fields": {
+    "day": "2019-11-23"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 451,
+  "fields": {
+    "day": "2019-11-24"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 452,
+  "fields": {
+    "day": "2019-11-25"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 453,
+  "fields": {
+    "day": "2019-11-26"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 454,
+  "fields": {
+    "day": "2019-11-27"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 455,
+  "fields": {
+    "day": "2019-11-28"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 456,
+  "fields": {
+    "day": "2019-11-29"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 457,
+  "fields": {
+    "day": "2019-11-30"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 458,
+  "fields": {
+    "day": "2019-12-01"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 459,
+  "fields": {
+    "day": "2019-12-02"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 460,
+  "fields": {
+    "day": "2019-12-03"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 461,
+  "fields": {
+    "day": "2019-12-04"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 462,
+  "fields": {
+    "day": "2019-12-05"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 463,
+  "fields": {
+    "day": "2019-12-06"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 464,
+  "fields": {
+    "day": "2019-12-07"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 465,
+  "fields": {
+    "day": "2019-12-08"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 466,
+  "fields": {
+    "day": "2019-12-09"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 467,
+  "fields": {
+    "day": "2019-12-10"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 468,
+  "fields": {
+    "day": "2019-12-11"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 469,
+  "fields": {
+    "day": "2019-12-12"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 470,
+  "fields": {
+    "day": "2019-12-13"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 471,
+  "fields": {
+    "day": "2019-12-14"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 472,
+  "fields": {
+    "day": "2019-12-15"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 473,
+  "fields": {
+    "day": "2019-12-16"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 474,
+  "fields": {
+    "day": "2019-12-17"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 475,
+  "fields": {
+    "day": "2019-12-18"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 476,
+  "fields": {
+    "day": "2019-12-19"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 477,
+  "fields": {
+    "day": "2019-12-20"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 478,
+  "fields": {
+    "day": "2019-12-21"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 479,
+  "fields": {
+    "day": "2019-12-22"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 480,
+  "fields": {
+    "day": "2019-12-23"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 481,
+  "fields": {
+    "day": "2019-12-27"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 482,
+  "fields": {
+    "day": "2019-12-28"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 483,
+  "fields": {
+    "day": "2019-12-29"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 484,
+  "fields": {
+    "day": "2019-12-30"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 485,
+  "fields": {
+    "day": "2019-12-31"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 486,
+  "fields": {
+    "day": "2020-01-01"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 487,
+  "fields": {
+    "day": "2020-01-02"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 488,
+  "fields": {
+    "day": "2020-01-03"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 489,
+  "fields": {
+    "day": "2020-01-04"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 490,
+  "fields": {
+    "day": "2020-01-05"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 491,
+  "fields": {
+    "day": "2020-01-06"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 492,
+  "fields": {
+    "day": "2020-01-07"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 493,
+  "fields": {
+    "day": "2020-01-08"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 494,
+  "fields": {
+    "day": "2020-01-09"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 495,
+  "fields": {
+    "day": "2020-01-10"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 496,
+  "fields": {
+    "day": "2020-01-11"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 497,
+  "fields": {
+    "day": "2020-01-12"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 498,
+  "fields": {
+    "day": "2020-01-13"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 499,
+  "fields": {
+    "day": "2020-01-14"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 500,
+  "fields": {
+    "day": "2020-01-15"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 501,
+  "fields": {
+    "day": "2020-01-16"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 502,
+  "fields": {
+    "day": "2020-01-17"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 503,
+  "fields": {
+    "day": "2020-01-18"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 504,
+  "fields": {
+    "day": "2020-01-19"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 505,
+  "fields": {
+    "day": "2020-01-20"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 506,
+  "fields": {
+    "day": "2020-01-21"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 507,
+  "fields": {
+    "day": "2020-01-22"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 508,
+  "fields": {
+    "day": "2020-01-24"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 509,
+  "fields": {
+    "day": "2020-01-25"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 510,
+  "fields": {
+    "day": "2020-01-27"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 511,
+  "fields": {
+    "day": "2020-01-28"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 512,
+  "fields": {
+    "day": "2020-01-29"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 513,
+  "fields": {
+    "day": "2020-01-30"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 514,
+  "fields": {
+    "day": "2020-01-31"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 515,
+  "fields": {
+    "day": "2020-02-01"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 516,
+  "fields": {
+    "day": "2020-02-02"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 517,
+  "fields": {
+    "day": "2020-02-03"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 518,
+  "fields": {
+    "day": "2020-02-04"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 519,
+  "fields": {
+    "day": "2020-02-05"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 520,
+  "fields": {
+    "day": "2020-02-06"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 521,
+  "fields": {
+    "day": "2020-02-07"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 522,
+  "fields": {
+    "day": "2020-02-08"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 523,
+  "fields": {
+    "day": "2020-02-09"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 524,
+  "fields": {
+    "day": "2020-02-10"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 525,
+  "fields": {
+    "day": "2020-02-11"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 526,
+  "fields": {
+    "day": "2020-02-12"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 527,
+  "fields": {
+    "day": "2020-02-13"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 528,
+  "fields": {
+    "day": "2020-02-14"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 529,
+  "fields": {
+    "day": "2020-02-15"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 530,
+  "fields": {
+    "day": "2020-02-16"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 531,
+  "fields": {
+    "day": "2020-02-17"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 532,
+  "fields": {
+    "day": "2020-02-18"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 533,
+  "fields": {
+    "day": "2020-02-19"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 534,
+  "fields": {
+    "day": "2020-02-20"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 535,
+  "fields": {
+    "day": "2020-02-21"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 536,
+  "fields": {
+    "day": "2020-02-22"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 537,
+  "fields": {
+    "day": "2020-02-23"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 538,
+  "fields": {
+    "day": "2020-02-24"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 539,
+  "fields": {
+    "day": "2020-02-25"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 540,
+  "fields": {
+    "day": "2020-02-26"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 541,
+  "fields": {
+    "day": "2020-02-27"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 542,
+  "fields": {
+    "day": "2020-02-28"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 543,
+  "fields": {
+    "day": "2020-02-29"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 544,
+  "fields": {
+    "day": "2020-03-01"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 545,
+  "fields": {
+    "day": "2020-03-02"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 546,
+  "fields": {
+    "day": "2020-03-03"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 547,
+  "fields": {
+    "day": "2020-03-04"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 548,
+  "fields": {
+    "day": "2020-03-05"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 549,
+  "fields": {
+    "day": "2020-03-06"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 550,
+  "fields": {
+    "day": "2020-03-07"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 551,
+  "fields": {
+    "day": "2020-03-08"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 552,
+  "fields": {
+    "day": "2020-03-09"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 553,
+  "fields": {
+    "day": "2020-03-10"
+  }
+},
+{
+  "model": "players.gameday",
+  "pk": 554,
+  "fields": {
+    "day": "2020-03-11"
+  }
+}
+]
