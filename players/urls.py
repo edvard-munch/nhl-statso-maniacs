@@ -18,7 +18,7 @@ urlpatterns = [
          views.ajax_players, name='ajax_players'),
     path('favorites/', views.favorites, name='favorites'),
     path('ajax_fav_players_gamelog/<str:stat_type>/<str:page>/<str:size>/<str:sort_col>/<str:filt_col>/',
-         views.ajax_fav_players_gamelog, name='jax_fav_players_gamelog'),
+         views.ajax_fav_players_gamelog, name='ajax_fav_players_gamelog'),
     path('player/<slug>/<int:nhl_id>/player_favorite/', views.player_favorite,
          name='player_favorite'),
     path('comparison/', views.comparison, name='comparison'),
