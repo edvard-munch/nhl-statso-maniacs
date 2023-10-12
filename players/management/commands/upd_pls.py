@@ -134,9 +134,8 @@ class Command(BaseCommand):
             flag_name = f'{player_obj.nation_abbr}.jpg'
 
             if pic_missing(img_name, player_obj.image, PLAYERS_PICS_DIR):
-                upload_pic(player_obj, img_name, URL_PLAYERS_PICS)
+                upload_pic(PLAYERS_PICS_DIR, player_obj, img_name, URL_PLAYERS_PICS)
             if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
-                print(flag_name)
                 upload_flag(player_obj, flag_name)
 
         # goalie bios has no sv, gaa, sv%
@@ -267,7 +266,7 @@ def get_char_field_value(player, field):
         return ''
 
 
-def pic_missing(pic_name, field, dir):
+def pic_missing(pic_name, field, directory):
     """
 
     Args:
@@ -278,12 +277,12 @@ def pic_missing(pic_name, field, dir):
     Returns:
 
     """
-    path = os.path.join(settings.MEDIA_ROOT, dir, pic_name)
+    path = os.path.join(settings.MEDIA_ROOT, directory, pic_name)
     # field.path != path should be unnecessary in production
     return not field or not os.path.isfile(path) or field.path != path
 
 
-def upload_pic(object, img_name, url):
+def upload_pic(directory, object, img_name, url):
     """
 
     Args:
@@ -294,12 +293,25 @@ def upload_pic(object, img_name, url):
     Returns:
 
     """
-    try:
-        content = urllib.request.urlretrieve(
-            url.format(object.nhl_id))
-        pic = File(open(content[0], 'rb'))
-        object.image.save(name=img_name, content=pic)
 
+    path = os.path.join(settings.MEDIA_ROOT, directory, img_name)
+
+    if os.path.isfile(path):
+        pic = File(open(path, 'rb'))
+        object.image.save(name=img_name, content=pic)
+    else:
+        try:
+            if directory == upd_tms.TEAMS_LOGOS_DIR:
+                id_string = object.abbr
+
+            else:
+                id_string = object.nhl_id
+
+            content = urllib.request.urlretrieve(
+                url.format(id_string))
+
+            pic = File(open(content[0], 'rb'))
+            object.image.save(name=img_name, content=pic)
     except urllib.error.HTTPError:
         print(f'{object.name} has no picture yet')
 

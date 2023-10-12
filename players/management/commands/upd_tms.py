@@ -65,4 +65,4 @@ class Command(BaseCommand):
         img_name = f'{team_obj.slug}.svg'
 
         if upd_pls.pic_missing(img_name, team_obj.image, TEAMS_LOGOS_DIR):
-            upd_pls.upload_pic(team_obj, img_name, URL_TEAMS_LOGOS)
+             upd_pls.upload_pic(TEAMS_LOGOS_DIR, team_obj, img_name, URL_TEAMS_LOGOS)
