@@ -12,7 +12,7 @@ from players.models import Team
 from . import upd_pls
 
 URL_TEAMS = 'https://statsapi.web.nhl.com/api/v1/teams'
-URL_TEAMS_LOGOS = 'https://www-league.nhlstatic.com/images/logos/teams-current-primary-light/{}.svg'
+URL_TEAMS_LOGOS = 'https://assets.nhle.com/logos/nhl/svg/{}_light.svg'
 TEAMS_LOGOS_DIR = 'teams_logos'
 
 
