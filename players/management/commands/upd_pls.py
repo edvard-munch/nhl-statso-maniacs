@@ -312,8 +312,12 @@ def upload_pic(directory, object, img_name, url):
 
             pic = File(open(content[0], 'rb'))
             object.image.save(name=img_name, content=pic)
-    except urllib.error.HTTPError:
-        print(f'{object.name} has no picture yet')
+
+        except urllib.error.HTTPError:
+            print(f'{object.name} has no picture yet')
+
+        except urllib.error.URLError:
+            print('Request failed')
 
 
 def upload_flag(player_obj, flag_name):
