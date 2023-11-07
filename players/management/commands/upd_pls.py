@@ -261,7 +261,11 @@ def calculate_age(born):
 
 def get_char_field_value(player, field):
     try:
-        return player[field]
+        if player[field] == None:
+            return ''
+        else:
+            return player[field]
+
     except KeyError:
         return ''
 
