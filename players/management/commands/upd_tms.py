@@ -11,7 +11,8 @@ from players.models import Team
 
 from . import upd_pls
 
-URL_TEAMS = 'https://statsapi.web.nhl.com/api/v1/teams'
+URL_TEAMS = 'https://api-web.nhle.com/v1/schedule-calendar/now'
+# URL_FRANCHISES = "https://api.nhle.com/stats/rest/en/franchise?sort=fullName&include=lastSeason.id&include=firstSeason.id"
 URL_TEAMS_LOGOS = 'https://assets.nhle.com/logos/nhl/svg/{}_light.svg'
 TEAMS_LOGOS_DIR = 'teams_logos'
 
@@ -47,17 +48,18 @@ class Command(BaseCommand):
         nhl_id = team["id"]
 
         defaults = {
-            'name': team["name"],
-            'abbr': team["abbreviation"],
-            'arena_name': team["venue"]["name"],
-            'arena_location': team["venue"]["city"],
-            'division': team["division"]["name"],
-            'conference': team["conference"]["name"],
-            'off_site': team["officialSiteUrl"],
+            'name': team["name"]["default"],
+            'abbr': team["abbrev"],
+
+            # 'arena_name': team[`"venue"]["name"],
+            # 'arena_location': team["venue"]["city"],
+            # 'division': team["division"]["name"],
+            # 'conference': team["conference"]["name"],
+            # 'off_site': team["officialSiteUrl"],
         }
 
         try:
-            defaults['nhl_debut'] = team["firstYearOfPlay"]
+            defaults['nhl_debut'] = team["firstYearOfPlay"] #in franchise
         except KeyError:
             pass
 
