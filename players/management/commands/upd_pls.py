@@ -23,6 +23,8 @@ REP_TYPE2 = 'summary'
 REP_TYPE3 = 'realtime'
 REP_TYPE4 = 'timeonice'
 REP_TYPE5 = 'faceoffwins'
+POS_CODE_KEY = 'positionCode'
+
 INCH_TO_CM_COEFF = 2.54
 POUND_TO_KG_COEFF = 2.205
 SEASON = '20192020'
@@ -122,8 +124,7 @@ class Command(BaseCommand):
 
             defaults = {**defaults, **defaults_dr}
 
-            # TO CONSTANT
-            if 'positionCode' in player:
+            if POS_CODE_KEY in player:
                 player_obj = Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
             else:
                 player_obj = Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
