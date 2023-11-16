@@ -64,7 +64,7 @@
 
     <p>
   {% if player.team %}
-    #{{ player.pl_number }} {{ player.position_name }} | <a href="{% url 'team_detail' player.team.slug player.team.nhl_id %}">{{ player.team.name }}</a>
+    #{{ player.pl_number }} {{ player.position_name }} | <a href="{% url 'team_detail' player.team.slug player.team.nhl_id %}" target=_blank>{{ player.team.name }}</a>
   {% endif %}
   </p>
     <b>Height:</b> {{ player.height }}<br>
