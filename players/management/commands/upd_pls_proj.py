@@ -10,6 +10,7 @@ from players.models import Goalie, Skater
 from . import upd_pls_tot
 
 STAT_TYPE = 'onPaceRegularSeason'
+API_END = f'?hydrate=stats(splits={STAT_TYPE})'
 
 
 class Command(BaseCommand):
@@ -27,7 +28,7 @@ class Command(BaseCommand):
         players = list(chain(Goalie.objects.all(), Skater.objects.all()))
         print(f'\n Uploading from {STAT_TYPE} report')
         for player in tqdm(players):
-            data = player_ind_stats(STAT_TYPE, player.nhl_id).json()['people'][0]
+            data = player_ind_stats(player.nhl_id).json()['people'][0]
             nhl_id = data["id"]
             try:
                 proj_stats = data['stats'][0]['splits'][0]['stat']
@@ -56,18 +57,16 @@ def get_player(nhl_id):
         return Skater.objects.get(nhl_id=nhl_id)
 
 
-def player_ind_stats(st_type, nhl_id):
+def player_ind_stats(nhl_id):
     """
 
     Args:
-      st_type: 
       nhl_id: 
 
     Returns:
 
     """
-    api_end = f'?hydrate=stats(splits={st_type})'
-    url = ''.join([upd_pls_tot.PLAYER_ENDPOINT_URL, str(nhl_id), api_end])
+    url = ''.join([upd_pls_tot.PLAYER_ENDPOINT_URL, str(nhl_id), API_END])
 
     response = requests.get(url)
     response.raise_for_status()
