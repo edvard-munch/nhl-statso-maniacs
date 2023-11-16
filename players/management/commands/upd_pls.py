@@ -58,6 +58,8 @@ COUNTRIES = {
     'BGR': 'Bulgaria',
     'EST': 'Estonia',
     'UKR': 'Ukraine',
+    'UZB': 'Uzbekistan',
+    'BLR': 'Belarus',
     None: '',
 }
 
