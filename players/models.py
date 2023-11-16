@@ -89,7 +89,7 @@ class Player(models.Model):
     note = GenericRelation('Note')
 
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} - {self.nhl_id}'
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
