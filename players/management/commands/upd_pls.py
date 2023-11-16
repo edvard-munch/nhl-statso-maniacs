@@ -11,6 +11,9 @@ from players.models import Goalie, Skater
 from tqdm import tqdm
 
 
+
+SEASON = '20232024'
+
 URL_PLAYERS = 'https://api.nhle.com/stats/rest/en/{}/{}'
 URL_PLAYERS_PICS = 'https://cms.nhl.bamgrid.com/images/headshots/current/168x168/{}.jpg'
 PLAYERS_PICS_DIR = 'players_pics'
@@ -27,7 +30,6 @@ POS_CODE_KEY = 'positionCode'
 
 INCH_TO_CM_COEFF = 2.54
 POUND_TO_KG_COEFF = 2.205
-SEASON = '20192020'
 PLAYERS_PER_PAGE = 100
 
 # Find a table with this, or transfer the dict to the external file
