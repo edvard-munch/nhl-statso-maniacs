@@ -181,9 +181,13 @@ class Game(models.Model):
     slug = models.SlugField(max_length=128)
     gameday = models.ForeignKey(Gameday, on_delete=models.CASCADE, null=True, related_name="games")
     result = models.CharField(max_length=128, default='')
-    away_skaters = models.ManyToManyField(Skater, related_name='skater_away_games', blank=True)
+
+    away_defencemen = models.ManyToManyField(Skater, related_name='defencemen_away_games', blank=True)
+    away_forwards = models.ManyToManyField(Skater, related_name='forwards_away_games', blank=True)
     away_goalies = models.ManyToManyField(Goalie, related_name='goalie_away_games', blank=True)
-    home_skaters = models.ManyToManyField(Skater, related_name='skater_home_games', blank=True)
+
+    home_defencemen = models.ManyToManyField(Skater, related_name='defencemen_home_games', blank=True)
+    home_forwards = models.ManyToManyField(Skater, related_name='forwards_home_games', blank=True)
     home_goalies = models.ManyToManyField(Goalie, related_name='goalie_home_games', blank=True)
 
     def __str__(self):

@@ -18,10 +18,9 @@
   <th class="cell-with-tooltip">SV%
     <span class="css-tooltip">Save Percentage</span>
   </th>
-  <th class="cell-with-tooltip">SV
-    <span class="css-tooltip">Saves</span>
+  <th class="cell-with-tooltip">SV/SA
+    <span class="css-tooltip">Saves/Shots Against</span>
   </th>
-  <th>SA</th>
 </tr>
 </thead>
 
@@ -39,15 +38,14 @@
       {% endif %}
     </div>
   </td>
-  <td>{{ stats_dict.jerseyNumber }}</td>
+  <td>{{ stats_dict.sweaterNumber }}</td>
   <td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
   <td>{{ player.age }}</td>
   <td>{{ stats_dict.decision }}</td>
-  <td>{{ stats_dict.timeOnIce }}</td>
+  <td>{{ stats_dict.toi }}</td>
   <td>{{ stats_dict.goalsAgainst }}</td>
-  <td>{{ stats_dict.savePercentage|floatformat:3 }}</td>
-  <td>{{ stats_dict.saves }}</td>
-  <td>{{ stats_dict.shots }}</td>
+  <td>{{ stats_dict.savePctg }}</td>
+  <td>{{ stats_dict.saveShotsAgainst }}</td>
   </tr>
   {% endwith %}
   {% endwith %}

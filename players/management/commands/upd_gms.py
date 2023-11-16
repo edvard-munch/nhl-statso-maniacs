@@ -1,23 +1,24 @@
 import re
-from tqdm import tqdm
+from datetime import datetime, timedelta
+
 import requests
 from django.core.management.base import BaseCommand
 from django.utils.text import slugify
-
-from datetime import datetime, timedelta
-from pytz import timezone
-
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
+from pytz import timezone
+from tqdm import tqdm
 
+
+ZERO_TOI = "00:00"
 DATE_REGEX = r'^(\d{4})\-(\d{2})\-(\d{2})'
-URL_BOXSCORE = "http://statsapi.web.nhl.com/api/v1/game/{}/boxscore"
-URL_LINESCORE = "http://statsapi.web.nhl.com/api/v1/game/{}/linescore"
-URL_SCHED = "https://statsapi.web.nhl.com/api/v1/schedule"
-REG_SEAS_CODE = '02'
-SEASON_START = "2019-10-02"
-SEASON_END = "2020-04-04"
+
+# get winning goalie
+URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/2023-11-14"
+URL_BOXSCORE = "https://api-web.nhle.com/v1/gamecenter/{}/boxscore"
+REGULAR_SEASON_CODE = '02'
 REGULAR_PERIODS_AMOUNT = 3
-GAME_FINISHED = 'Final'
+GAME_FINISHED = 'OFF'
+GAME_SCHEDULED = 'FUT'
 SIDES = {
     'away': 'away',
     'home': 'home',
@@ -45,30 +46,29 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         schedule = get_schedule()
-        for date in tqdm(schedule):
+
+        today = datetime.now(timezone(TIMEZONE)).date()
+        days_range = [today]
+
+        for delta in DELTA_RANGE:
+            days_range.append(today - timedelta(days=delta))
+
+        for date in tqdm(schedule['gameWeek']):
             date_api = datetime.strptime(date['date'], '%Y-%m-%d').date()
             date_db = Gameday.objects.filter(day=date_api).first()
 
-            today = datetime.now(timezone(TIMEZONE)).date()
-            days_range = [today]
-            for delta in DELTA_RANGE:
-                days_range.append(today - timedelta(days=delta))
-
-            if not date_db or date_db.day in days_range:
+            if (not date_db) or (date_db.day in days_range):
                 gameday_obj = Gameday.objects.update_or_create(day=date_api)[0]
                 print(gameday_obj.day)
+
                 for game in date["games"]:
-                    if str(game["gamePk"])[4:6] == REG_SEAS_CODE:
-                        rosters = game_data(game["gamePk"], URL_BOXSCORE)["teams"]
-                        linescore = game_data(game["gamePk"], URL_LINESCORE)
+                    if str(game["id"])[4:6] == REGULAR_SEASON_CODE:
+                        game_data = get_game_data(game["id"], URL_BOXSCORE)
 
                         team_nhl_ids = [
-                            linescore["teams"]['away']['team']['id'],
-                            linescore["teams"]['home']['team']['id'],
+                            game_data['awayTeam']['id'],
+                            game_data['homeTeam']['id'],
                         ]
-
-                        away_goalies_count = len(rosters['away']['goalies'])
-                        home_goalies_count = len(rosters['home']['goalies'])
 
                         team_objects = [
                             Team.objects.get(nhl_id=team_nhl_ids[0]),
@@ -76,62 +76,85 @@ class Command(BaseCommand):
                         ]
 
                         team_names = [item.name for item in team_objects]
-                        away_score = linescore["teams"]["away"]["goals"]
-                        home_score = linescore["teams"]["home"]["goals"]
-                        score = f'{away_score}:{home_score}'
+                        score = ''
 
-                        # ADD 'GAME IN PROGRESS' if it's not finished
-                        if linescore['currentPeriod'] > REGULAR_PERIODS_AMOUNT:
-                            if linescore['currentPeriodTimeRemaining'] == GAME_FINISHED:
-                                score += f' {linescore["currentPeriodOrdinal"]}'
+                        if game_data['gameState'] != GAME_SCHEDULED:
+                            rosters = game_data["boxscore"]["playerByGameStats"]
+
+                            rosters['awayTeam']['goalies'] = get_played_goalies(rosters['awayTeam']['goalies'])
+                            rosters['homeTeam']['goalies'] = get_played_goalies(rosters['homeTeam']['goalies'])
+
+                            away_goalies_count = len(rosters['awayTeam']['goalies'])
+                            home_goalies_count = len(rosters['homeTeam']['goalies'])
+
+                            away_score = game_data["boxscore"]["linescore"]["totals"]["away"]
+                            home_score = game_data["boxscore"]["linescore"]["totals"]["home"]
+                            score = f'{away_score}:{home_score}'
+
+                            # ADD 'GAME IN PROGRESS' if it's not finished
+                            if game_data['period'] > REGULAR_PERIODS_AMOUNT:
+                                if game_data['gameState'] == GAME_FINISHED:
+                                    score += f' {game_data["gameOutcome"]["lastPeriodType"]}'
 
                         defaults = {
                             'result': f"{' - '.join(team_names)} {score}",
                             'gameday': gameday_obj,
                         }
 
-                        game_obj, created = Game.objects.update_or_create(nhl_id=game["gamePk"],
+                        game_obj, created = Game.objects.update_or_create(nhl_id=game["id"],
                                                                           defaults=defaults)
 
                         if created:
                             game_obj.slug = slugify(" - ".join(team_names) + str(game_obj.gameday.day))
                             game_obj.save(update_fields=['slug'])
 
-                        away_skaters = []
-                        away_goalies = []
-                        home_skaters = []
-                        home_goalies = []
+                        if game_data['gameState'] != GAME_SCHEDULED:
+                            away_skaters = [[], []]
+                            home_skaters = [[], []]
+                            away_goalies = []
+                            home_goalies = []
 
-                        away_team = team_objects[0]
-                        home_team = team_objects[1]
+                            away_team = team_objects[0]
+                            home_team = team_objects[1]
 
-                        iterate_players(gameday_obj, rosters['away']['players'], away_skaters,
-                                        away_goalies, away_team, home_team, away_goalies_count)
-                        iterate_players(gameday_obj, rosters['home']['players'], home_skaters,
-                                        home_goalies, home_team, away_team, home_goalies_count)
+                            iterate_players(gameday_obj, rosters['awayTeam'], away_skaters,
+                                            away_goalies, away_team, home_team, away_goalies_count)
+                            iterate_players(gameday_obj, rosters['homeTeam'], home_skaters,
+                                            home_goalies, home_team, away_team, home_goalies_count)
+
+                            game_obj.away_defencemen.set(away_skaters[0])
+                            game_obj.away_forwards.set(away_skaters[1])
+                            game_obj.away_goalies.set(away_goalies)
+
+                            game_obj.home_defencemen.set(home_skaters[0])
+                            game_obj.home_forwards.set(home_skaters[1])
+                            game_obj.home_goalies.set(home_goalies)
 
                         save_game_side(team_objects[0], SIDES['away'], game_obj, date["date"])
                         save_game_side(team_objects[1], SIDES['home'], game_obj, date["date"])
 
-                        game_obj.away_skaters.set(away_skaters)
-                        game_obj.away_goalies.set(away_goalies)
-                        game_obj.home_skaters.set(home_skaters)
-                        game_obj.home_goalies.set(home_goalies)
+
+def get_played_goalies(goalies):
+    return [goalie for goalie in goalies if goalie["toi"] != ZERO_TOI]
+
+def get_schedule():
+    return requests.get(URL_SCHEDULE).json()
 
 
 def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team, opponent, goalies_count):
     for key, value in roster.items():
-        nhl_id = int(key[2:])
-        player = get_player(nhl_id)
-        if player:
-            game_stats = add_player(value, player, skaters_list, goalies_list, team, opponent, goalies_count)
-            format_date = date_convert(gameday_obj.day)
+        for player_data in value:
+            player = get_player(player_data['playerId'])
 
-            # chek if not 'Scratched'
-            if game_stats:
-                game_stats['format_date'] = format_date
-                player.gamelog_stats[str(gameday_obj.day)] = game_stats
-                player.save(update_fields=['gamelog_stats'])
+            if player:
+                game_stats = add_player(player_data, player, skaters_list, goalies_list, team, opponent, goalies_count)
+                format_date = date_convert(gameday_obj.day)
+
+                # chek if not 'Scratched'
+                if game_stats:
+                    game_stats['format_date'] = format_date
+                    player.gamelog_stats[str(gameday_obj.day)] = game_stats
+                    player.save(update_fields=['gamelog_stats'])
 
 
 def date_convert(date):
@@ -139,38 +162,28 @@ def date_convert(date):
     return re.sub(r'\s+', ' ', date_str)
 
 
-def add_player(value, player, skaters_list, goalies_list, team, opponent, goalies_count):
-    try:
-        game_stats = value['stats']['skaterStats']
-        game_stats['points'] = game_stats['goals'] + game_stats['assists']
-        game_stats['powerPlayPoints'] = game_stats['powerPlayGoals'] + game_stats['powerPlayAssists']
-        game_stats['shortHandedPoints'] = game_stats['shortHandedGoals'] + game_stats['shortHandedAssists']
-        add_values(game_stats, value['jerseyNumber'], team, opponent, player)
+def add_player(player_data, player, skaters_list, goalies_list, team, opponent, goalies_count):
+    if player_data['position'] == 'G':
+        if player_data['goalsAgainst'] == 0 and goalies_count == 1:
+            player_data['shutout'] = 1
+        else:
+            player_data['shutout'] = 0
 
-        skaters_list.append(player)
+        add_values(player_data, team, opponent, player)
 
-    except KeyError:
-        try:
-            game_stats = value['stats']['goalieStats']
-            game_stats['goalsAgainst'] = game_stats['shots'] - game_stats['saves']
-            game_stats['savePercentage'] = game_stats['savePercentage'] / 100
-            add_values(game_stats, value['jerseyNumber'], team, opponent, player)
+        goalies_list.append(player)
 
-            if game_stats['goalsAgainst'] == 0 and goalies_count == 1:
-                game_stats['shutout'] = 1
-            else:
-                game_stats['shutout'] = 0
+    elif player_data['position'] == 'D':
+        add_values(player_data, team, opponent, player)
+        skaters_list[0].append(player)
+    else:
+        add_values(player_data, team, opponent, player)
+        skaters_list[1].append(player)
 
-            goalies_list.append(player)
- 
-        except KeyError:
-            return None
-
-    return game_stats
+    return player_data
 
 
-def add_values(game_stats, jersey_number, team, opponent, player):
-    game_stats['jerseyNumber'] = jersey_number
+def add_values(game_stats, team, opponent, player):
     game_stats['player'] = {}
     game_stats['player']['nhl_id'] = player.nhl_id
     game_stats['player']['slug'] = player.slug
@@ -219,13 +232,5 @@ def get_player(nhl_id):
             return None
 
 
-def game_data(game_id, url):
+def get_game_data(game_id, url):
     return requests.get(url.format(game_id)).json()
-
-
-def get_schedule():
-    params = {
-        "startDate": SEASON_START,
-        "endDate": SEASON_END,
-    }
-    return requests.get(URL_SCHED, params=params).json()["dates"]

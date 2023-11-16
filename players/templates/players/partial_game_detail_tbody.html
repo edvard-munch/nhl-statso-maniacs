@@ -11,23 +11,23 @@
     {% endif %}
   </div>
 </td>
-<td>{{ stats_dict.jerseyNumber }}</td>
+<td>{{ stats_dict.sweaterNumber }}</td>
 <td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
 <td>{{ player.position_abbr }}</td>
 <td>{{ player.age }}</td>
 <td>{{ stats_dict.goals }}</td>
 <td>{{ stats_dict.assists }}</td>
 <td>{{ stats_dict.plusMinus }}</td>
-<td>{{ stats_dict.penaltyMinutes }}</td>
+<td>{{ stats_dict.pim }}</td>
 <td>{{ stats_dict.shots }}</td>
 <td>{{ stats_dict.hits }}</td>
-<td>{{ stats_dict.blocked }}</td>
-<td>{{ stats_dict.faceOffWins }}</td>
+<td>{{ stats_dict.blockedShots }}</td>
+<td>{{ stats_dict.faceoffs }}</td>
 <td>{{ stats_dict.powerPlayPoints }}</td>
-<td>{{ stats_dict.shortHandedPoints }}</td>
-<td>{{ stats_dict.timeOnIce }}</td>
-<td>{{ stats_dict.powerPlayTimeOnIce }}</td>
-<td>{{ stats_dict.shortHandedTimeOnIce }}</td>
+<td>{{ stats_dict.shPoints }}</td>
+<td>{{ stats_dict.toi }}</td>
+<td>{{ stats_dict.powerPlayToi }}</td>
+<td>{{ stats_dict.shorthandedToi }}</td>
 </tr>
 {% endwith %}
 {% endwith %}

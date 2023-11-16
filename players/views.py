@@ -42,22 +42,18 @@ def game_detail(request, slug, nhl_id):
     game = Game.objects.get(nhl_id=nhl_id, slug=slug)
     user = request.user
     sort_order = ['last_name']
-    away_d_men = utils.filter_position(game.away_skaters.all(), utils.POSITIONS[1], sort_order)
-    away_fwds = utils.filter_position(game.away_skaters.all(), utils.POSITIONS[2:], sort_order)
-    home_d_men = utils.filter_position(game.home_skaters.all(), utils.POSITIONS[1], sort_order)
-    home_fwds = utils.filter_position(game.home_skaters.all(), utils.POSITIONS[2:], sort_order)
 
     context = {
         'game': game,
         'skaters': [
             {
                 'header': game.side_set.get(side='away').team,
-                'list': away_fwds,
+                'list': game.away_forwards.all(). order_by(*sort_order),
                 'type': utils.FRW,
                 'table_id': utils.TABLE_IDS[3],
             },
             {
-                'list': away_d_men,
+                'list': game.away_defencemen.all(). order_by(*sort_order),
                 'type': utils.DEF,
                 'table_id': utils.TABLE_IDS[2],
                 'game_goalies_table': {
@@ -68,12 +64,12 @@ def game_detail(request, slug, nhl_id):
             },
             {
                 'header': game.side_set.get(side='home').team,
-                'list': home_fwds,
+                'list': game.home_forwards.all(). order_by(*sort_order),
                 'type': utils.FRW,
                 'table_id': utils.TABLE_IDS[5],
             },
             {
-                'list': home_d_men,
+                'list': game.home_defencemen.all(). order_by(*sort_order),
                 'type': utils.DEF,
                 'table_id': utils.TABLE_IDS[4],
                 'game_goalies_table': {
@@ -88,10 +84,12 @@ def game_detail(request, slug, nhl_id):
     if user.is_authenticated:
         fav_away_goalies = game.away_goalies.all().filter(favoriting__username=user)
         fav_home_goalies = game.home_goalies.all().filter(favoriting__username=user)
-        fav_away_skaters = game.away_skaters.all().filter(favoriting__username=user)
-        fav_home_skaters = game.home_skaters.all().filter(favoriting__username=user)
-        fav_players = list(chain(fav_away_goalies, fav_home_goalies,
-                                 fav_away_skaters, fav_home_skaters))
+        fav_away_defencemen = game.away_defencemen.all().filter(favoriting__username=user)
+        fav_home_defencemen = game.home_defencemen.all().filter(favoriting__username=user)
+        fav_away_forwards = game.away_forwards.all().filter(favoriting__username=user)
+        fav_home_forwards = game.home_forwards.all().filter(favoriting__username=user)
+        fav_players = list(chain(fav_away_goalies, fav_home_goalies,fav_away_defencemen,
+                                 fav_home_defencemen, fav_away_forwards, fav_home_forwards))
 
         context['favorites'] = fav_players
 
