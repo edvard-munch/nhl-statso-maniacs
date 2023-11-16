@@ -31,6 +31,7 @@ POS_CODE_KEY = 'positionCode'
 INCH_TO_CM_COEFF = 2.54
 POUND_TO_KG_COEFF = 2.205
 PLAYERS_PER_PAGE = 100
+TODAY = date.today()
 
 # Find a table with this, or transfer the dict to the external file
 COUNTRIES = {
@@ -115,7 +116,7 @@ class Command(BaseCommand):
                 'nation_abbr': get_char_field_value(player, "nationalityCode"),
                 'games': player["gamesPlayed"],
                 'height_cm': round(player['height'] * INCH_TO_CM_COEFF),
-                'age': calculate_age(birth_date),
+                'age': calculate_age(birth_date, TODAY),
             }
 
             defaults_dr = {}
@@ -256,10 +257,10 @@ class Command(BaseCommand):
                 self.import_player(player, index)
 
 
-# Using tuple comparison and a fact that True == 1 and False == 0
-def calculate_age(born):
-    today = date.today()
-    return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+def calculate_age(born, today):
+    # Using tuple comparison and a fact that True == 1 and False == 0
+    no_birthday_this_year_yet = ((today.month, today.day) < (born.month, born.day))
+    return today.year - born.year - no_birthday_this_year_yet
 
 
 def get_char_field_value(player, field):
