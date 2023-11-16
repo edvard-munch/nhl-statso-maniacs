@@ -1,5 +1,4 @@
 import os
-import timeit
 import urllib
 
 import requests
@@ -7,11 +6,9 @@ from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_date
-from num2words import num2words
 from tqdm import tqdm
 from datetime import date
 
-import players.utils as utils
 from players.models import Goalie, Skater
 
 URL_PLAYERS = 'https://api.nhle.com/stats/rest/en/{}/{}'
