@@ -29,11 +29,11 @@ class Command(BaseCommand):
         Returns:
 
         """
-        print(f'\n Uploading from teams report')
-        teams = requests.get(URL_TEAMS).json()["teams"]
+        teams = get_response()
 
         for team in tqdm(teams):
             self.import_team(team)
+
 
     def import_team(self, team):
         """
@@ -66,3 +66,12 @@ class Command(BaseCommand):
 
         if upd_pls.pic_missing(img_name, team_obj.image, TEAMS_LOGOS_DIR):
              upd_pls.upload_pic(TEAMS_LOGOS_DIR, team_obj, img_name, URL_TEAMS_LOGOS)
+
+
+def get_response():
+    print(f'\n Uploading from teams report')
+    try:
+        return requests.get(URL_TEAMS).json()['teams']
+    except requests.exceptions.ConnectionError as e:
+        print(e)
+        raise CommandError('CONNECTION COULD NOT BE ESTABLISHED. TRYING NEXT TASK')
