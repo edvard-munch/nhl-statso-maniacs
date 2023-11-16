@@ -15,7 +15,10 @@ import players.utils as utils
 from players.models import Goalie, Skater
 
 URL_PLAYERS = 'https://api.nhle.com/stats/rest/en/{}/{}'
-URL_PLAYERS_PICS = 'https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg'
+URL_PLAYERS_PICS = 'https://cms.nhl.bamgrid.com/images/headshots/current/168x168/{}.jpg'
+PLAYERS_PICS_DIR = 'players_pics'
+FLAGS_DIR = 'flags'
+
 PL_TYPE1 = "goalie"
 PL_TYPE2 = "skater"
 REP_TYPE1 = 'bios'
@@ -23,8 +26,6 @@ REP_TYPE2 = 'summary'
 REP_TYPE3 = 'realtime'
 REP_TYPE4 = 'timeonice'
 REP_TYPE5 = 'faceoffwins'
-PLAYERS_PICS_DIR = 'players_pics'
-FLAGS_DIR = 'flags'
 INCH_TO_CM_COEFF = 2.54
 POUND_TO_KG_COEFF = 2.205
 SEASON = '20192020'
