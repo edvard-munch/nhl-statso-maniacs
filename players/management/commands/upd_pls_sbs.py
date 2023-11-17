@@ -214,7 +214,6 @@ def player_ind_stats(nhl_id):
     Returns a response object with the data
 
     Args:
-      # st_type: a string that represents type of the stat report
       nhl_id: an integer representing id of a player on nhl.com API
 
     """
