@@ -907,7 +907,7 @@ def get_player(nhl_id, slug):
     If object is not found in either of models it returns `None`
 
     Args:
-        nhl_id: integer representing a player's id from nhl.com API
+        nhl_id: an integer representing a player's id from nhl.com API
         slug: a string representing a slug of an object
     """
     try:
