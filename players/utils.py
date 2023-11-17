@@ -219,7 +219,6 @@ POSITION_FILTERS = [
     'f',
     't',
 ]
-SUBTRACT_PERIOD = 1
 TIMEZONE = 'US/Pacific'
 DATE_TEMPLATE = '%Y-%m-%d'
 
@@ -263,11 +262,6 @@ def get_adjacent(queryset, today, amount_of_days):
             start = queryset_length - amount_of_days
 
     return queryset[start:finish]
-
-
-def get_default_date():
-    date_now = datetime.date.today()
-    return date_now.replace(year=date_now.year - SUBTRACT_PERIOD)
 
 
 # CHANGE NAME OF a json argument

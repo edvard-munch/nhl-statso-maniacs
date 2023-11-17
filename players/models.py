@@ -1,5 +1,3 @@
-from . import utils
-
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
@@ -7,8 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db import models
 from django.utils.text import slugify
-
 from players.storage import OverwriteStorage
+import datetime
 
 
 class Team(models.Model):
@@ -39,7 +37,7 @@ class Team(models.Model):
 
 
 class Gameday(models.Model):
-    day = models.DateField(unique=True, default=utils.get_default_date())
+    day = models.DateField(unique=True, default=datetime.date.today)
 
     def __str__(self):
         return f'{self.day}'
@@ -54,7 +52,7 @@ class Player(models.Model):
     image = models.ImageField(upload_to='players_pics', default='skater_default.png',
                               max_length=None, storage=OverwriteStorage())
     relevant_video = models.URLField(max_length=128, default='')
-    video_link_updated_at = models.DateField(default=utils.get_default_date())
+    video_link_updated_at = models.DateField(default=datetime.date.today)
     position_abbr = models.CharField(max_length=128, blank=True)
     position_name = models.CharField(max_length=128, blank=True)
     height = models.CharField(max_length=128, blank=True)

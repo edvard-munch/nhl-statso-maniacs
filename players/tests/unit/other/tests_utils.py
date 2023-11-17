@@ -173,14 +173,3 @@ def test_get_us_pacific_date():
 ])
 def test_get_adjacent(array, element, quantity, result):
     assert utils.get_adjacent(array, element, quantity) == result
-
-
-@pytest.mark.parametrize('date_now, result', [
-    ['2020-06-10', '2019-06-10'],
-    ['2021-04-25', '2020-04-25'],
-])
-def test_get_default_date(date_now, result):
-    date_now = datetime.strptime(date_now, '%Y-%m-%d')
-    result = datetime.strptime(result, '%Y-%m-%d')
-
-    assert utils.get_default_date(date_now) == result
