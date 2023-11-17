@@ -6,7 +6,6 @@ from django.core import serializers
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
-from django.db.models import Min, Max
 
 from . import utils
 from .forms import NoteForm, PositionsForm
@@ -212,14 +211,14 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
         else:
             players = Skater.objects.select_related('team')
 
-    init_age_range = get_range(players, 'age')
+    init_age_range = utils.get_range(players, 'age')
 
     if utils.measurements_format_is_euro(user):
-        init_weight_range = get_range(players, 'weight_kg')
+        init_weight_range = utils.get_range(players, 'weight_kg')
     else:
-        init_weight_range = get_range(players, 'weight')
+        init_weight_range = utils.get_range(players, 'weight')
 
-    init_height_range = get_range(players, 'height_cm')
+    init_height_range = utils.get_range(players, 'height_cm')
 
     if utils.ALL_ROWS in size:
         size = players.count()
@@ -285,38 +284,38 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     # CHECK AND OPTIMIZE ALL OF THE IF BRANCHES HERE
 
     # GET HTML for checkbox OPTIONS after standard filtering have been applied or not
-    data['all_teams'] = checkbox(all_teams, 'team_checkboxradio_skt', tip=True)
-    data['all_nations'] = checkbox(all_nations, 'nation_checkboxradio_skt', tip=False)
-    data['all_positions'] = checkbox(all_positions, 'position_checkboxradio_skt', tip=True)
+    data['all_teams'] = utils.checkbox(all_teams, 'team_checkboxradio_skt', tip=True)
+    data['all_nations'] = utils.checkbox(all_nations, 'nation_checkboxradio_skt', tip=False)
+    data['all_positions'] = utils.checkbox(all_positions, 'position_checkboxradio_skt', tip=True)
 
         
     # All below is for getting HTML for checkbox OPTIONS if  STANDARD of CHECKBOX filtering have been applied 
 
     # remove or make not active teams that doesn't have players for current filter set besides checkbox filters
     if filtering:
-        data['all_teams'] = checkbox(all_teams, 'team_checkboxradio_skt', tip=True)
-        data['all_nations'] = checkbox(all_nations, 'nation_checkboxradio_skt', tip=False)
-        data['all_positions'] = checkbox(all_positions, 'position_checkboxradio_skt', tip=True)
+        data['all_teams'] = utils.checkbox(all_teams, 'team_checkboxradio_skt', tip=True)
+        data['all_nations'] = utils.checkbox(all_nations, 'nation_checkboxradio_skt', tip=False)
+        data['all_positions'] = utils.checkbox(all_positions, 'position_checkboxradio_skt', tip=True)
 
 # IF CHECKED
     if(utils.checkbox_filter(checkbox_filt, 'teams')):
-        data['all_teams'] = checkbox(all_teams, 'team_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'teams'), tip=True)
+        data['all_teams'] = utils.checkbox(all_teams, 'team_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'teams'), tip=True)
         # remove or make not active teams that doesn't have players for current filter set besides checkbox filters
         if filtering:
         # make a special players list without filtering by team and make a teams list from it
         # it works fine before check any team, then it leaves only currrently checked team
         # because there really a filtering and when you also check a team, it's obviously leaves only this team as an option
-            data['all_teams'] = checkbox(teams_before_team_filt, 'team_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'teams'), tip=True)
+            data['all_teams'] = utils.checkbox(teams_before_team_filt, 'team_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'teams'), tip=True)
 
     if(utils.checkbox_filter(checkbox_filt, 'positions')):
-        data['all_positions'] = checkbox(all_positions, 'position_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'positions'), tip=True)
+        data['all_positions'] = utils.checkbox(all_positions, 'position_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'positions'), tip=True)
         if filtering:
-            data['all_positions'] = checkbox(positions_before_position_filt, 'position_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'positions'), tip=True)
+            data['all_positions'] = utils.checkbox(positions_before_position_filt, 'position_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'positions'), tip=True)
 
     if(utils.checkbox_filter(checkbox_filt, 'nations')):
-        data['all_nations'] = checkbox(all_nations, 'nation_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'nations'), tip=False)
+        data['all_nations'] = utils.checkbox(all_nations, 'nation_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'nations'), tip=False)
         if filtering:
-            data['all_nations'] = checkbox(nations_before_nation_filt, 'nation_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'nations'), tip=False)
+            data['all_nations'] = utils.checkbox(nations_before_nation_filt, 'nation_checkboxradio_skt', checked=utils.checkbox_filter(checkbox_filt, 'nations'), tip=False)
 
     uniques_height_cm = utils.get_uniques(players, 'height_cm')
     uniques_height_cm = utils.sort_list(uniques_height_cm)
@@ -325,42 +324,16 @@ def ajax_players(request, stat_type, page, size, sort_col, filt_col, rookie_filt
     height_map_dict = dict(zip(uniques_height_cm, uniques_height))
 
     if utils.measurements_format_is_euro(user):
-        data['weight_range'] = get_range(players, 'weight_kg')
+        data['weight_range'] = utils.get_range(players, 'weight_kg')
         data['height_values'] = uniques_height_cm
     else:
-        data['weight_range'] = get_range(players, 'weight')
+        data['weight_range'] = utils.get_range(players, 'weight')
         data['height_values'] = height_map_dict
 
-    data['height_range'] = get_range(players, 'height_cm')
-    data['age_range'] = get_range(players, 'age')
+    data['height_range'] = utils.get_range(players, 'height_cm')
+    data['age_range'] = utils.get_range(players, 'age')
 
     return JsonResponse(data, safe=False)
-
-
-def checkbox(array, checkbox_class, **kwargs):
-    html_string = ''
-
-    for index, option in enumerate(array):
-        try:
-            if kwargs['checked']:
-                if option[0] in kwargs['checked']:
-                    kwargs['check_this'] = True
-                else:
-                    kwargs['check_this'] = False
-        except KeyError:
-            kwargs['check_this'] = False
-
-        html_string += utils.checkbox_option(option, checkbox_class, **kwargs)
-
-        if (index+1) % 8 == 0:
-            html_string += "<br>"
-
-    return html_string
-
-
-def get_range(players, column):
-    return (players.aggregate(Min(f'{column}'))[f'{column}__min'],
-            players.aggregate(Max(f'{column}'))[f'{column}__max'])
 
 
 def search(request):

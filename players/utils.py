@@ -7,6 +7,7 @@ import os
 import functools
 from itertools import chain, zip_longest
 from django.template.loader import render_to_string
+from django.db.models import Max, Min
 
 from . import models
 from pytz import timezone
@@ -222,6 +223,28 @@ POSITION_FILTERS = [
 TIMEZONE = 'US/Pacific'
 DATE_TEMPLATE = '%Y-%m-%d'
 
+
+def checkbox(array, checkbox_class, **kwargs):
+    html_string = ''
+
+    for index, option in enumerate(array):
+        try:
+            if kwargs['checked']:
+                if option[0] in kwargs['checked']:
+                    kwargs['check_this'] = True
+                else:
+                    kwargs['check_this'] = False
+        except KeyError:
+            kwargs['check_this'] = False
+
+        html_string += checkbox_option(option, checkbox_class, **kwargs)
+
+        if (index+1) % 8 == 0:
+            html_string += "<br>"
+
+    return html_string
+
+
 def checkbox_option(option, checkbox_class, **kwargs):
     classes = TOOLTIP_CSS_CLASSES
 
@@ -236,6 +259,11 @@ def checkbox_option(option, checkbox_class, **kwargs):
         end = f'<input type=\"checkbox\" class=\"{checkbox_class} checkbox_button\" value=\"{option[0]}\" id=\"{option[0]}\"> &nbsp'
 
     return start + end
+
+
+def get_range(players, column):
+    return (players.aggregate(Min(f'{column}'))[f'{column}__min'],
+            players.aggregate(Max(f'{column}'))[f'{column}__max'])
 
 
 def get_us_pacific_date():
