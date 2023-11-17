@@ -14,6 +14,7 @@ from pytz import timezone
 import json
 
 
+GAME_PLAYERS_SORT_ORDER = ['last_name']
 EMPTY_LIST = []
 RANGE_FIELDS = ['weight', 'age']
 GAMES_PER_PAGE = 6

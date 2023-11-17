@@ -40,19 +40,18 @@ def games(request, date=utils.get_us_pacific_date()):
 def game_detail(request, slug, nhl_id):
     game = Game.objects.get(nhl_id=nhl_id, slug=slug)
     user = request.user
-    sort_order = ['last_name']
 
     context = {
         'game': game,
         'skaters': [
             {
                 'header': game.side_set.get(side='away').team,
-                'list': game.away_forwards.all(). order_by(*sort_order),
+                'list': game.away_forwards.all(). order_by(*utils.GAME_PLAYERS_SORT_ORDER),
                 'type': utils.FRW,
                 'table_id': utils.TABLE_IDS[3],
             },
             {
-                'list': game.away_defencemen.all(). order_by(*sort_order),
+                'list': game.away_defencemen.all(). order_by(*utils.GAME_PLAYERS_SORT_ORDER),
                 'type': utils.DEF,
                 'table_id': utils.TABLE_IDS[2],
                 'game_goalies_table': {
@@ -63,12 +62,12 @@ def game_detail(request, slug, nhl_id):
             },
             {
                 'header': game.side_set.get(side='home').team,
-                'list': game.home_forwards.all(). order_by(*sort_order),
+                'list': game.home_forwards.all(). order_by(*utils.GAME_PLAYERS_SORT_ORDER),
                 'type': utils.FRW,
                 'table_id': utils.TABLE_IDS[5],
             },
             {
-                'list': game.home_defencemen.all(). order_by(*sort_order),
+                'list': game.home_defencemen.all(). order_by(*utils.GAME_PLAYERS_SORT_ORDER),
                 'type': utils.DEF,
                 'table_id': utils.TABLE_IDS[4],
                 'game_goalies_table': {
