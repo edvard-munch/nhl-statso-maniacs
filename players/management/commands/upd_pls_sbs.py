@@ -51,6 +51,7 @@ TEAM_ABBR = {
     52: 'WPG',
     53: 'ARI',
     54: 'VGK',
+    55: 'SEA',
 }
 
 
