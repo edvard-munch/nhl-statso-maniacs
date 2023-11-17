@@ -11,6 +11,7 @@ import players.utils as utils
 from players.models import Goalie, Skater, Team
 
 STAT_TYPE = 'careerRegularSeason'
+API_END = f'?hydrate=stats(splits={STAT_TYPE})'
 PLAYER_ENDPOINT_URL = 'https://statsapi.web.nhl.com/api/v1/people/'
 BOOL_FIELDS = ['alternateCaptain', 'captain', 'rookie']
 
@@ -86,7 +87,7 @@ class Command(BaseCommand):
         players = list(chain(Goalie.objects.all(), Skater.objects.all()))
         print(f'\n Uploading from {STAT_TYPE} report')
         for player in tqdm(players):
-            data = player_ind_stats(STAT_TYPE, player.nhl_id).json()['people'][0]
+            data = player_ind_stats(player.nhl_id).json()['people'][0]
             self.import_player(data, player.nhl_id)
 
 
@@ -148,19 +149,16 @@ def time_from_sec(time):
     return f'{min_}:{sec}'.rjust(5, '0')
 
 
-def player_ind_stats(st_type, nhl_id):
+def player_ind_stats(nhl_id):
     """
 
     Args:
-      st_type:
       nhl_id:
 
     Returns:
 
     """
-    api_end = f'?hydrate=stats(splits={st_type})'
-    url = ''.join([PLAYER_ENDPOINT_URL, str(nhl_id), api_end])
-
+    url = ''.join([PLAYER_ENDPOINT_URL, str(nhl_id), API_END])
     response = requests.get(url)
     response.raise_for_status()
     return response
