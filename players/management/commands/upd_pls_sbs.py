@@ -14,9 +14,8 @@ from . import upd_pls_tot
 STAT_TYPE = 'yearByYear'
 API_END = f'?hydrate=stats(splits={STAT_TYPE})'
 NHL = 'National Hockey League'
-CURRENT_SEASON_FORMAT = '2019-20'
-CURRENT_SEASON = '20192020'
-
+CURRENT_SEASON_FORMAT = '2023-24'
+CURRENT_SEASON = '20232024'
 
 TEAM_ABBR = {
     1: 'NJD',
