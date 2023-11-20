@@ -225,7 +225,6 @@ class Command(BaseCommand):
 
             Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
-
         elif index == 4:
             defaults = {
                 'hits': player["hits"],
@@ -251,7 +250,7 @@ class Command(BaseCommand):
                 'faceoff_wins_avg': round(player["totalFaceoffWins"] / player["gamesPlayed"], 2),
             }
 
-            Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)    
+            Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
 
 def get_response(rep_type, pl_type, start_from_index):
