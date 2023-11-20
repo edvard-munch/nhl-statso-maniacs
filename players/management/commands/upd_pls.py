@@ -137,10 +137,6 @@ class Command(BaseCommand):
         Returns:
 
         """
-        # print(player)
-
-        # bios report
-        # index = 0, index = 2
         id_ = player["playerId"]
         if index == 0 or index == 2:
 
@@ -155,12 +151,6 @@ class Command(BaseCommand):
                 print(player["birthDate"])
 
             birth_date = parse_date(player["birthDate"])
-
-            # 1 diff fields for skater and goalie:
-            # skaterFullName
-            # goalieFullName
-
-            # 2 no firstName field, parse from fullNAME
 
             defaults = {
                 'last_name': get_char_field_value(player, "lastName"),
@@ -201,13 +191,9 @@ class Command(BaseCommand):
             if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
                 upload_flag(player_obj, flag_name)
 
-        # goalie bios has no sv, gaa, sv%
-
         elif index == 1:  # goalie summary report
-        # if player["playerPositionCode"] == utils.POSITIONS[0]:
             defaults = {
                 'name': get_char_field_value(player, "goalieFullName"),
-                # 'first_name': get_char_field_value(player, "playerFirstName"),
                 'wins': player["wins"],
                 'losses': player["losses"],
                 'ot_losses': player["otLosses"],
@@ -242,13 +228,6 @@ class Command(BaseCommand):
 
             Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
-            # img_name = f'{player_obj.slug}.jpg'
-            # flag_name = f'{player_obj.nation_abbr}.jpg'
-
-            # if pic_missing(img_name, player_obj.image, PLAYERS_PICS_DIR):
-            #     upload_pic(player_obj, img_name, URL_PLAYERS_PICS)
-            # if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
-            #     upload_flag(player_obj, flag_name)
 
         elif index == 4:
             defaults = {
