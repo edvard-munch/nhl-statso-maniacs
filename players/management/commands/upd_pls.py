@@ -146,10 +146,6 @@ class Command(BaseCommand):
             if player["nationalityCode"] is None:
                 player["nationalityCode"] = player["birthCountryCode"]
 
-           # REMOVE
-           if player["lastName"] == 'Quinney':
-                print(player["birthDate"])
-
             birth_date = parse_date(player["birthDate"])
 
             defaults = {
