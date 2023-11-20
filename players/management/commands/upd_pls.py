@@ -321,7 +321,7 @@ def pic_missing(pic_name, field, directory):
     return not field or not os.path.isfile(path) or field.path != path
 
 
-def upload_pic(directory, object, img_name, url):
+def upload_pic(directory, object_, img_name, url):
     """
 
     Args:
@@ -337,23 +337,23 @@ def upload_pic(directory, object, img_name, url):
 
     if os.path.isfile(path):
         pic = File(open(path, 'rb'))
-        object.image.save(name=img_name, content=pic)
+        object_.image.save(name=img_name, content=pic)
     else:
         try:
             if directory == upd_tms.TEAMS_LOGOS_DIR:
-                id_string = object.abbr
+                id_string = object_.abbr
 
             else:
-                id_string = object.nhl_id
+                id_string = object_.nhl_id
 
             content = urllib.request.urlretrieve(
                 url.format(id_string))
 
             pic = File(open(content[0], 'rb'))
-            object.image.save(name=img_name, content=pic)
+            object_.image.save(name=img_name, content=pic)
 
         except urllib.error.HTTPError:
-            print(f'{object.name} has no picture yet')
+            print(f'{object_.name} has no picture yet')
 
         except urllib.error.URLError:
             print('Request failed')
