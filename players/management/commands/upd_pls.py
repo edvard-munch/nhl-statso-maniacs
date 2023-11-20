@@ -31,7 +31,17 @@ POS_CODE_KEY = 'positionCode'
 INCH_TO_CM_COEFF = 2.54
 POUND_TO_KG_COEFF = 2.205
 PLAYERS_PER_PAGE = 100
+START_INDEX = 0
 TODAY = date.today()
+REQUEST_PARAMS = {
+        'isAggregate': 'false',
+        'isGame': 'false',
+        'limit': PLAYERS_PER_PAGE,
+        'start': 0,
+        'cayenneExp': f'gameTypeId=2 and seasonId={SEASON}',
+        'sort': '[{"property":"lastName","direction":"ASC_CI"}, {"property":"playerId","direction":"ASC_CI"}]',
+}
+TIMEOUT = 3
 
 # Find a table with this, or transfer the dict to the external file
 COUNTRIES = {
@@ -67,6 +77,55 @@ COUNTRIES = {
 
 class Command(BaseCommand):
     """ """
+    # FACEOFFS and TOI HAVE A DIFFERENT ORDER
+    def handle(self, *args, **options):
+        """
+
+        Args:
+          *args:
+          **options:
+
+        Returns:
+
+        """
+
+        reports_list = [
+            [REP_TYPE1, PL_TYPE1],  # 0 bios goalies
+            [REP_TYPE2, PL_TYPE1],  # 1 summary goalies
+            [REP_TYPE1, PL_TYPE2],  # 2 bios skaters
+            [REP_TYPE2, PL_TYPE2],  # 3 summary skaters
+            [REP_TYPE3, PL_TYPE2],  # 4 realtime skaters
+            [REP_TYPE4, PL_TYPE2],  # 5 timeonice skaters
+            [REP_TYPE5, PL_TYPE2],  # 6 faceoffs skaters
+        ]
+
+        for index, item in enumerate(reports_list):
+            print(f'\n Uploading from {item[1]} {item[0]} report')
+            start = START_INDEX
+            resp = get_response(item[0], item[1], start)
+
+            while not resp or resp.status_code != 200:
+                resp = get_response(item[0], item[1], start)
+
+            response = resp.json()
+            total_players = response['total']
+            players_list = response['data']
+
+            if total_players > PLAYERS_PER_PAGE:
+                start += PLAYERS_PER_PAGE
+                while start < total_players:
+                    resp = get_response(item[0], item[1], start)
+
+                    while not resp or resp.status_code != 200:
+                        resp = get_response(item[0], item[1], start)
+
+                    data = resp.json()['data']
+                    start += PLAYERS_PER_PAGE
+                    players_list += data
+
+            for player in tqdm(players_list):
+                self.import_player(player, index)
+
 
     def import_player(self, player, index):
         """
@@ -219,42 +278,33 @@ class Command(BaseCommand):
             Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)    
 
 
-        # FACEOFFS and TOI HAVE A DIFFERENT ORDER
-    def handle(self, *args, **options):
-        """
+def get_response(rep_type, pl_type, start_from_index):
+    """
+    Args:
+      rep_type:
+      pl_type:
 
-        Args:
-          *args:
-          **options:
+    Returns:
 
-        Returns:
+    """
+    print(pl_type, rep_type)
 
-        """
-        reports_list = [
-            [REP_TYPE1, PL_TYPE1],  # 0 bios goalies
-            [REP_TYPE2, PL_TYPE1],  # 1 summary goalies
-            [REP_TYPE1, PL_TYPE2],  # 2 bios skaters
-            [REP_TYPE2, PL_TYPE2],  # 3 summary skaters
-            [REP_TYPE3, PL_TYPE2],  # 4 realtime skaters
-            [REP_TYPE4, PL_TYPE2],  # 5 timeonice skaters
-            [REP_TYPE5, PL_TYPE2],  # 6 faceoffs skaters
-        ]
+    url = URL_PLAYERS.format(pl_type, rep_type)
+    params = REQUEST_PARAMS
+    params['start'] = start_from_index
 
-        for index, item in enumerate(reports_list):
-            print(f'\n Uploading from {item[1]} {item[0]} report')
-            start = 0   # TO CONSTANT
-            data = players_resp(item[0], item[1], start).json()
-            total_players = data['total']
-            players_list = data['data']
-            if total_players > PLAYERS_PER_PAGE:
-                start += PLAYERS_PER_PAGE
-                while start < total_players:
-                    resp = players_resp(item[0], item[1], start).json()['data']
-                    start += PLAYERS_PER_PAGE
-                    players_list += resp
+    try:
+        resp = requests.get(url, params=params, timeout=TIMEOUT)
+        print(resp.url)
+        return resp
 
-            for player in tqdm(players_list):
-                self.import_player(player, index)
+    except requests.HTTPError as e:  # if Not fOUND
+        print(e.code)
+        print('Wrong endpoint or a problem with the connection!')
+        return None
+    except requests.exceptions.ReadTimeout as e:
+        print('Timeout!')
+        return None
 
 
 def calculate_age(born, today):
@@ -362,28 +412,3 @@ def time_from_sec(time):
     min_ = int(min_)
     sec = str(int(sec)).zfill(2)
     return f'{min_}:{sec}'.rjust(5, '0')
-
-
-def players_resp(rep_type, pl_type, start_from_index):
-    """
-    Args:
-      rep_type:
-      pl_type:
-
-    Returns:
-
-    """
-    params = {
-        'isAggregate': 'false',
-        # 'reportType': 'season',
-        'isGame': 'false',
-        'limit': PLAYERS_PER_PAGE,
-        'start': start_from_index,
-        # 'reportName': rep_type,
-        'cayenneExp': f'gameTypeId=2 and seasonId={SEASON}',
-    }
-
-    return requests.get(URL_PLAYERS.format(pl_type, rep_type), params=params)
-
-
-# https://api.nhle.com/stats/rest/en/skater/realtime?isAggregate=false&isGame=false&sort=%5B%7B%22property%22:%22hits%22,%22direction%22:%22DESC%22%7D%5D&start=0&limit=100&factCayenneExp=gamesPlayed%3E=1&cayenneExp=gameTypeId=2%20and%20seasonId%3C=20192020%20and%20seasonId%3E=20192020
