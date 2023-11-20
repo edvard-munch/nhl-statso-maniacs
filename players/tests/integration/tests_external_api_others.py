@@ -33,7 +33,7 @@ def test_keys_response_gamedata(report_type, mocked_keys):
     url = 'http://statsapi.web.nhl.com/api/v1/game/{}/' + report_type
     game_id = 2019020001
 
-    response = upd_gms.game_data(game_id, url)
+    response = upd_gms.get_game_data(game_id, url)
     real_keys = list(response.keys()) + list(response['teams']['home'].keys())
 
     assert mocked_keys == real_keys
