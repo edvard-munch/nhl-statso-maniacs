@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 import os
+from nhl_web_app.environ import env
 # import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -19,18 +20,14 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = os.getenv('SECRET_KEY')
-SECRET_KEY = 'c599ddf1e4dba4f4f29ea58a64253073a444cdabe336f82b'
-
+SECRET_KEY = env("SECRET_KEY", cast=str, default="s3cr3t")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = (os.getenv('DEBUG_VALUE') == 'True')
-DEBUG = True
+DEBUG = env('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['nhlstatsomaniacs.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
-
 INSTALLED_APPS = [
     'django_pdb',
     'users.apps.UsersConfig',
@@ -90,29 +87,14 @@ WSGI_APPLICATION = 'nhl_web_app.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'nhl_web_app_19_20',
-        # 'NAME': os.getenv('POSTGRES_DB'),
-        # 'USER': os.getenv('POSTGRES_USER'),
-        'USER': 'arkadiy-dev',
-
-        # 'PASSWORD': os.getenv('POSTGRES_DB_PASSWORD'),
-        'PASSWORD': 'ark085075',
-
         'HOST': 'localhost',
         'PORT': '5432',
+
+        'NAME': env('POSTGRES_DB', cast=str),
+        'USER': env('POSTGRES_USER', cast=str),
+        'PASSWORD': env('POSTGRES_DB_PASSWORD', cast=str),
     }
 }
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'nhl_web_app_mysql',
-#         'USER': 'root',
-#         'PASSWORD': 'ark085075',
-#         'HOST': 'localhost',
-#         'PORT': '3306',
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
@@ -145,28 +127,26 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATIC_URL = '/static/'
+STATIC_URL = env("STATIC_URL", default="/static/")
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+MEDIA_URL = env("MEDIA_URL", default="/media/")
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
 LOGIN_REDIRECT_URL = 'home'
 LOGIN_URL = 'login'
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend", cast=str)
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASS')
-
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", cast=str)
+EMAIL_HOST_PASSWORD = env("EMAIL_PASSWORD", cast=str)
 
 # SILKY_PYTHON_PROFILER = True
 
