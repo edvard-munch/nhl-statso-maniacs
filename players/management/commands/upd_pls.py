@@ -10,6 +10,7 @@ from django.utils.dateparse import parse_date
 from players.models import Goalie, Skater
 from tqdm import tqdm
 
+from . import upd_tms
 
 
 SEASON = '20232024'
