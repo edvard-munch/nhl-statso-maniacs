@@ -194,13 +194,13 @@ class Command(BaseCommand):
         elif index == 1:  # goalie summary report
             defaults = {
                 'name': get_char_field_value(player, "goalieFullName"),
-                'wins': player["wins"],
-                'losses': player["losses"],
-                'ot_losses': player["otLosses"],
-                'shotouts': player["shutouts"],
-                'goals_against_av': player["goalsAgainstAverage"],
-                'saves_perc': player["savePct"],
-                'saves': player["saves"],
+                'wins': get_num_field_value(player, "wins"),
+                'losses': get_num_field_value(player, "losses"),
+                'ot_losses': get_num_field_value(player, "otLosses"),
+                'shotouts': get_num_field_value(player, "shutouts"),
+                'goals_against_av': get_num_field_value(player, "goalsAgainstAverage"),
+                'saves_perc': get_num_field_value(player, "savePct"),
+                'saves': get_num_field_value(player, "saves"),
             }
 
             Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)
@@ -301,6 +301,12 @@ def get_char_field_value(player, field):
 
     except KeyError:
         return ''
+
+
+def get_num_field_value(player, field):
+    if player[field] == None:
+        player[field] = 0
+    return player[field]
 
 
 def pic_missing(pic_name, field, directory):
