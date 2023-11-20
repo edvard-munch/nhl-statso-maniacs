@@ -7,3 +7,7 @@ venv/
 *.log
 
 TEST.py
+
+quick_test.py
+
+endpoints.py
