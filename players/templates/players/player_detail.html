@@ -194,27 +194,27 @@
     {% for season in sbs_stats %}
     <tr>
       <td>{{ season.season }}</td>
-      <td>{{ season.team.abbr }}</td>
-      <td>{{ season.stat.games }}</td>
-      <td>{{ season.stat.wins }}</td>
-      <td>{{ season.stat.losses }}</td>
-      <td>{{ season.stat.ot }}</td>
-      <td>{{ season.stat.goalAgainstAverage|floatformat:2 }}</td>
-      <td>{{ season.stat.savePercentage|floatformat:3 }}</td>
-      <td>{{ season.stat.saves }}</td>
-      <td>{{ season.stat.shutouts }}</td>
+      <td>{{ season.teamAbbr }}</td>
+      <td>{{ season.gamesPlayed }}</td>
+      <td>{{ season.wins }}</td>
+      <td>{{ season.losses }}</td>
+      <td>{{ season.otLosses }}</td>
+      <td>{{ season.goalsAgainstAvg|floatformat:2 }}</td>
+      <td>{{ season.savePctg|floatformat:3 }}</td>
+      <td>{{ season.saves }}</td>
+      <td>{{ season.shutouts }}</td>
     </tr>
     {% endfor %}
     <!--GOALIE TOTAL CAREER STATS -->
     <tr class="static">
       <td>Total</td>
       <td> — </td>
-      <td>{{ total.games }}</td>
+      <td>{{ total.gamesPlayed }}</td>
       <td>{{ total.wins }}</td>
       <td>{{ total.losses }}</td>
-      <td>{{ total.ot }}</td>
-      <td>{{ total.goalAgainstAverage|floatformat:2 }}</td>
-      <td>{{ total.savePercentage|floatformat:3 }}</td>
+      <td>{{ total.otLosses }}</td>
+      <td>{{ total.goalsAgainstAvg|floatformat:2 }}</td>
+      <td>{{ total.savePctg|floatformat:3 }}</td>
       <td>{{ total.saves }}</td>
       <td>{{ total.shutouts }}</td>
     </tr>
@@ -370,29 +370,29 @@
     {% for season in item.stats %}
     <tr>
       <td>{{ season.season }}</td>
-      <td>{{ season.team.abbr }}</td>
-      <td>{{ season.stat.games }}</td>
-      <td>{{ season.stat.goals }}</td>
-      <td>{{ season.stat.assists }}</td>
-      <td>{{ season.stat.points }}</td>
-      <td>{{ season.stat.plusMinus }}</td>
-      <td>{{ season.stat.pim }}</td>
-      <td>{{ season.stat.shots }}</td>
-      <td>{{ season.stat.hits }}</td>
-      <td>{{ season.stat.blocked }}</td>
-      <td>{{ season.stat.faceoffsWon }}</td>
-      <td>{{ season.stat.powerPlayPoints }}</td>
-      <td>{{ season.stat.shortHandedPoints }}</td>
-      <td>{{ season.stat.timeOnIce }}</td>
-      <td>{{ season.stat.powerPlayTimeOnIce }}</td>
-      <td>{{ season.stat.shortHandedTimeOnIce }}</td>
+      <td>{{ season.teamAbbr }}</td>
+      <td>{{ season.gamesPlayed }}</td>
+      <td>{{ season.goals }}</td>
+      <td>{{ season.assists }}</td>
+      <td>{{ season.points }}</td>
+      <td>{{ season.plusMinus }}</td>
+      <td>{{ season.pim }}</td>
+      <td>{{ season.shots }}</td>
+      <td>{{ season.hits }}</td>
+      <td>{{ season.blocked }}</td>
+      <td>{{ season.faceoffsWon }}</td>
+      <td>{{ season.powerPlayPoints }}</td>
+      <td>{{ season.shorthandedPoints }}</td>
+      <td>{{ season.avgToi }}</td>
+      <td>{{ season.powerPlayTimeOnIce }}</td>
+      <td>{{ season.shortHandedTimeOnIce }}</td>
     </tr>
     {% endfor %}
     <!--SKATER TOTAL CAREER STATS -->
     <tr class="static">
       <td>Total</td>
       <td> — </td>
-      <td>{{ item.total.games }}</td>
+      <td>{{ item.total.gamesPlayed }}</td>
       <td>{{ item.total.goals }}</td>
       <td>{{ item.total.assists }}</td>
       <td>{{ item.total.points }}</td>
@@ -403,8 +403,8 @@
       <td>{{ item.total.blocked }}</td>
       <td>{{ item.total.faceoffsWon }}</td>
       <td>{{ item.total.powerPlayPoints }}</td>
-      <td>{{ item.total.shortHandedPoints }}</td>
-      <td>{{ item.total.timeOnIcePerGame }}</td>
+      <td>{{ item.total.shorthandedPoints }}</td>
+      <td>{{ item.total.avgToi }}</td>
       <td>{{ item.total.powerPlayTimeOnIcePerGame }}</td>
       <td>{{ item.total.shortHandedTimeOnIcePerGame }}</td>
     </tr>

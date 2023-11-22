@@ -7,10 +7,11 @@ from django.conf import settings
 from django.core.files import File
 from django.core.management.base import BaseCommand
 from django.utils.dateparse import parse_date
-from players.models import Goalie, Skater
+from players.models import Goalie, Skater, Team
 from tqdm import tqdm
 
 from . import upd_tms
+from . import upd_pls_tot
 
 
 SEASON = '20232024'
@@ -29,8 +30,6 @@ REP_TYPE4 = 'timeonice'
 REP_TYPE5 = 'faceoffwins'
 POS_CODE_KEY = 'positionCode'
 
-INCH_TO_CM_COEFF = 2.54
-POUND_TO_KG_COEFF = 2.205
 PLAYERS_PER_PAGE = 100
 START_INDEX = 0
 TODAY = date.today()
@@ -148,11 +147,10 @@ class Command(BaseCommand):
                 player["nationalityCode"] = player["birthCountryCode"]
 
             birth_date = parse_date(player["birthDate"])
+            team_abbreviation = get_char_field_value(player, "currentTeamAbbrev")
 
             defaults = {
                 'last_name': get_char_field_value(player, "lastName"),
-                'weight': player["weight"],
-                'weight_kg': round(player["weight"] / POUND_TO_KG_COEFF),
                 'birth_date': birth_date,
                 'birth_city': get_char_field_value(player, "birthCity"),
                 'birth_state': get_char_field_value(player, "birthStateProvinceCode"),
@@ -161,8 +159,9 @@ class Command(BaseCommand):
                 'nation': COUNTRIES[player["nationalityCode"]],
                 'nation_abbr': get_char_field_value(player, "nationalityCode"),
                 'games': player["gamesPlayed"],
-                'height_cm': round(player['height'] * INCH_TO_CM_COEFF),
                 'age': calculate_age(birth_date, TODAY),
+                'nhl_debut': upd_pls_tot.format_season(str(player['firstSeasonForGameType'])),
+                'team': Team.objects.filter(abbr=team_abbreviation).first()
             }
 
             defaults_dr = {}
@@ -381,14 +380,6 @@ def upload_flag(player_obj, flag_name):
 
 
 def time_from_sec(time):
-    """
-
-    Args:
-      time:
-
-    Returns:
-
-    """
     min_, sec = divmod(time, 60)
     min_ = int(min_)
     sec = str(int(sec)).zfill(2)

@@ -1,164 +1,173 @@
 import copy
+import collections
 import datetime
-import functools
 from itertools import chain
 
 import requests
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
-import players.utils as utils
-from players.models import Goalie, Skater, Team
+from players.models import Goalie, Skater
 
-STAT_TYPE = 'careerRegularSeason'
-API_END = f'?hydrate=stats(splits={STAT_TYPE})'
-PLAYER_ENDPOINT_URL = 'https://statsapi.web.nhl.com/api/v1/people/'
-BOOL_FIELDS = ['alternateCaptain', 'captain', 'rookie']
+
+PLAYER_ENDPOINT_URL = 'https://api-web.nhle.com/v1/player/{}/landing'
+
+INCH_TO_FEET_COEFFICIENT = 12
+POSITION_CODES = {
+    'G': 'Goalie',
+    'D': 'Defenseman',
+    'L': 'Left winger',
+    'C': 'Center',
+    'R': 'Right winger',
+}
+WINGERS_POSITION_CODES = ['L', 'R', 'W']
+REGULAR_SEASON_CODE = 2
+NHL_LEAGUE_CODE = 'NHL'
+
+TEAM_ABBR_FROM_NAME = {
+    'Avalanche': 'COL',
+    'Blue Jackets': 'CBJ',
+    'Blues': 'STL',
+    'Bruins': 'BOS',
+    'Canadiens': 'MTL',
+    'Canucks': 'VAN',
+    'Capitals': 'WSH',
+    'Carolina Hurricanes': 'CAR',
+    'Chicago Blackhawks': 'CHI',
+    'Coyotes': 'ARI',
+    'Devils': 'NJD',
+    'Ducks': 'ANA',
+    'Flames': 'CGY',
+    'Flyers': 'PHI',
+    'Golden Knights': 'VGK',
+    'Islanders': 'NYI',
+    'Jets': 'WPG',
+    'Kings': 'LAK',
+    'Kraken': 'SEA',
+    'Lightning': 'TBL',
+    'Maple Leafs': 'TOR',
+    'Oilers': 'EDM',
+    'Ottawa Senators': 'OTT',
+    'Panthers': 'FLA',
+    'Penguins': 'PIT',
+    'Predators': 'NSH',
+    'Rangers': 'NYR',
+    'Red Wings': 'DET',
+    'Sabres': 'BUF',
+    'Sharks': 'SJS',
+    'Stars': 'DAL',
+    'Thrashers': 'ATL',
+    'Wild': 'MIN',
+ }
 
 
 class Command(BaseCommand):
-    """ """
+    def handle(self, *args, **options):
+        players = list(chain(Goalie.objects.all(), Skater.objects.all()))
 
-    def import_player(self, data, nhl_id):
-        """
+        for player in tqdm(players):
+            print(f'\n Uploading from {player.name} page')
+            data = get_response(player.nhl_id).json()
+            import_player(self, data, player)
 
-        Args:
-          data:
-          nhl_id:
-
-        Returns:
-
-        """
-        team_name = get_data(data, ['currentTeam', 'name'])
-
+    def import_player(self, data, player):
         defaults = {
-            'first_name': get_data(data, ['firstName']),
-            'height': get_data(data, ['height']),
-            'position_abbr': get_data(data, ['primaryPosition', 'abbreviation']),
-            'position_name': get_data(data, ['primaryPosition', 'name']),
-            'roster_status': get_data(data, ['rosterStatus']),
-            'pl_number': get_data(data, ['primaryNumber']),
-            'captain': get_data(data, ['captain']),
-            'alt_captain': get_data(data, ['alternateCaptain']),
-            'rookie': get_data(data, ['rookie']),
-            'team': Team.objects.filter(name=team_name).first()
+            'first_name': data['firstName']['default'],
+            'height': inches_to_feet(int(data['heightInInches'])),
+            'height_cm': data['heightInCentimeters'],
+            'weight': data['weightInPounds'],
+            'weight_kg': data['weightInKilograms'],
+            'pl_number': data['sweaterNumber'],
+            'position_abbr': get_position_abbreviation(data['position']),
+            'position_name': POSITION_CODES[data['position']],
         }
 
-        try:
-            defaults['career_stats'] = data['stats'][0]['splits'][0]['stat']
+        defaults['career_stats'] = data['careerTotals']['regularSeason']
+        defaults['sbs_stats'] = get_season_by_season_stats(data['seasonTotals'], data['position'])
 
-            if defaults['position_abbr'] in utils.POSITIONS[1:]:
-                stats_tot_avg = copy.deepcopy(defaults['career_stats'])
+        seasons_count = collections.Counter(item['season'] for item in defaults['sbs_stats'])
+        defaults['multiteams_seasons'] = {key: value for key, value in seasons_count.items() if value > 1}
 
-                stats_tot_avg["goals"] = get_average('goals', stats_tot_avg)
-                stats_tot_avg["assists"] = get_average('assists', stats_tot_avg)
-                stats_tot_avg["points"] = round(stats_tot_avg["goals"]
-                                                + stats_tot_avg["assists"], 2)
-                stats_tot_avg["powerPlayPoints"] = get_average('powerPlayPoints',
-                                                               stats_tot_avg)
-                stats_tot_avg["shortHandedPoints"] = get_average('shortHandedPoints',
-                                                                 stats_tot_avg)
-                stats_tot_avg["plusMinus"] = get_average('plusMinus', stats_tot_avg)
-                stats_tot_avg["hits"] = get_average('hits', stats_tot_avg)
-                stats_tot_avg["shots"] = get_average('shots', stats_tot_avg)
-                stats_tot_avg["blocked"] = get_average('blocked', stats_tot_avg)
-                stats_tot_avg["pim"] = get_average('pim', stats_tot_avg)
+        if data['position'] in list(POSITION_CODES.keys())[1:]:
+            career_stats = copy.deepcopy(defaults['career_stats'])
+            sbs_stats = copy.deepcopy(defaults['sbs_stats'])
 
-                defaults['career_stats_avg'] = stats_tot_avg
+            defaults['career_stats_avg'] = get_career_average_stats(career_stats)
+            defaults['sbs_stats_avg'] = get_season_by_season_average_stats(sbs_stats)
+            Skater.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
 
-        except IndexError:
-            print(f'{data["fullName"]} has no career stats yet')
-
-        if defaults['position_abbr'] == utils.POSITIONS[0]:
-            Goalie.objects.update_or_create(nhl_id=nhl_id, defaults=defaults)
         else:
-            Skater.objects.update_or_create(nhl_id=nhl_id, defaults=defaults)
+            saves = defaults['career_stats']['shotsAgainst'] - defaults['career_stats']['goalsAgainst']
+            defaults['career_stats']['saves'] = saves
 
-    def handle(self, *args, **options):
-        """
-
-        Args:
-          *args:
-          **options:
-
-        Returns:
-
-        """
-        players = list(chain(Goalie.objects.all(), Skater.objects.all()))
-        print(f'\n Uploading from {STAT_TYPE} report')
-        for player in tqdm(players):
-            data = player_ind_stats(player.nhl_id).json()['people'][0]
-            self.import_player(data, player.nhl_id)
+            Goalie.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
 
 
-def get_data(data, path):
-    """
-    Gets a data from an JSON source for a given list of keys
+def get_response(nhl_id):
+      return requests.get(PLAYER_ENDPOINT_URL.format(nhl_id))
 
-    JSON could be nested.
 
-    Args:
-      data: JSON dictionary with a data for a player
-      path: a list of keys to lookup in a player's data
+def get_career_average_stats(career_stats_average):
+    career_stats_average["goals"] = get_average('goals', career_stats_average)
+    career_stats_average["assists"] = get_average('assists', career_stats_average)
+    career_stats_average["points"] = get_average('points', career_stats_average)
+    career_stats_average["powerPlayPoints"] = get_average('powerPlayPoints',
+                                                   career_stats_average)
+    career_stats_average["shorthandedPoints"] = get_average('shorthandedPoints',
+                                                     career_stats_average)
+    career_stats_average["plusMinus"] = get_average('plusMinus', career_stats_average)
+    career_stats_average["shots"] = get_average('shots', career_stats_average)
+    career_stats_average["pim"] = get_average('pim', career_stats_average)
 
-    Returns:
-        a int/str/bool value for a given key, None if key doesn'exists
-        or False if key doesn't exists for a boolean field
+    return career_stats_average
 
-    Raises:
-        TypeError when passing data=None to a dict.get in functools.reduce
-    """
-    try:
-        result = functools.reduce(dict.get, path, data)
-    except TypeError:
-        result = None
 
-    if result is None:
-        print(f'{data["fullName"]} has no {".".join(path)} key')
-        if path[0] in BOOL_FIELDS:
-            result = False
+def get_season_by_season_stats(seasons_data, position_code):
+    nhl_seasons = []
+    for season in seasons_data:
+        if season['leagueAbbrev'] == NHL_LEAGUE_CODE and season['gameTypeId'] == REGULAR_SEASON_CODE:
+            season['season'] = format_season(str(season['season']))
+            season['teamAbbr'] = TEAM_ABBR_FROM_NAME[season['teamName']['default']]
 
-    return result
+            if position_code == list(POSITION_CODES.keys())[0]:
+                season['saves'] = season['shotsAgainst'] - season['goalsAgainst']
+
+            nhl_seasons.append(season)
+
+    return nhl_seasons
+
+
+def get_season_by_season_average_stats(nhl_regular_seasons_data):
+    for season in nhl_regular_seasons_data:
+        season["goals"] = get_average('goals', season)
+        season["assists"] = get_average('assists', season)
+        season["points"] = get_average('points', season)
+        season["powerPlayPoints"] = get_average('powerPlayPoints',
+                                                       season)
+        season["shorthandedPoints"] = get_average('shorthandedPoints',
+                                                         season)
+        season["plusMinus"] = get_average('plusMinus', season)
+        season["shots"] = get_average('shots', season)
+        season["pim"] = get_average('pim', season)
+
+    return nhl_regular_seasons_data
 
 
 def get_average(stat, stats_tot_avg):
-    """
-
-    Args:
-      stat:
-      stats_tot_avg:
-
-    Returns:
-
-    """
-    return round(stats_tot_avg[stat]/stats_tot_avg["games"], 2)
+    return round(stats_tot_avg[stat] / stats_tot_avg["gamesPlayed"], 2)
 
 
-def time_from_sec(time):
-    """
-
-    Args:
-      time:
-
-    Returns:
-
-    """
-    min_, sec = divmod(time, 60)
-    min_ = int(min_)
-    sec = str(int(sec)).zfill(2)
-    return f'{min_}:{sec}'.rjust(5, '0')
+def get_position_abbreviation(position_code):
+    if position_code in WINGERS_POSITION_CODES:
+        return position_code + WINGERS_POSITION_CODES[2]
+    else:
+        return position_code
 
 
-def player_ind_stats(nhl_id):
-    """
+def inches_to_feet(height):
+    feet, inches = divmod(height, INCH_TO_FEET_COEFFICIENT)
+    return f"{feet}'{inches}\""
 
-    Args:
-      nhl_id:
 
-    Returns:
-
-    """
-    url = ''.join([PLAYER_ENDPOINT_URL, str(nhl_id), API_END])
-    response = requests.get(url)
-    response.raise_for_status()
-    return response
+def format_season(season):
+    return f'{season[:4]}-{season[6:]}'
