@@ -233,8 +233,7 @@
       <th>Min</th>
       <th>GA</th>
       <th>SV %</th>
-      <th>SV</th>
-      <th>SA</th>
+      <th>SV/SA</th>
       <th>SHO</th>
     </tr>
   </thead>
@@ -244,11 +243,10 @@
       <td>{{ game.format_date }}</td>
       <td>{{ game.opponent.abbr }}</td>
       <td>{{ game.decision }}</td>
-      <td>{{ game.timeOnIce }}</td>
+      <td>{{ game.toi }}</td>
       <td>{{ game.goalsAgainst }}</td>
-      <td>{{ game.savePercentage|floatformat:3 }}</td>
-      <td>{{ game.saves }}</td>
-      <td>{{ game.shots }}</td>
+      <td>{{ game.savePctg }}</td>
+      <td>{{ game.saveShotsAgainst }}</td>
       <td>{{ game.shutout }}</td>
     </tr>
     {% endfor %}
@@ -443,16 +441,16 @@
       <td>{{ game.goals }}</td>
       <td>{{ game.assists }}</td>
       <td>{{ game.plusMinus }}</td>
-      <td>{{ game.penaltyMinutes }}</td>
+      <td>{{ game.pim }}</td>
       <td>{{ game.shots }}</td>
       <td>{{ game.hits }}</td>
-      <td>{{ game.blocked }}</td>
-      <td>{{ game.faceOffWins }}</td>
+      <td>{{ game.blockedShots }}</td>
+      <td>{{ game.faceoffs }}</td>
       <td>{{ game.powerPlayPoints }}</td>
-      <td>{{ game.shortHandedPoints }}</td>
-      <td>{{ game.timeOnIce }}</td>
-      <td>{{ game.powerPlayTimeOnIce }}</td>
-      <td>{{ game.shortHandedTimeOnIce }}</td>
+      <td>{{ game.shPoints }}</td>
+      <td>{{ game.toi }}</td>
+      <td>{{ game.powerPlayToi }}</td>
+      <td>{{ game.shorthandedToi }}</td>
     </tr>
     {% endfor %}
   </tbody>
