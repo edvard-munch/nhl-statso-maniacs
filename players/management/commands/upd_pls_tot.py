@@ -68,39 +68,40 @@ class Command(BaseCommand):
         for player in tqdm(players):
             print(f'\n Uploading from {player.name} page')
             data = get_response(player.nhl_id).json()
-            import_player(self, data, player)
+            import_player(data, player)
 
-    def import_player(self, data, player):
-        defaults = {
-            'first_name': data['firstName']['default'],
-            'height': inches_to_feet(int(data['heightInInches'])),
-            'height_cm': data['heightInCentimeters'],
-            'weight': data['weightInPounds'],
-            'weight_kg': data['weightInKilograms'],
-            'pl_number': data['sweaterNumber'],
-            'position_abbr': get_position_abbreviation(data['position']),
-            'position_name': POSITION_CODES[data['position']],
-        }
 
-        defaults['career_stats'] = data['careerTotals']['regularSeason']
-        defaults['sbs_stats'] = get_season_by_season_stats(data['seasonTotals'], data['position'])
+def import_player(data, player):
+    defaults = {
+        'first_name': data['firstName']['default'],
+        'height': inches_to_feet(int(data['heightInInches'])),
+        'height_cm': data['heightInCentimeters'],
+        'weight': data['weightInPounds'],
+        'weight_kg': data['weightInKilograms'],
+        'pl_number': data['sweaterNumber'],
+        'position_abbr': get_position_abbreviation(data['position']),
+        'position_name': POSITION_CODES[data['position']],
+    }
 
-        seasons_count = collections.Counter(item['season'] for item in defaults['sbs_stats'])
-        defaults['multiteams_seasons'] = {key: value for key, value in seasons_count.items() if value > 1}
+    defaults['career_stats'] = data['careerTotals']['regularSeason']
+    defaults['sbs_stats'] = get_season_by_season_stats(data['seasonTotals'], data['position'])
 
-        if data['position'] in list(POSITION_CODES.keys())[1:]:
-            career_stats = copy.deepcopy(defaults['career_stats'])
-            sbs_stats = copy.deepcopy(defaults['sbs_stats'])
+    seasons_count = collections.Counter(item['season'] for item in defaults['sbs_stats'])
+    defaults['multiteams_seasons'] = {key: value for key, value in seasons_count.items() if value > 1}
 
-            defaults['career_stats_avg'] = get_career_average_stats(career_stats)
-            defaults['sbs_stats_avg'] = get_season_by_season_average_stats(sbs_stats)
-            Skater.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
+    if data['position'] in list(POSITION_CODES.keys())[1:]:
+        career_stats = copy.deepcopy(defaults['career_stats'])
+        sbs_stats = copy.deepcopy(defaults['sbs_stats'])
 
-        else:
-            saves = defaults['career_stats']['shotsAgainst'] - defaults['career_stats']['goalsAgainst']
-            defaults['career_stats']['saves'] = saves
+        defaults['career_stats_avg'] = get_career_average_stats(career_stats)
+        defaults['sbs_stats_avg'] = get_season_by_season_average_stats(sbs_stats)
+        Skater.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
 
-            Goalie.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
+    else:
+        saves = defaults['career_stats']['shotsAgainst'] - defaults['career_stats']['goalsAgainst']
+        defaults['career_stats']['saves'] = saves
+
+        Goalie.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
 
 
 def get_response(nhl_id):

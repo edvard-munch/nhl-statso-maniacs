@@ -124,132 +124,132 @@ class Command(BaseCommand):
                     players_list += data
 
             for player in tqdm(players_list):
-                self.import_player(player, index)
+                import_player(player, index)
 
 
-    def import_player(self, player, index):
-        """
+def import_player(player, index):
+    """
 
-        Args:
-          player:
-          index:
+    Args:
+      player:
+      index:
 
-        Returns:
+    Returns:
 
-        """
-        id_ = player["playerId"]
-        if index == 0 or index == 2:
+    """
+    id_ = player["playerId"]
+    if index == 0 or index == 2:
 
-            if player['birthStateProvinceCode'] is None:
-                player['birthStateProvinceCode'] = ''
+        if player['birthStateProvinceCode'] is None:
+            player['birthStateProvinceCode'] = ''
 
-            if player["nationalityCode"] is None:
-                player["nationalityCode"] = player["birthCountryCode"]
+        if player["nationalityCode"] is None:
+            player["nationalityCode"] = player["birthCountryCode"]
 
-            birth_date = parse_date(player["birthDate"])
-            team_abbreviation = get_char_field_value(player, "currentTeamAbbrev")
+        birth_date = parse_date(player["birthDate"])
+        team_abbreviation = get_char_field_value(player, "currentTeamAbbrev")
 
-            defaults = {
-                'last_name': get_char_field_value(player, "lastName"),
-                'birth_date': birth_date,
-                'birth_city': get_char_field_value(player, "birthCity"),
-                'birth_state': get_char_field_value(player, "birthStateProvinceCode"),
-                'birth_country': COUNTRIES[player["birthCountryCode"]],
-                'birth_country_abbr': get_char_field_value(player, "birthCountryCode"),
-                'nation': COUNTRIES[player["nationalityCode"]],
-                'nation_abbr': get_char_field_value(player, "nationalityCode"),
-                'games': player["gamesPlayed"],
-                'age': calculate_age(birth_date, TODAY),
-                'nhl_debut': upd_pls_tot.format_season(str(player['firstSeasonForGameType'])),
-                'team': Team.objects.filter(abbr=team_abbreviation).first()
+        defaults = {
+            'last_name': get_char_field_value(player, "lastName"),
+            'birth_date': birth_date,
+            'birth_city': get_char_field_value(player, "birthCity"),
+            'birth_state': get_char_field_value(player, "birthStateProvinceCode"),
+            'birth_country': COUNTRIES[player["birthCountryCode"]],
+            'birth_country_abbr': get_char_field_value(player, "birthCountryCode"),
+            'nation': COUNTRIES[player["nationalityCode"]],
+            'nation_abbr': get_char_field_value(player, "nationalityCode"),
+            'games': player["gamesPlayed"],
+            'age': calculate_age(birth_date, TODAY),
+            'nhl_debut': upd_pls_tot.format_season(str(player['firstSeasonForGameType'])),
+            'team': Team.objects.filter(abbr=team_abbreviation).first()
+        }
+
+        defaults_dr = {}
+        if player['draftOverall']:
+            defaults_dr = {
+                'draft_year': player["draftYear"],
+                'draft_round': player['draftRound'],
+                'draft_number': player['draftOverall'],
             }
 
-            defaults_dr = {}
-            if player['draftOverall']:
-                defaults_dr = {
-                    'draft_year': player["draftYear"],
-                    'draft_round': player['draftRound'],
-                    'draft_number': player['draftOverall'],
-                }
+        defaults = {**defaults, **defaults_dr}
 
-            defaults = {**defaults, **defaults_dr}
+        if POS_CODE_KEY in player:
+            player_obj = Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
+        else:
+            player_obj = Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
 
-            if POS_CODE_KEY in player:
-                player_obj = Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
-            else:
-                player_obj = Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
+        img_name = f'{player_obj.slug}.jpg'
+        flag_name = f'{player_obj.nation_abbr}.jpg'
 
-            img_name = f'{player_obj.slug}.jpg'
-            flag_name = f'{player_obj.nation_abbr}.jpg'
+        if pic_missing(img_name, player_obj.image, PLAYERS_PICS_DIR):
+            upload_pic(PLAYERS_PICS_DIR, player_obj, img_name, URL_PLAYERS_PICS)
+        if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
+            upload_flag(player_obj, flag_name)
 
-            if pic_missing(img_name, player_obj.image, PLAYERS_PICS_DIR):
-                upload_pic(PLAYERS_PICS_DIR, player_obj, img_name, URL_PLAYERS_PICS)
-            if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
-                upload_flag(player_obj, flag_name)
+    elif index == 1:  # goalie summary report
+        defaults = {
+            'name': get_char_field_value(player, "goalieFullName"),
+            'wins': get_num_field_value(player, "wins"),
+            'losses': get_num_field_value(player, "losses"),
+            'ot_losses': get_num_field_value(player, "otLosses"),
+            'shotouts': get_num_field_value(player, "shutouts"),
+            'goals_against_av': get_num_field_value(player, "goalsAgainstAverage"),
+            'saves_perc': get_num_field_value(player, "savePct"),
+            'saves': get_num_field_value(player, "saves"),
+        }
 
-        elif index == 1:  # goalie summary report
-            defaults = {
-                'name': get_char_field_value(player, "goalieFullName"),
-                'wins': get_num_field_value(player, "wins"),
-                'losses': get_num_field_value(player, "losses"),
-                'ot_losses': get_num_field_value(player, "otLosses"),
-                'shotouts': get_num_field_value(player, "shutouts"),
-                'goals_against_av': get_num_field_value(player, "goalsAgainstAverage"),
-                'saves_perc': get_num_field_value(player, "savePct"),
-                'saves': get_num_field_value(player, "saves"),
-            }
+        Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
-            Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)
+    elif index == 3:  # skater summary
+        defaults = {
+            'name': get_char_field_value(player, "skaterFullName"),
+            'goals': player["goals"],
+            'goals_avg': round(player["goals"] / player["gamesPlayed"], 2),
+            'assists': player["assists"],
+            'assists_avg': round(player["assists"] / player["gamesPlayed"], 2),
+            'points': player["points"],
+            'points_avg': round(player["points"] / player["gamesPlayed"], 2),
+            'plus_minus': player["plusMinus"],
+            'plus_minus_avg': round(player["plusMinus"] / player["gamesPlayed"], 2),
+            'penalty_min': player["penaltyMinutes"],
+            'penalty_min_avg': round(player["penaltyMinutes"] / player["gamesPlayed"], 2),
+            'shots': player["shots"],
+            'shots_avg': round(player["shots"] / player["gamesPlayed"], 2),
+            'pp_points': player["ppPoints"],
+            'pp_points_avg': round(player["ppPoints"] / player["gamesPlayed"], 2),
+            'sh_points': player["shPoints"],
+            'sh_points_avg': round(player["shPoints"] / player["gamesPlayed"], 2),
+        }
 
-        elif index == 3:  # skater summary
-            defaults = {
-                'name': get_char_field_value(player, "skaterFullName"),
-                'goals': player["goals"],
-                'goals_avg': round(player["goals"] / player["gamesPlayed"], 2),
-                'assists': player["assists"],
-                'assists_avg': round(player["assists"] / player["gamesPlayed"], 2),
-                'points': player["points"],
-                'points_avg': round(player["points"] / player["gamesPlayed"], 2),
-                'plus_minus': player["plusMinus"],
-                'plus_minus_avg': round(player["plusMinus"] / player["gamesPlayed"], 2),
-                'penalty_min': player["penaltyMinutes"],
-                'penalty_min_avg': round(player["penaltyMinutes"] / player["gamesPlayed"], 2),
-                'shots': player["shots"],
-                'shots_avg': round(player["shots"] / player["gamesPlayed"], 2),
-                'pp_points': player["ppPoints"],
-                'pp_points_avg': round(player["ppPoints"] / player["gamesPlayed"], 2),
-                'sh_points': player["shPoints"],
-                'sh_points_avg': round(player["shPoints"] / player["gamesPlayed"], 2),
-            }
+        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
-            Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
+    elif index == 4:
+        defaults = {
+            'hits': player["hits"],
+            'hits_avg': round(player["hits"] / player["gamesPlayed"], 2),
+            'blocks': player["blockedShots"],
+            'blocks_avg': round(player["blockedShots"] / player["gamesPlayed"], 2),
+        }
 
-        elif index == 4:
-            defaults = {
-                'hits': player["hits"],
-                'hits_avg': round(player["hits"] / player["gamesPlayed"], 2),
-                'blocks': player["blockedShots"],
-                'blocks_avg': round(player["blockedShots"] / player["gamesPlayed"], 2),
-            }
+        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
-            Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
+    elif index == 5:
+        defaults = {
+            'time_on_ice': time_from_sec(player["timeOnIcePerGame"]),
+            'time_on_ice_pp': time_from_sec(player["ppTimeOnIcePerGame"]),
+            'time_on_ice_sh': time_from_sec(player["shTimeOnIcePerGame"]),
+        }
 
-        elif index == 5:
-            defaults = {
-                'time_on_ice': time_from_sec(player["timeOnIcePerGame"]),
-                'time_on_ice_pp': time_from_sec(player["ppTimeOnIcePerGame"]),
-                'time_on_ice_sh': time_from_sec(player["shTimeOnIcePerGame"]),
-            }
+        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
-            Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
+    elif index == 6:
+        defaults = {
+            'faceoff_wins': player["totalFaceoffWins"],
+            'faceoff_wins_avg': round(player["totalFaceoffWins"] / player["gamesPlayed"], 2),
+        }
 
-        elif index == 6:
-            defaults = {
-                'faceoff_wins': player["totalFaceoffWins"],
-                'faceoff_wins_avg': round(player["totalFaceoffWins"] / player["gamesPlayed"], 2),
-            }
-
-            Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
+        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
 
 
 def get_response(rep_type, pl_type, start_from_index):
