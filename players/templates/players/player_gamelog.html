@@ -8,10 +8,12 @@
 
 {% block styles %}
   <link rel="stylesheet" href="{% static 'players/tablesorter.css' %}">
+
 {% endblock styles %}
 
+{% block content_wrapper %}
+<div class="col-md-12">
 {% block content %}
-
       <img class="rounded-circle account-img" src="{{ player.image.url }}">
              <h5>{{ player.name }} Game Log</h5>
              <a href="{% url 'player_detail' player.slug player.nhl_id %}">Return to the full profile</a><br>
@@ -109,7 +111,9 @@
                 </tbody>
               </table>
               {% endif %}
+  </div>
 {% endblock content %}
+{% endblock content_wrapper %}
 
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js"></script>

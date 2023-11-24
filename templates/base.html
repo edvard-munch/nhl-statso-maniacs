@@ -63,7 +63,8 @@
     </header>
     <main role="main" class="container">
       <div class="row">
-        <div class="col-md-12">
+        {% block content_wrapper %}
+        <div class="col-md-8">
           {% if messages %}
             {% for message in messages %}
               <div class="alert alert-{{ message.tags }}">{{ message }}</div>
@@ -71,6 +72,7 @@
           {% endif %}
           {% block content %} {% endblock content %}
         </div>
+        {% endblock content_wrapper %}
       </div>
     </main>
     </body>
