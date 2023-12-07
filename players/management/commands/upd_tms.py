@@ -71,7 +71,7 @@ class Command(BaseCommand):
 
 
 def get_response():
-    print(f'\n Uploading from teams report')
+    print('Uploading from teams report')
     try:
         return requests.get(URL_TEAMS).json()['teams']
     except requests.exceptions.ConnectionError as e:
