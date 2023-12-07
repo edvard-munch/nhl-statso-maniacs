@@ -129,7 +129,10 @@ def get_season_by_season_stats(seasons_data, position_code):
     for season in seasons_data:
         if season['leagueAbbrev'] == NHL_LEAGUE_CODE and season['gameTypeId'] == REGULAR_SEASON_CODE:
             season['season'] = format_season(str(season['season']))
-            season['teamAbbr'] = TEAM_ABBR_FROM_NAME[season['teamName']['default']]
+            try:
+                season['teamAbbr'] = TEAM_ABBR_FROM_NAME[season['teamName']['default']]
+            except KeyError as e:
+                print(e)
 
             if position_code == list(POSITION_CODES.keys())[0]:
                 season['saves'] = season['shotsAgainst'] - season['goalsAgainst']
