@@ -1,9 +1,4 @@
-import os
-import urllib
-
 import requests
-from django.conf import settings
-from django.core.files import File
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
