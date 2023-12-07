@@ -33,41 +33,41 @@ class Command(BaseCommand):
         teams = get_response()
 
         for team in tqdm(teams):
-            self.import_team(team)
+            import_team(team)
 
 
-    def import_team(self, team):
-        """
+def import_team(team):
+    """
 
-        Args:
-          team: 
+    Args:
+      team:
 
-        Returns:
+    Returns:
 
-        """
-        nhl_id = team["id"]
+    """
+    nhl_id = team["id"]
 
-        defaults = {
-            'name': team["name"]["default"],
-            'abbr': team["abbrev"],
+    defaults = {
+        'name': team["name"]["default"],
+        'abbr': team["abbrev"],
 
-            # 'arena_name': team[`"venue"]["name"],
-            # 'arena_location': team["venue"]["city"],
-            # 'division': team["division"]["name"],
-            # 'conference': team["conference"]["name"],
-            # 'off_site': team["officialSiteUrl"],
-        }
+        # 'arena_name': team[`"venue"]["name"],
+        # 'arena_location': team["venue"]["city"],
+        # 'division': team["division"]["name"],
+        # 'conference': team["conference"]["name"],
+        # 'off_site': team["officialSiteUrl"],
+    }
 
-        try:
-            defaults['nhl_debut'] = team["firstYearOfPlay"] #in franchise
-        except KeyError:
-            pass
+    try:
+        defaults['nhl_debut'] = team["firstYearOfPlay"] #in franchise
+    except KeyError:
+        pass
 
-        team_obj = Team.objects.update_or_create(nhl_id=nhl_id, defaults=defaults)[0]
-        img_name = f'{team_obj.slug}.svg'
+    team_obj = Team.objects.update_or_create(nhl_id=nhl_id, defaults=defaults)[0]
+    img_name = f'{team_obj.slug}.svg'
 
-        if upd_pls.pic_missing(img_name, team_obj.image, TEAMS_LOGOS_DIR):
-             upd_pls.upload_pic(TEAMS_LOGOS_DIR, team_obj, img_name, URL_TEAMS_LOGOS)
+    if upd_pls.pic_missing(img_name, team_obj.image, TEAMS_LOGOS_DIR):
+        upd_pls.upload_pic(TEAMS_LOGOS_DIR, team_obj, img_name, URL_TEAMS_LOGOS)
 
 
 def get_response():
