@@ -106,7 +106,7 @@ def import_player(data, player):
 
 
 def get_response(nhl_id):
-      return requests.get(PLAYER_ENDPOINT_URL.format(nhl_id))
+    return requests.get(PLAYER_ENDPOINT_URL.format(nhl_id))
 
 
 def get_career_average_stats(career_stats_average):
