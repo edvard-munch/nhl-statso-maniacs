@@ -294,7 +294,7 @@ def get_char_field_value(player, field):
 
 
 def get_num_field_value(player, field):
-    if player[field] == None:
+    if player[field] is None:
         player[field] = 0
     return player[field]
 
