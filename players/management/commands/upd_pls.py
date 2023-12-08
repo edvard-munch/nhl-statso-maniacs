@@ -17,8 +17,6 @@ from . import upd_pls_tot
 SEASON = '20232024'
 
 URL_PLAYERS = 'https://api.nhle.com/stats/rest/en/{}/{}'
-URL_PLAYERS_PICS = 'https://cms.nhl.bamgrid.com/images/headshots/current/168x168/{}.jpg'
-PLAYERS_PICS_DIR = 'players_pics'
 FLAGS_DIR = 'flags'
 
 PL_TYPE1 = "goalie"
@@ -179,11 +177,8 @@ def import_player(player, index):
         else:
             player_obj = Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
 
-        img_name = f'{player_obj.slug}.jpg'
         flag_name = f'{player_obj.nation_abbr}.jpg'
 
-        if pic_missing(img_name, player_obj.image, PLAYERS_PICS_DIR):
-            upload_pic(PLAYERS_PICS_DIR, player_obj, img_name, URL_PLAYERS_PICS)
         if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
             upload_flag(player_obj, flag_name)
 

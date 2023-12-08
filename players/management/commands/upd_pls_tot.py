@@ -2,15 +2,19 @@ import copy
 import collections
 import datetime
 from itertools import chain
+import urllib
+from django.core.files import File
 
 import requests
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
 from players.models import Goalie, Skater
+from . import upd_pls
 
 
 PLAYER_ENDPOINT_URL = 'https://api-web.nhle.com/v1/player/{}/landing'
+PLAYERS_PICS_DIR = 'players_pics'
 
 INCH_TO_FEET_COEFFICIENT = 12
 POSITION_CODES = {
@@ -73,6 +77,11 @@ class Command(BaseCommand):
 
 
 def import_player(data, player):
+    image_name = f'{player.slug}.png'
+
+    if upd_pls.pic_missing(image_name, player.image, PLAYERS_PICS_DIR):
+        upload_profile_image(data['headshot'], player, image_name)
+
     defaults = {
         'first_name': data['firstName']['default'],
         'height': inches_to_feet(int(data['heightInInches'])),
@@ -103,6 +112,13 @@ def import_player(data, player):
         defaults['career_stats']['saves'] = saves
 
         Goalie.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
+
+
+def upload_profile_image(image_url, player_object, image_name):
+    content = urllib.request.urlretrieve(image_url)
+    pic = File(open(content[0], 'rb'))
+
+    player_object.image.save(name=image_name, content=pic)
 
 
 def get_response(nhl_id):
