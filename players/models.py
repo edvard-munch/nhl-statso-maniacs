@@ -176,20 +176,38 @@ class Goalie(Player):
 
 
 class Game(models.Model):
-    teams = models.ManyToManyField(Team, related_name='team_games', blank=True, through='Side')
     nhl_id = models.IntegerField(unique=True)
     slug = models.SlugField(max_length=128)
     game_finished = models.BooleanField(default=False)
-    gameday = models.ForeignKey(Gameday, on_delete=models.CASCADE, null=True, related_name="games")
     result = models.CharField(max_length=128, default='')
 
-    away_defencemen = models.ManyToManyField(Skater, related_name='defencemen_away_games', blank=True)
-    away_forwards = models.ManyToManyField(Skater, related_name='forwards_away_games', blank=True)
-    away_goalies = models.ManyToManyField(Goalie, related_name='goalie_away_games', blank=True)
+    teams = models.ManyToManyField(Team,
+                                   related_name='team_games',
+                                   blank=True,
+                                   through='Side')
+    gameday = models.ForeignKey(Gameday,
+                                on_delete=models.CASCADE,
+                                null=True,
+                                related_name="games")
 
-    home_defencemen = models.ManyToManyField(Skater, related_name='defencemen_home_games', blank=True)
-    home_forwards = models.ManyToManyField(Skater, related_name='forwards_home_games', blank=True)
-    home_goalies = models.ManyToManyField(Goalie, related_name='goalie_home_games', blank=True)
+    away_defencemen = models.ManyToManyField(Skater,
+                                             related_name='defencemen_away_games',
+                                             blank=True)
+    away_forwards = models.ManyToManyField(Skater,
+                                           related_name='forwards_away_games',
+                                           blank=True)
+    away_goalies = models.ManyToManyField(Goalie,
+                                          related_name='goalie_away_games',
+                                          blank=True)
+    home_defencemen = models.ManyToManyField(Skater,
+                                             related_name='defencemen_home_games',
+                                             blank=True)
+    home_forwards = models.ManyToManyField(Skater,
+                                           related_name='forwards_home_games',
+                                           blank=True)
+    home_goalies = models.ManyToManyField(Goalie,
+                                          related_name='goalie_home_games',
+                                          blank=True)
 
     def __str__(self):
         return f'{self.gameday} - {self.result}'

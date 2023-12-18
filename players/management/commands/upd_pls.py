@@ -13,7 +13,6 @@ from tqdm import tqdm
 from . import upd_tms
 from . import upd_pls_tot
 
-
 SEASON = '20232024'
 
 URL_PLAYERS = 'https://api.nhle.com/stats/rest/en/{}/{}'
@@ -32,12 +31,13 @@ PLAYERS_PER_PAGE = 100
 START_INDEX = 0
 TODAY = date.today()
 REQUEST_PARAMS = {
-        'isAggregate': 'false',
-        'isGame': 'false',
-        'limit': PLAYERS_PER_PAGE,
-        'start': 0,
-        'cayenneExp': f'gameTypeId=2 and seasonId={SEASON}',
-        'sort': '[{"property":"lastName","direction":"ASC_CI"}, {"property":"playerId","direction":"ASC_CI"}]',
+    'isAggregate': 'false',
+    'isGame': 'false',
+    'limit': PLAYERS_PER_PAGE,
+    'start': 0,
+    'cayenneExp': f'gameTypeId=2 and seasonId={SEASON}',
+    'sort': """[{"property":"lastName","direction":"ASC_CI"},
+                {"property":"playerId","direction":"ASC_CI"}]""",
 }
 TIMEOUT = 3
 
@@ -75,6 +75,7 @@ COUNTRIES = {
 
 class Command(BaseCommand):
     """ """
+
     # FACEOFFS and TOI HAVE A DIFFERENT ORDER
     def handle(self, *args, **options):
         """
@@ -173,9 +174,11 @@ def import_player(player, index):
         defaults = {**defaults, **defaults_dr}
 
         if POS_CODE_KEY in player:
-            player_obj = Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
+            player_obj = Skater.objects.update_or_create(nhl_id=id_,
+                                                         defaults=defaults)[0]
         else:
-            player_obj = Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
+            player_obj = Goalie.objects.update_or_create(nhl_id=id_,
+                                                         defaults=defaults)[0]
 
         flag_name = f'{player_obj.nation_abbr}.jpg'
 
@@ -241,7 +244,8 @@ def import_player(player, index):
     elif index == 6:
         defaults = {
             'faceoff_wins': player["totalFaceoffWins"],
-            'faceoff_wins_avg': round(player["totalFaceoffWins"] / player["gamesPlayed"], 2),
+            'faceoff_wins_avg': round(player["totalFaceoffWins"] /
+                                      player["gamesPlayed"], 2),
         }
 
         Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
@@ -340,8 +344,7 @@ def upload_pic(directory, object_, img_name, url):
             else:
                 id_string = object_.nhl_id
 
-            content = urllib.request.urlretrieve(
-                url.format(id_string))
+            content = urllib.request.urlretrieve(url.format(id_string))
 
             pic = File(open(content[0], 'rb'))
             object_.image.save(name=img_name, content=pic)

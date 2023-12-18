@@ -67,6 +67,7 @@ TEAM_ABBR_FROM_NAME = {
 
 
 class Command(BaseCommand):
+
     def handle(self, *args, **options):
         players = list(chain(Goalie.objects.all(), Skater.objects.all()))
 
@@ -94,24 +95,32 @@ def import_player(data, player):
     }
 
     defaults['career_stats'] = data['careerTotals']['regularSeason']
-    defaults['sbs_stats'] = get_season_by_season_stats(data['seasonTotals'], data['position'])
+    defaults['sbs_stats'] = get_season_by_season_stats(data['seasonTotals'],
+                                                       data['position'])
 
     seasons_count = collections.Counter(item['season'] for item in defaults['sbs_stats'])
-    defaults['multiteams_seasons'] = {key: value for key, value in seasons_count.items() if value > 1}
+    defaults['multiteams_seasons'] = {
+        key: value
+        for key, value in seasons_count.items() if value > 1
+    }
 
     if data['position'] in list(POSITION_CODES.keys())[1:]:
         career_stats = copy.deepcopy(defaults['career_stats'])
         sbs_stats = copy.deepcopy(defaults['sbs_stats'])
 
         defaults['career_stats_avg'] = get_career_average_stats(career_stats)
-        defaults['sbs_stats_avg'] = get_season_by_season_average_stats(sbs_stats)
-        Skater.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
+        defaults['sbs_stats_avg'] = get_season_by_season_average_stats(
+            sbs_stats)
+        Skater.objects.update_or_create(nhl_id=player.nhl_id,
+                                        defaults=defaults)
 
     else:
-        saves = defaults['career_stats']['shotsAgainst'] - defaults['career_stats']['goalsAgainst']
+        saves = defaults['career_stats']['shotsAgainst'] - defaults[
+            'career_stats']['goalsAgainst']
         defaults['career_stats']['saves'] = saves
 
-        Goalie.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
+        Goalie.objects.update_or_create(nhl_id=player.nhl_id,
+                                        defaults=defaults)
 
 
 def upload_profile_image(image_url, player_object, image_name):
@@ -127,13 +136,16 @@ def get_response(nhl_id):
 
 def get_career_average_stats(career_stats_average):
     career_stats_average["goals"] = get_average('goals', career_stats_average)
-    career_stats_average["assists"] = get_average('assists', career_stats_average)
-    career_stats_average["points"] = get_average('points', career_stats_average)
-    career_stats_average["powerPlayPoints"] = get_average('powerPlayPoints',
-                                                   career_stats_average)
-    career_stats_average["shorthandedPoints"] = get_average('shorthandedPoints',
-                                                     career_stats_average)
-    career_stats_average["plusMinus"] = get_average('plusMinus', career_stats_average)
+    career_stats_average["assists"] = get_average('assists',
+                                                  career_stats_average)
+    career_stats_average["points"] = get_average('points',
+                                                 career_stats_average)
+    career_stats_average["powerPlayPoints"] = get_average(
+        'powerPlayPoints', career_stats_average)
+    career_stats_average["shorthandedPoints"] = get_average(
+        'shorthandedPoints', career_stats_average)
+    career_stats_average["plusMinus"] = get_average('plusMinus',
+                                                    career_stats_average)
     career_stats_average["shots"] = get_average('shots', career_stats_average)
     career_stats_average["pim"] = get_average('pim', career_stats_average)
 
@@ -143,10 +155,12 @@ def get_career_average_stats(career_stats_average):
 def get_season_by_season_stats(seasons_data, position_code):
     nhl_seasons = []
     for season in seasons_data:
-        if season['leagueAbbrev'] == NHL_LEAGUE_CODE and season['gameTypeId'] == REGULAR_SEASON_CODE:
+        if season['leagueAbbrev'] == NHL_LEAGUE_CODE and season[
+                'gameTypeId'] == REGULAR_SEASON_CODE:
             season['season'] = format_season(str(season['season']))
             try:
-                season['teamAbbr'] = TEAM_ABBR_FROM_NAME[season['teamName']['default']]
+                season['teamAbbr'] = TEAM_ABBR_FROM_NAME[season['teamName']
+                                                         ['default']]
             except KeyError as e:
                 print(e)
 
@@ -163,10 +177,8 @@ def get_season_by_season_average_stats(nhl_regular_seasons_data):
         season["goals"] = get_average('goals', season)
         season["assists"] = get_average('assists', season)
         season["points"] = get_average('points', season)
-        season["powerPlayPoints"] = get_average('powerPlayPoints',
-                                                       season)
-        season["shorthandedPoints"] = get_average('shorthandedPoints',
-                                                         season)
+        season["powerPlayPoints"] = get_average('powerPlayPoints', season)
+        season["shorthandedPoints"] = get_average('shorthandedPoints', season)
         season["plusMinus"] = get_average('plusMinus', season)
         season["shots"] = get_average('shots', season)
         season["pim"] = get_average('pim', season)

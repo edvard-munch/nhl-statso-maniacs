@@ -35,7 +35,9 @@ MONTHS_MAP = {
     'Nov': 4,
     'Dec': 5,
 }
-MONTHS_ORDER = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08']
+MONTHS_ORDER = [
+    '09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08'
+]
 TIMEZONE = 'US/Pacific'
 
 
@@ -197,13 +199,16 @@ def get_schedule(date):
     return requests.get(URL_SCHEDULE.format(date)).json()
 
 
-def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team, opponent, goalies_count):
+def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team,
+                    opponent, goalies_count):
     for key, value in roster.items():
         for player_data in value:
             player = get_player(player_data['playerId'])
 
             if player:
-                game_stats = add_player(player_data, player, skaters_list, goalies_list, team, opponent, goalies_count)
+                game_stats = add_player(player_data, player, skaters_list,
+                                        goalies_list, team, opponent,
+                                        goalies_count)
                 format_date = date_convert(gameday_obj.day)
 
                 # chek if not 'Scratched'
@@ -218,7 +223,8 @@ def date_convert(date):
     return re.sub(r'\s+', ' ', date_str)
 
 
-def add_player(player_data, player, skaters_list, goalies_list, team, opponent, goalies_count):
+def add_player(player_data, player, skaters_list, goalies_list, team, opponent,
+               goalies_count):
     if player_data['position'] == 'G':
         if player_data['goalsAgainst'] == 0 and goalies_count == 1:
             player_data['shutout'] = 1
