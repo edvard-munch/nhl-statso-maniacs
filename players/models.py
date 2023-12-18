@@ -38,6 +38,8 @@ class Team(models.Model):
 
 class Gameday(models.Model):
     day = models.DateField(unique=True, default=datetime.date.today)
+    all_games_finished = models.BooleanField(default=False)
+    all_games_uploaded = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.day}'
@@ -177,6 +179,7 @@ class Game(models.Model):
     teams = models.ManyToManyField(Team, related_name='team_games', blank=True, through='Side')
     nhl_id = models.IntegerField(unique=True)
     slug = models.SlugField(max_length=128)
+    game_finished = models.BooleanField(default=False)
     gameday = models.ForeignKey(Gameday, on_delete=models.CASCADE, null=True, related_name="games")
     result = models.CharField(max_length=128, default='')
 

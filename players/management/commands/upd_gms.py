@@ -6,14 +6,12 @@ from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
 from pytz import timezone
-from tqdm import tqdm
-
 
 ZERO_TOI = "00:00"
 DATE_REGEX = r'^(\d{4})\-(\d{2})\-(\d{2})'
 
 # get winning goalie
-URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/2023-11-14"
+URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/{}"
 URL_BOXSCORE = "https://api-web.nhle.com/v1/gamecenter/{}/boxscore"
 REGULAR_SEASON_CODE = '02'
 REGULAR_PERIODS_AMOUNT = 3
@@ -39,106 +37,164 @@ MONTHS_MAP = {
 }
 MONTHS_ORDER = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08']
 TIMEZONE = 'US/Pacific'
-DELTA_RANGE = range(1, 2)
 
 
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        schedule = get_schedule()
-
         today = datetime.now(timezone(TIMEZONE)).date()
-        days_range = [today]
+        schedule = get_schedule(today)
+        regular_season_end_date = datetime_from_string(schedule['regularSeasonEndDate'])
 
-        for delta in DELTA_RANGE:
-            days_range.append(today - timedelta(days=delta))
+        first_unfinished_gameday_in_db = Gameday.objects.filter(
+            all_games_finished=False).order_by('day').first()
 
-        for date in tqdm(schedule['gameWeek']):
-            date_api = datetime.strptime(date['date'], '%Y-%m-%d').date()
-            date_db = Gameday.objects.filter(day=date_api).first()
+        first_notloaded_gameday_in_db = Gameday.objects.filter(
+            all_games_uploaded=False).order_by('day').first()
 
-            if (not date_db) or (date_db.day in days_range):
-                gameday_obj = Gameday.objects.update_or_create(day=date_api)[0]
-                print(gameday_obj.day)
+        if first_unfinished_gameday_in_db:
+            check_for_games(first_unfinished_gameday_in_db.day, today)
 
-                for game in date["games"]:
-                    if str(game["id"])[4:6] == REGULAR_SEASON_CODE:
-                        game_data = get_game_data(game["id"], URL_BOXSCORE)
+        if first_notloaded_gameday_in_db:
+            check_for_games(first_notloaded_gameday_in_db.day, regular_season_end_date)
 
-                        team_nhl_ids = [
-                            game_data['awayTeam']['id'],
-                            game_data['homeTeam']['id'],
-                        ]
 
-                        team_objects = [
-                            Team.objects.get(nhl_id=team_nhl_ids[0]),
-                            Team.objects.get(nhl_id=team_nhl_ids[1]),
-                        ]
+def check_for_games(date, date_end):
+    while date <= date_end:
+        schedule = get_schedule(date)
 
-                        team_names = [item.name for item in team_objects]
-                        score = ''
+        for weekday in schedule['gameWeek']:
+            date = datetime_from_string(weekday['date'])
 
-                        if game_data['gameState'] != GAME_SCHEDULED:
-                            rosters = game_data["boxscore"]["playerByGameStats"]
+            if date > date_end:
+                return
 
-                            rosters['awayTeam']['goalies'] = get_played_goalies(rosters['awayTeam']['goalies'])
-                            rosters['homeTeam']['goalies'] = get_played_goalies(rosters['homeTeam']['goalies'])
+            if weekday['games']:
+                print(f"{weekday['date']} games loading")
+                process_games(weekday)
 
-                            away_goalies_count = len(rosters['awayTeam']['goalies'])
-                            home_goalies_count = len(rosters['homeTeam']['goalies'])
+        next_start_date = schedule.get('nextStartDate')
+        if next_start_date:
+            date = datetime_from_string(next_start_date)
+        else:
+            print('Season is over')
+            return
 
-                            away_score = game_data["boxscore"]["linescore"]["totals"]["away"]
-                            home_score = game_data["boxscore"]["linescore"]["totals"]["home"]
-                            score = f'{away_score}:{home_score}'
 
-                            # ADD 'GAME IN PROGRESS' if it's not finished
-                            if game_data['period'] > REGULAR_PERIODS_AMOUNT:
-                                if game_data['gameState'] == GAME_FINISHED:
-                                    score += f' {game_data["gameOutcome"]["lastPeriodType"]}'
+def datetime_from_string(date_string):
+    return datetime.strptime(date_string, '%Y-%m-%d').date()
 
-                        defaults = {
-                            'result': f"{' - '.join(team_names)} {score}",
-                            'gameday': gameday_obj,
-                        }
 
-                        game_obj, created = Game.objects.update_or_create(nhl_id=game["id"],
-                                                                          defaults=defaults)
+def process_games(day):
+    date_api = datetime_from_string(day['date'])
 
-                        if created:
-                            game_obj.slug = slugify(" - ".join(team_names) + str(game_obj.gameday.day))
-                            game_obj.save(update_fields=['slug'])
+    gameday_obj = Gameday.objects.update_or_create(day=date_api)[0]
+    game_db = len(gameday_obj.games.all())
+    games_api = len(day['games'])
 
-                        if game_data['gameState'] != GAME_SCHEDULED:
-                            away_skaters = [[], []]
-                            home_skaters = [[], []]
-                            away_goalies = []
-                            home_goalies = []
+    if (games_api > 0) and (game_db == games_api):
+        gameday_obj.all_games_uploaded = True
+        gameday_obj.save(update_fields=['all_games_uploaded'])
 
-                            away_team = team_objects[0]
-                            home_team = team_objects[1]
+    games_finished_total = 0
+    for game in day["games"]:
+        game_finished = False
+        if str(game["id"])[4:6] == REGULAR_SEASON_CODE:
+            game_data = get_game_data(game["id"], URL_BOXSCORE)
 
-                            iterate_players(gameday_obj, rosters['awayTeam'], away_skaters,
-                                            away_goalies, away_team, home_team, away_goalies_count)
-                            iterate_players(gameday_obj, rosters['homeTeam'], home_skaters,
-                                            home_goalies, home_team, away_team, home_goalies_count)
+            team_nhl_ids = [
+                game_data['awayTeam']['id'],
+                game_data['homeTeam']['id'],
+            ]
 
-                            game_obj.away_defencemen.set(away_skaters[0])
-                            game_obj.away_forwards.set(away_skaters[1])
-                            game_obj.away_goalies.set(away_goalies)
+            team_objects = [
+                Team.objects.get(nhl_id=team_nhl_ids[0]),
+                Team.objects.get(nhl_id=team_nhl_ids[1]),
+            ]
 
-                            game_obj.home_defencemen.set(home_skaters[0])
-                            game_obj.home_forwards.set(home_skaters[1])
-                            game_obj.home_goalies.set(home_goalies)
+            team_names = [item.name for item in team_objects]
+            score = ''
 
-                        save_game_side(team_objects[0], SIDES['away'], game_obj, date["date"])
-                        save_game_side(team_objects[1], SIDES['home'], game_obj, date["date"])
+            if game_data['gameState'] != GAME_SCHEDULED:
+                rosters = game_data["boxscore"]["playerByGameStats"]
+
+                rosters['awayTeam']['goalies'] = get_played_goalies(
+                    rosters['awayTeam']['goalies'])
+                rosters['homeTeam']['goalies'] = get_played_goalies(
+                    rosters['homeTeam']['goalies'])
+
+                away_goalies_count = len(rosters['awayTeam']['goalies'])
+                home_goalies_count = len(rosters['homeTeam']['goalies'])
+
+                away_score = game_data["boxscore"]["linescore"]["totals"][
+                    "away"]
+                home_score = game_data["boxscore"]["linescore"]["totals"][
+                    "home"]
+                score = f'{away_score}:{home_score}'
+
+                # print(game["id"])
+                # ADD 'GAME IN PROGRESS' if it's not finished
+                if game_data['period'] > REGULAR_PERIODS_AMOUNT:
+                    if game_data['gameState'] == GAME_FINISHED:
+                        score += f' {game_data["gameOutcome"]["lastPeriodType"]}'
+
+                games_finished_total += 1
+                game_finished = True
+
+            defaults = {
+                'result': f"{' - '.join(team_names)} {score}",
+                'gameday': gameday_obj,
+                'game_finished': game_finished,
+            }
+
+            game_obj, created = Game.objects.update_or_create(
+                nhl_id=game["id"], defaults=defaults)
+
+            if created:
+                game_obj.slug = slugify(" - ".join(team_names) +
+                                        str(game_obj.gameday.day))
+                game_obj.save(update_fields=['slug'])
+
+            if game_data['gameState'] != GAME_SCHEDULED:
+                away_skaters = [[], []]
+                home_skaters = [[], []]
+                away_goalies = []
+                home_goalies = []
+
+                away_team = team_objects[0]
+                home_team = team_objects[1]
+
+                iterate_players(gameday_obj, rosters['awayTeam'], away_skaters,
+                                away_goalies, away_team, home_team,
+                                away_goalies_count)
+                iterate_players(gameday_obj, rosters['homeTeam'], home_skaters,
+                                home_goalies, home_team, away_team,
+                                home_goalies_count)
+
+                game_obj.away_defencemen.set(away_skaters[0])
+                game_obj.away_forwards.set(away_skaters[1])
+                game_obj.away_goalies.set(away_goalies)
+
+                game_obj.home_defencemen.set(home_skaters[0])
+                game_obj.home_forwards.set(home_skaters[1])
+                game_obj.home_goalies.set(home_goalies)
+
+            save_game_side(team_objects[0], SIDES['away'], game_obj,
+                           day["date"])
+            save_game_side(team_objects[1], SIDES['home'], game_obj,
+                           day["date"])
+
+    if (games_api > 0) and (games_finished_total == games_api):
+        gameday_obj.all_games_finished = True
+        gameday_obj.save(update_fields=['all_games_finished'])
 
 
 def get_played_goalies(goalies):
     return [goalie for goalie in goalies if goalie["toi"] != ZERO_TOI]
 
-def get_schedule():
-    return requests.get(URL_SCHEDULE).json()
+
+def get_schedule(date):
+    return requests.get(URL_SCHEDULE.format(date)).json()
 
 
 def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team, opponent, goalies_count):
