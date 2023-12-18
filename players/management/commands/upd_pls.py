@@ -288,7 +288,7 @@ def calculate_age(born, today):
 
 def get_char_field_value(player, field):
     try:
-        if player[field] == None:
+        if player[field] is None:
             return ''
         else:
             return player[field]
