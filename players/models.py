@@ -192,7 +192,7 @@ class Game(models.Model):
     home_goalies = models.ManyToManyField(Goalie, related_name='goalie_home_games', blank=True)
 
     def __str__(self):
-        return f'{self.gameday} - {self.side_set.get(side="away").team} - {self.side_set.get(side="home").team}'
+        return f'{self.gameday} - {self.result}'
 
 
 class Side(models.Model):
