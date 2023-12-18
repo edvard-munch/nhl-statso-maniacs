@@ -1,6 +1,5 @@
 import copy
 import collections
-import datetime
 from itertools import chain
 import urllib
 from django.core.files import File
@@ -11,7 +10,6 @@ from tqdm import tqdm
 
 from players.models import Goalie, Skater
 from . import upd_pls
-
 
 PLAYER_ENDPOINT_URL = 'https://api-web.nhle.com/v1/player/{}/landing'
 PLAYERS_PICS_DIR = 'players_pics'
