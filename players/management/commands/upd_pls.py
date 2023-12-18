@@ -275,7 +275,7 @@ def get_response(rep_type, pl_type, start_from_index):
         print(e.code)
         print('Wrong endpoint or a problem with the connection!')
         return None
-    except requests.exceptions.ReadTimeout as e:
+    except requests.exceptions.ReadTimeout:
         print('Timeout!')
         return None
 
