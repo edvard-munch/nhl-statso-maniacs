@@ -234,7 +234,7 @@ def get_schedule(date):
 
 def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team,
                     opponent, goalies_count):
-    for key, value in roster.items():
+    for _, value in roster.items():
         for player_data in value:
             player = get_player(player_data['playerId'])
 
