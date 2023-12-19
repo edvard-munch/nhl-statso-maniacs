@@ -46,7 +46,8 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         today = datetime.now(timezone(TIMEZONE)).date()
         schedule = get_schedule(today)
-        regular_season_end_date = datetime_from_string(schedule['regularSeasonEndDate'])
+        regular_season_end_date = datetime_from_string(
+            schedule['regularSeasonEndDate'])
 
         first_unfinished_gameday_in_db = Gameday.objects.filter(
             all_games_finished=False).order_by('day').first()
@@ -58,7 +59,8 @@ class Command(BaseCommand):
             check_for_games(first_unfinished_gameday_in_db.day, today)
 
         if first_notloaded_gameday_in_db:
-            check_for_games(first_notloaded_gameday_in_db.day, regular_season_end_date)
+            check_for_games(first_notloaded_gameday_in_db.day,
+                            regular_season_end_date)
 
 
 def check_for_games(date, date_end):
