@@ -87,6 +87,10 @@ def datetime_from_string(date_string):
     return datetime.strptime(date_string, '%Y-%m-%d').date()
 
 
+def regular_season_game(game):
+    return str(game["id"])[4:6] == REGULAR_SEASON_CODE
+
+
 def process_games(day):
     date_api = datetime_from_string(day['date'])
 
@@ -101,7 +105,7 @@ def process_games(day):
     games_finished_total = 0
     for game in day["games"]:
         game_finished = False
-        if str(game["id"])[4:6] == REGULAR_SEASON_CODE:
+        if regular_season_game(game):
             game_data = get_game_data(game["id"], URL_BOXSCORE)
 
             team_nhl_ids = [
