@@ -15,8 +15,18 @@ URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/{}"
 URL_BOXSCORE = "https://api-web.nhle.com/v1/gamecenter/{}/boxscore"
 REGULAR_SEASON_CODE = '02'
 REGULAR_PERIODS_AMOUNT = 3
-GAME_FINISHED = 'OFF'
-GAME_SCHEDULED = 'FUT'
+
+GAME_STATES = {
+    'scheduled': 'FUT',
+    'critical': 'CRIT',
+    'pregame': 'PRE',
+    'live': 'LIVE',
+    'softFinal': 'OVER',
+    'hard_final': 'FINAL',
+    'finished': 'OFF',
+}
+GAME_LIVE_SUFFIX = f" ({GAME_STATES['live'].capitalize()})"
+
 SIDES = {
     'away': 'away',
     'home': 'home',
@@ -123,7 +133,7 @@ def process_games(day):
             team_names = [item.name for item in team_objects]
             score = ''
 
-            if game_data['gameState'] != GAME_SCHEDULED:
+            if game_data['gameState'] != GAME_STATES['scheduled']:
                 rosters_api = game_data["boxscore"]["playerByGameStats"]
 
                 rosters_api['awayTeam']['goalies'] = get_played_goalies(
@@ -140,10 +150,11 @@ def process_games(day):
                     "home"]
                 score = f'{away_score}:{home_score}'
 
-                # print(game["id"])
-                # ADD 'GAME IN PROGRESS' if it's not finished
+                if game_data['gameState'] == GAME_STATES['live']:
+                    score += GAME_LIVE_SUFFIX
+
                 if game_data['period'] > REGULAR_PERIODS_AMOUNT:
-                    if game_data['gameState'] == GAME_FINISHED:
+                    if game_data['gameState'] == GAME_STATES['finished']:
                         score += f' {game_data["gameOutcome"]["lastPeriodType"]}'
 
                 games_finished_total += 1
@@ -163,7 +174,7 @@ def process_games(day):
                                         str(game_obj.gameday.day))
                 game_obj.save(update_fields=['slug'])
 
-            if game_data['gameState'] != GAME_SCHEDULED:
+            if game_data['gameState'] != GAME_STATES['scheduled']:
                 away_skaters = [[], []]
                 home_skaters = [[], []]
                 away_goalies = []
