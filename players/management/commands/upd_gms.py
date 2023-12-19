@@ -118,15 +118,15 @@ def process_games(day):
             score = ''
 
             if game_data['gameState'] != GAME_SCHEDULED:
-                rosters = game_data["boxscore"]["playerByGameStats"]
+                rosters_api = game_data["boxscore"]["playerByGameStats"]
 
-                rosters['awayTeam']['goalies'] = get_played_goalies(
-                    rosters['awayTeam']['goalies'])
-                rosters['homeTeam']['goalies'] = get_played_goalies(
-                    rosters['homeTeam']['goalies'])
+                rosters_api['awayTeam']['goalies'] = get_played_goalies(
+                    rosters_api['awayTeam']['goalies'])
+                rosters_api['homeTeam']['goalies'] = get_played_goalies(
+                    rosters_api['homeTeam']['goalies'])
 
-                away_goalies_count = len(rosters['awayTeam']['goalies'])
-                home_goalies_count = len(rosters['homeTeam']['goalies'])
+                away_goalies_count = len(rosters_api['awayTeam']['goalies'])
+                home_goalies_count = len(rosters_api['homeTeam']['goalies'])
 
                 away_score = game_data["boxscore"]["linescore"]["totals"][
                     "away"]
@@ -166,12 +166,19 @@ def process_games(day):
                 away_team = team_objects[0]
                 home_team = team_objects[1]
 
-                iterate_players(gameday_obj, rosters['awayTeam'], away_skaters,
-                                away_goalies, away_team, home_team,
-                                away_goalies_count)
-                iterate_players(gameday_obj, rosters['homeTeam'], home_skaters,
-                                home_goalies, home_team, away_team,
-                                home_goalies_count)
+                iterate_players(gameday_obj, rosters_api['awayTeam'],
+                                away_skaters, away_goalies, away_team,
+                                home_team, away_goalies_count)
+                iterate_players(gameday_obj, rosters_api['homeTeam'],
+                                home_skaters, home_goalies, home_team,
+                                away_team, home_goalies_count)
+                rosters_database = {
+                    'away_team': [away_skaters, away_goalies],
+                    'home_team': [home_skaters, home_goalies]
+                }
+                if rosters_equal(rosters_api, rosters_database):
+                    games_finished_total += 1
+                    game_finished = True
 
                 game_obj.away_defencemen.set(away_skaters[0])
                 game_obj.away_forwards.set(away_skaters[1])
@@ -189,6 +196,32 @@ def process_games(day):
     if (games_api > 0) and (games_finished_total == games_api):
         gameday_obj.all_games_finished = True
         gameday_obj.save(update_fields=['all_games_finished'])
+
+
+def rosters_equal(rosters_api, rosters_database):
+    roster_home_team_db_length = len(
+        rosters_database['home_team'][0][0]) + len(
+        rosters_database['home_team'][0][1]) + len(
+        rosters_database['home_team'][1])
+
+    roster_home_team_api_length = len(
+        rosters_api['homeTeam']['forwards']) + len(
+        rosters_api['homeTeam']['defense']) + len(
+        rosters_api['homeTeam']['goalies'])
+
+    roster_away_team_db_length = len(
+        rosters_database['away_team'][0][0]) + len(
+        rosters_database['away_team'][0][1]) + len(
+        rosters_database['away_team'][1])
+
+    roster_away_team_api_length = len(
+        rosters_api['awayTeam']['forwards']) + len(
+        rosters_api['awayTeam']['defense']) + len(
+        rosters_api['awayTeam']['goalies'])
+
+    return (roster_home_team_db_length ==
+            roster_home_team_api_length) and (roster_away_team_db_length ==
+                                              roster_away_team_api_length)
 
 
 def get_played_goalies(goalies):
@@ -216,6 +249,11 @@ def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team,
                     game_stats['format_date'] = format_date
                     player.gamelog_stats[str(gameday_obj.day)] = game_stats
                     player.save(update_fields=['gamelog_stats'])
+            else:
+                print('ERROR')
+                logger.debug(
+                    f"{player_data['name']['default']} not found and will not be added to the game"
+                )
 
 
 def date_convert(date):
