@@ -6,6 +6,9 @@ from django.core.management.base import BaseCommand
 from django.utils.text import slugify
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
 from pytz import timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 ZERO_TOI = "00:00"
 DATE_REGEX = r'^(\d{4})\-(\d{2})\-(\d{2})'
@@ -282,9 +285,9 @@ def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team,
                     player.gamelog_stats[str(gameday_obj.day)] = game_stats
                     player.save(update_fields=['gamelog_stats'])
             else:
-                print('ERROR')
-                logger.debug(
-                    f"{player_data['name']['default']} not found and will not be added to the game"
+                print(player_data)
+                logger.warning(
+                    f"{player_data['name']['default']} from {team} not found and will not be added to the game"
                 )
 
 
