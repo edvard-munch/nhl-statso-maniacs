@@ -5,21 +5,16 @@ from django.db import migrations
 
 
 def create_through_relations(apps, schema_editor):
-    Game = apps.get_model('players', 'Game')
-    Side = apps.get_model('players', 'Side')
+    Game = apps.get_model("players", "Game")
+    Side = apps.get_model("players", "Side")
     for game in Game.objects.all():
         for team in game.teams.all():
-            Side(
-                team=team,
-                game=game,
-                side=''
-            ).save()
+            Side(team=team, game=game, side="").save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0002_auto_20191004_1518'),
+        ("players", "0002_auto_20191004_1518"),
     ]
 
     operations = [

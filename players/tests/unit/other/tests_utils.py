@@ -15,33 +15,39 @@ import re
 from datetime import datetime
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
-        call_command('loaddata', 'team_objects.json')
-        call_command('loaddata', 'skater_objects.json')
-        call_command('loaddata', 'goalie_objects.json')
-        call_command('loaddata', 'user_objects.json')
+        call_command("loaddata", "team_objects.json")
+        call_command("loaddata", "skater_objects.json")
+        call_command("loaddata", "goalie_objects.json")
+        call_command("loaddata", "user_objects.json")
 
 
 @pytest.mark.django_db()
-@pytest.mark.parametrize('queryset, field, result', [
-    [Skater.objects.all(), 'height_cm', (178, 196)],
-    [Skater.objects.all(), 'weight', (165, 213)],
-    [Skater.objects.all(), 'age', (22, 30)],
-    [Goalie.objects.all(), 'height_cm', (183, 198)],
-    [Goalie.objects.all(), 'weight', (180, 240)],
-    [Goalie.objects.all(), 'age', (23, 34)]
-])
+@pytest.mark.parametrize(
+    "queryset, field, result",
+    [
+        [Skater.objects.all(), "height_cm", (178, 196)],
+        [Skater.objects.all(), "weight", (165, 213)],
+        [Skater.objects.all(), "age", (22, 30)],
+        [Goalie.objects.all(), "height_cm", (183, 198)],
+        [Goalie.objects.all(), "weight", (180, 240)],
+        [Goalie.objects.all(), "age", (23, 34)],
+    ],
+)
 def test_get_range(queryset, field, result):
     assert utils.get_range(queryset, field) == result
 
 
 @pytest.mark.django_db()
-@pytest.mark.parametrize('players', [
-    Skater.objects.all(),
-    Goalie.objects.all(),
-])
+@pytest.mark.parametrize(
+    "players",
+    [
+        Skater.objects.all(),
+        Goalie.objects.all(),
+    ],
+)
 def test_adjust_measurements(players):
     player = players.first()
     player_adjusted = utils.adjust_measurements(player)
@@ -54,11 +60,11 @@ def test_adjust_measurements(players):
 @pytest.mark.django_db()
 def test_measurements_format_is_euro():
     user = User.objects.first()
-    user.profile.measurements_format = 'Europe'
+    user.profile.measurements_format = "Europe"
 
     assert utils.measurements_format_is_euro(user)
 
-    user.profile.measurements_format = 'USA'
+    user.profile.measurements_format = "USA"
 
     assert not utils.measurements_format_is_euro(user)
 
@@ -66,16 +72,19 @@ def test_measurements_format_is_euro():
 # working with testserver instead of a real domain, because of RequestsFactory
 def test_anon_alert():
     factory = RequestFactory()
-    request = factory.get('/player/leon-draisaitl/8477934/player_compare/')
-    input_ = 'http://testserver/player/leon-draisaitl/8477934/'
+    request = factory.get("/player/leon-draisaitl/8477934/player_compare/")
+    input_ = "http://testserver/player/leon-draisaitl/8477934/"
     expected = 'You are not authenticated. <a href="//testserver/register/">Register</a> or <a href="//testserver/login/?next=http://testserver/player/leon-draisaitl/8477934/">Login</a>'
     assert utils.anon_alert(request, input_) == expected
 
 
-@pytest.mark.parametrize('string, result', [
-    ['page=3', 3],
-    ['size=50', 50],
-])
+@pytest.mark.parametrize(
+    "string, result",
+    [
+        ["page=3", 3],
+        ["size=50", 50],
+    ],
+)
 def test_parse_url_param(string, result):
     assert utils.parse_url_param(string) == result
 
@@ -93,24 +102,62 @@ def test_parse_url_param(string, result):
 # with open(file_path_filtered) as file:
 #     filtered_games = file
 
-columns_skaters = ['player.name', 'team.abbr', 'format_date', 'opponent.abbr',
-                   'goals', 'assists', 'points', 'plusMinus', 'penaltyMinutes',
-                   'shots', 'hits', 'blocked', 'faceOffWins', 'powerPlayPoints',
-                   'shortHandedPoints', 'timeOnIce', 'powerPlayTimeOnIce',
-                   'shortHandedTimeOnIce']
+columns_skaters = [
+    "player.name",
+    "team.abbr",
+    "format_date",
+    "opponent.abbr",
+    "goals",
+    "assists",
+    "points",
+    "plusMinus",
+    "penaltyMinutes",
+    "shots",
+    "hits",
+    "blocked",
+    "faceOffWins",
+    "powerPlayPoints",
+    "shortHandedPoints",
+    "timeOnIce",
+    "powerPlayTimeOnIce",
+    "shortHandedTimeOnIce",
+]
 
-columns_goalies = ['player.name', 'team.abbr', 'format_date', 'opponent.abbr',
-                   'decision', 'timeOnIce', 'goalsAgainst', 'savePercentage',
-                   'saves', 'shots', 'shutout']
+columns_goalies = [
+    "player.name",
+    "team.abbr",
+    "format_date",
+    "opponent.abbr",
+    "decision",
+    "timeOnIce",
+    "goalsAgainst",
+    "savePercentage",
+    "saves",
+    "shots",
+    "shutout",
+]
 
 
-@pytest.mark.parametrize('games, filtering, columns, filtered_games', [
-    [gamelog.GAMES_SKATERS, [['0', 'fou']], columns_skaters, gamelog.FILTERED_GAMES_OPTION_ONE],
-    [gamelog.GAMES_SKATERS, [['1', 'tor']], columns_skaters, gamelog.FILTERED_GAMES_OPTION_TWO],
-    [gamelog.GAMES_GOALIES, [['0', 'wer']], columns_goalies, gamelog.FILTERED_GAMES_OPTION_THREE],
-    [gamelog.GAMES_SKATERS, [['0', 'kor'], ['1', 'cbj']], columns_skaters, []],
-    [gamelog.GAMES_SKATERS, [['0', 'br'], ['1', 'vgk']], columns_skaters, gamelog.FILTERED_GAMES_OPTION_FOUR],
-])
+@pytest.mark.parametrize(
+    "games, filtering, columns, filtered_games",
+    [
+        [gamelog.GAMES_SKATERS, [["0", "fou"]], columns_skaters, gamelog.FILTERED_GAMES_OPTION_ONE],
+        [gamelog.GAMES_SKATERS, [["1", "tor"]], columns_skaters, gamelog.FILTERED_GAMES_OPTION_TWO],
+        [
+            gamelog.GAMES_GOALIES,
+            [["0", "wer"]],
+            columns_goalies,
+            gamelog.FILTERED_GAMES_OPTION_THREE,
+        ],
+        [gamelog.GAMES_SKATERS, [["0", "kor"], ["1", "cbj"]], columns_skaters, []],
+        [
+            gamelog.GAMES_SKATERS,
+            [["0", "br"], ["1", "vgk"]],
+            columns_skaters,
+            gamelog.FILTERED_GAMES_OPTION_FOUR,
+        ],
+    ],
+)
 def test_filter_gamelog(games, filtering, columns, filtered_games):
     assert utils.filter_gamelog(games, filtering, columns) == filtered_games
 
@@ -122,17 +169,39 @@ teams_html = '<label for="OTT" class="team_checkboxradio_skt cell-with-tooltip">
 
 
 # test with checked values
-@pytest.mark.parametrize('array, checkbox_class, kwargs, result', [
-    [[('OTT', 'Ottawa Senators'), ('PHI', 'Philadelphia Flyers'),
-      ('PIT', 'Pittsburgh Penguins')], 'team_checkboxradio_skt',
-     {'tip': True}, teams_html],
-    [[('Australia', None), ('Canada', None), ('Czech Republic', None),
-      ('Denmark', None), ('Finland', None)], 'nation_checkboxradio_skt',
-     {'tip': False}, nations_html],
-    [[('C', 'Center'), ('D', 'Defenseman'), ('LW', 'Left Wing'),
-      ('RW', 'Right Wing')], 'position_checkboxradio_skt', {'tip': True},
-     positions_html],
-])
+@pytest.mark.parametrize(
+    "array, checkbox_class, kwargs, result",
+    [
+        [
+            [
+                ("OTT", "Ottawa Senators"),
+                ("PHI", "Philadelphia Flyers"),
+                ("PIT", "Pittsburgh Penguins"),
+            ],
+            "team_checkboxradio_skt",
+            {"tip": True},
+            teams_html,
+        ],
+        [
+            [
+                ("Australia", None),
+                ("Canada", None),
+                ("Czech Republic", None),
+                ("Denmark", None),
+                ("Finland", None),
+            ],
+            "nation_checkboxradio_skt",
+            {"tip": False},
+            nations_html,
+        ],
+        [
+            [("C", "Center"), ("D", "Defenseman"), ("LW", "Left Wing"), ("RW", "Right Wing")],
+            "position_checkboxradio_skt",
+            {"tip": True},
+            positions_html,
+        ],
+    ],
+)
 def test_checkox(array, checkbox_class, kwargs, result):
     assert utils.checkbox(array, checkbox_class, **kwargs) == result
 
@@ -142,14 +211,29 @@ nation_option_html = '<label for="USA" class="nation_checkboxradio_skt cell-with
 team_option_html = '<label for="NYR" class="team_checkboxradio_skt cell-with-tooltip">NYR <span class="css-tooltip">New York Rangers</span></label><input type="checkbox" class="team_checkboxradio_skt checkbox_button" value="NYR" id="NYR"> &nbsp'
 
 
-@pytest.mark.parametrize('option, checkbox_class, kwargs, result', [
-    [('RW', 'Right Wing'), 'position_checkboxradio_skt',
-     {'tip': True, 'check_this': False}, position_option_html],
-    [('USA', None), 'nation_checkboxradio_skt',
-     {'tip': False, 'check_this': False}, nation_option_html],
-    [('NYR', 'New York Rangers'), 'team_checkboxradio_skt',
-     {'tip': True, 'check_this': False}, team_option_html]
-])
+@pytest.mark.parametrize(
+    "option, checkbox_class, kwargs, result",
+    [
+        [
+            ("RW", "Right Wing"),
+            "position_checkboxradio_skt",
+            {"tip": True, "check_this": False},
+            position_option_html,
+        ],
+        [
+            ("USA", None),
+            "nation_checkboxradio_skt",
+            {"tip": False, "check_this": False},
+            nation_option_html,
+        ],
+        [
+            ("NYR", "New York Rangers"),
+            "team_checkboxradio_skt",
+            {"tip": True, "check_this": False},
+            team_option_html,
+        ],
+    ],
+)
 def test_checkox_option(option, checkbox_class, kwargs, result):
     assert utils.checkbox_option(option, checkbox_class, **kwargs) == result
 
@@ -164,12 +248,15 @@ def test_get_us_pacific_date():
     assert re.match(date_regex, result)
 
 
-@pytest.mark.parametrize('array, element, quantity, result', [
-    [['1', '2', '3', '4', '5', '6'], '5', 3, ['4', '5', '6']],
-    [['1', '2', '3', '4', '5', '6'], '2', 4, ['1', '2', '3', '4']],
-    [['1', '2', '3', '4', '5', '6'], '6', 2, ['5', '6']],
-    [['1', '2', '3', '4', '5', '6'], '1', 5, ['1', '2', '3', '4', '5']],
-    [['1', '2', '3', '4', '5', '6'], '4', 4, ['2', '3', '4', '5']],
-])
+@pytest.mark.parametrize(
+    "array, element, quantity, result",
+    [
+        [["1", "2", "3", "4", "5", "6"], "5", 3, ["4", "5", "6"]],
+        [["1", "2", "3", "4", "5", "6"], "2", 4, ["1", "2", "3", "4"]],
+        [["1", "2", "3", "4", "5", "6"], "6", 2, ["5", "6"]],
+        [["1", "2", "3", "4", "5", "6"], "1", 5, ["1", "2", "3", "4", "5"]],
+        [["1", "2", "3", "4", "5", "6"], "4", 4, ["2", "3", "4", "5"]],
+    ],
+)
 def test_get_adjacent(array, element, quantity, result):
     assert utils.get_adjacent(array, element, quantity) == result

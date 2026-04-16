@@ -5,9 +5,9 @@ from django.core import management
 
 @shared_task
 def upd_database():
-    management.call_command('upd_tms')
-    management.call_command('upd_pls')
-    management.call_command('upd_gms')
+    management.call_command("upd_tms")
+    management.call_command("upd_pls")
+    management.call_command("upd_gms")
 
 
 # @celery.task

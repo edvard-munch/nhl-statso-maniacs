@@ -4,16 +4,16 @@ from .models import Goalie, Skater, Team, Note, Position, Game, Gameday, Side
 
 
 class GoalieAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
+    prepopulated_fields = {"slug": ("name",)}
 
 
 class SkaterAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
+    prepopulated_fields = {"slug": ("name",)}
     list_per_page = 1000
 
 
 class TeamAdmin(admin.ModelAdmin):
-    prepopulated_fields = {'slug': ('name',)}
+    prepopulated_fields = {"slug": ("name",)}
 
 
 class NoteAdmin(admin.ModelAdmin):
@@ -29,7 +29,7 @@ class PositionAdmin(admin.ModelAdmin):
 
 
 class GameAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'created_date', 'updated_date')
+    list_display = ("__str__", "created_date", "updated_date")
     list_per_page = 100
 
 

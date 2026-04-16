@@ -12,7 +12,7 @@ from players.models import Skater
 
 URL_GAMES = "http://statsapi.web.nhl.com/api/v1/game/{}/boxscore"
 URL_SCHED = "https://statsapi.web.nhl.com/api/v1/schedule"
-REG_SEAS_CODE = '02'
+REG_SEAS_CODE = "02"
 SEASON_START = "2018-10-01"
 SEASON_END = "2018-10-10"
 
@@ -24,8 +24,8 @@ class Command(BaseCommand):
         """
 
         Args:
-          *args: 
-          **options: 
+          *args:
+          **options:
 
         Returns:
 
@@ -37,15 +37,13 @@ class Command(BaseCommand):
             for roster in rosters.values():
                 for player in roster["players"].values():
                     if player["position"]["code"] != "G" and player["stats"]:
-                        skater_obj = (
-                            get_object(Skater, nhl_id=player["person"]["id"])
-                        )
+                        skater_obj = get_object(Skater, nhl_id=player["person"]["id"])
 
                         for game in skater_obj.gamelog_stats:
                             if game["game"]["gamePk"] == game_id:
-                                game["stat"]["faceOffWins"] = (
-                                    player["stats"]["skaterStats"]["faceOffWins"]
-                                )
+                                game["stat"]["faceOffWins"] = player["stats"]["skaterStats"][
+                                    "faceOffWins"
+                                ]
 
                         print(skater_obj)
                         skater_obj.save(update_fields=["gamelog_stats"])
@@ -55,7 +53,7 @@ def game_resp(game_id):
     """
 
     Args:
-      game_id: 
+      game_id:
 
     Returns:
 

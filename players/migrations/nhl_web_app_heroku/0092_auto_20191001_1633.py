@@ -4,38 +4,45 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0091_auto_20191001_1538'),
+        ("players", "0091_auto_20191001_1538"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='game',
-            name='goalies',
+            model_name="game",
+            name="goalies",
         ),
         migrations.RemoveField(
-            model_name='game',
-            name='skaters',
+            model_name="game",
+            name="skaters",
         ),
         migrations.AddField(
-            model_name='game',
-            name='away_goalies',
-            field=models.ManyToManyField(blank=True, related_name='goalie_away_games', to='players.Goalie'),
+            model_name="game",
+            name="away_goalies",
+            field=models.ManyToManyField(
+                blank=True, related_name="goalie_away_games", to="players.Goalie"
+            ),
         ),
         migrations.AddField(
-            model_name='game',
-            name='away_skaters',
-            field=models.ManyToManyField(blank=True, related_name='skater_away_games', to='players.Skater'),
+            model_name="game",
+            name="away_skaters",
+            field=models.ManyToManyField(
+                blank=True, related_name="skater_away_games", to="players.Skater"
+            ),
         ),
         migrations.AddField(
-            model_name='game',
-            name='home_goalies',
-            field=models.ManyToManyField(blank=True, related_name='goalie_home_games', to='players.Goalie'),
+            model_name="game",
+            name="home_goalies",
+            field=models.ManyToManyField(
+                blank=True, related_name="goalie_home_games", to="players.Goalie"
+            ),
         ),
         migrations.AddField(
-            model_name='game',
-            name='home_skaters',
-            field=models.ManyToManyField(blank=True, related_name='skater_home_games', to='players.Skater'),
+            model_name="game",
+            name="home_skaters",
+            field=models.ManyToManyField(
+                blank=True, related_name="skater_home_games", to="players.Skater"
+            ),
         ),
     ]

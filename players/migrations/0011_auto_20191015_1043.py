@@ -5,33 +5,32 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0010_auto_20191014_1319'),
+        ("players", "0010_auto_20191014_1319"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='goalie',
-            name='new_gamelog_stats',
+            model_name="goalie",
+            name="new_gamelog_stats",
         ),
         migrations.RemoveField(
-            model_name='skater',
-            name='new_gamelog_stats',
+            model_name="skater",
+            name="new_gamelog_stats",
         ),
         migrations.AlterField(
-            model_name='gameday',
-            name='day',
+            model_name="gameday",
+            name="day",
             field=models.DateField(default=datetime.date(2018, 10, 15), unique=True),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='video_link_updated_at',
+            model_name="goalie",
+            name="video_link_updated_at",
             field=models.DateField(default=datetime.date(2018, 10, 15)),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='video_link_updated_at',
+            model_name="skater",
+            name="video_link_updated_at",
             field=models.DateField(default=datetime.date(2018, 10, 15)),
         ),
     ]

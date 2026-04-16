@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0004_remove_game_teams'),
+        ("players", "0004_remove_game_teams"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='game',
-            name='teams',
-            field=models.ManyToManyField(blank=True, related_name='team_games', through='players.Side', to='players.Team'),
+            model_name="game",
+            name="teams",
+            field=models.ManyToManyField(
+                blank=True, related_name="team_games", through="players.Side", to="players.Team"
+            ),
         ),
     ]

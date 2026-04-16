@@ -24,19 +24,19 @@ class Command(BaseCommand):
         """
 
         Args:
-          *args: 
-          **options: 
+          *args:
+          **options:
 
         Returns:
 
         """
         print(f"\n Uploading from {REP_TYPE} {PL_TYPE} report")
 
-        for year in tqdm(range(FIRST, LAST+1)):
+        for year in tqdm(range(FIRST, LAST + 1)):
             goalies = Goalie.objects.all().filter(nhl_debut__range=(FIRST, year))
             if goalies:
                 print(goalies)
-                season = str(year) + str(year+1)
+                season = str(year) + str(year + 1)
                 form_season = f"{season[:4]}-{season[6:]}"
                 print(form_season)
                 multi_seasons_gl = goalies.filter(multiteams_seasons__has_key=form_season)
@@ -57,7 +57,6 @@ class Command(BaseCommand):
                                         "saves": item["saves"],
                                         "shutouts": item["shutouts"],
                                     },
-
                                     "season": f"{form_season} total",
                                     "team": {
                                         "abbr": item["playerTeamsPlayedFor"],
@@ -65,7 +64,7 @@ class Command(BaseCommand):
                                 }
 
                                 skater.sbs_stats.insert(skater.seasons_count, dict_)
-                                skater.seasons_count += (skater.multiteams_seasons[form_season])
+                                skater.seasons_count += skater.multiteams_seasons[form_season]
 
                             skater.seasons_count += 1
                             skater.save(update_fields=["sbs_stats", "seasons_count"])
@@ -79,9 +78,9 @@ def players_resp(rep_type, pl_type, season):
     """
 
     Args:
-      rep_type: 
-      pl_type: 
-      season: 
+      rep_type:
+      pl_type:
+      season:
 
     Returns:
 

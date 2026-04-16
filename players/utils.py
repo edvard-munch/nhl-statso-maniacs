@@ -1,6 +1,7 @@
 """
 Complementary functions and constansts for players.views
 """
+
 import datetime
 import re
 import os
@@ -14,233 +15,233 @@ from pytz import timezone
 import json
 
 
-GAME_PLAYERS_SORT_ORDER = ['last_name']
+GAME_PLAYERS_SORT_ORDER = ["last_name"]
 EMPTY_LIST = []
-RANGE_FIELDS = ['weight', 'age']
+RANGE_FIELDS = ["weight", "age"]
 GAMES_PER_PAGE = 6
-TEAM_URL = 'team'
-AUTOSEARCH_CSS_PLAYER = 'player'
-AUTOSEARCH_CSS_TEAM = 'team'
-AUTOSEARCH_CSS_TOTAL = 'total'
-ALL_ROWS = 'all'
+TEAM_URL = "team"
+AUTOSEARCH_CSS_PLAYER = "player"
+AUTOSEARCH_CSS_TEAM = "team"
+AUTOSEARCH_CSS_TOTAL = "total"
+ALL_ROWS = "all"
 WHITESPACE = "<br><br>"
-MEASUREMENTS_FORMATS = ['USA', 'Europe']
-ALERT_ANONYMOUS = 'You are not authenticated. <a href=\"{}\">Register</a> or <a href=\"{}\">Login</a>'
-REG_LINK = '//{}/register/'
-LOGIN_LINK = '//{}/login/{}'
+MEASUREMENTS_FORMATS = ["USA", "Europe"]
+ALERT_ANONYMOUS = 'You are not authenticated. <a href="{}">Register</a> or <a href="{}">Login</a>'
+REG_LINK = "//{}/register/"
+LOGIN_LINK = "//{}/login/{}"
 PAGE_SIZE_OPTIONS = [50, 100, 200]
-DEF = 'Defencemen'
-FRW = 'Forwards'
-TABLE_IDS = ['tab2', 'tab3', 'away_d_men', 'away_fwds', 'home_d_men', 'home_fwds']
+DEF = "Defencemen"
+FRW = "Forwards"
+TABLE_IDS = ["tab2", "tab3", "away_d_men", "away_fwds", "home_d_men", "home_fwds"]
 FAVORITES_QUOTA = 100
 COMPARISON_QUOTA = 5
 PAGE_SIZE_1 = 15
 PAGE_SIZE_2 = 25
 LAST_GAMES_TO_SHOW = 5
 SEASON_ENDS = datetime.datetime(2024, 4, 18, 10, 00)
-POSITIONS = ['G', 'D', 'C', 'LW', 'RW', 'L', 'R']
-STAT_TYPES = ['gls', 'tot', 'avg', 'skt_log', 'gls_log']
-SEARCH_RES_DELIMETER = '----------------------------------'
-SEARCH_RES_FULL = 'Full results'
+POSITIONS = ["G", "D", "C", "LW", "RW", "L", "R"]
+STAT_TYPES = ["gls", "tot", "avg", "skt_log", "gls_log"]
+SEARCH_RES_DELIMETER = "----------------------------------"
+SEARCH_RES_FULL = "Full results"
 DEFAULT_SORTING = {
-    'tot': ['-points', 'games', '-goals', 'pk'],
-    'avg': ['-points_avg', 'games', '-goals_avg', 'pk'],
-    'gls': ['-wins', 'games', 'pk'],
+    "tot": ["-points", "games", "-goals", "pk"],
+    "avg": ["-points_avg", "games", "-goals_avg", "pk"],
+    "gls": ["-wins", "games", "pk"],
 }
 MONTHS_MAP = {
-    'Jan': 6,
-    'Feb': 7,
-    'Mar': 8,
-    'Apr': 9,
-    'May': 10,
-    'Jun': 11,
-    'Jul': 12,
-    'Aug': 1,
-    'Sep': 2,
-    'Oct': 3,
-    'Nov': 4,
-    'Dec': 5,
+    "Jan": 6,
+    "Feb": 7,
+    "Mar": 8,
+    "Apr": 9,
+    "May": 10,
+    "Jun": 11,
+    "Jul": 12,
+    "Aug": 1,
+    "Sep": 2,
+    "Oct": 3,
+    "Nov": 4,
+    "Dec": 5,
 }
 HTML_ATTRS = {
-    'del_comp_class': "button act-button js-compare-del",
-    'del_comp_title': "Remove from comparison",
-    'del_comp_html_content': "IN COMPARISON",
-    'add_comp_class': "button sm-button js-compare-add",
-    'add_comp_title': "Add to comparison",
-    'add_comp_html_content': "COMPARE",
-    'del_fav_title': "Unfollow player",
-    'del_fav_class': "js-fav-del",
-    'del_fav_icon_class': "fas fa-star",
-    'add_fav_title': "Follow player",
-    'add_fav_class': "js-fav-add",
-    'add_fav_icon_class': "far fa-star",
+    "del_comp_class": "button act-button js-compare-del",
+    "del_comp_title": "Remove from comparison",
+    "del_comp_html_content": "IN COMPARISON",
+    "add_comp_class": "button sm-button js-compare-add",
+    "add_comp_title": "Add to comparison",
+    "add_comp_html_content": "COMPARE",
+    "del_fav_title": "Unfollow player",
+    "del_fav_class": "js-fav-del",
+    "del_fav_icon_class": "fas fa-star",
+    "add_fav_title": "Follow player",
+    "add_fav_class": "js-fav-add",
+    "add_fav_icon_class": "far fa-star",
 }
 COLUMNS_SKATERS_GAMELOG = [
-    'player.name',
-    'team.abbr',
-    'format_date',
-    'opponent.abbr',
-    'goals',
-    'assists',
-    'points',
-    'plusMinus',
-    'penaltyMinutes',
-    'shots',
-    'hits',
-    'blocked',
-    'faceOffWins',
-    'powerPlayPoints',
-    'shortHandedPoints',
-    'timeOnIce',
-    'powerPlayTimeOnIce',
-    'shortHandedTimeOnIce',
+    "player.name",
+    "team.abbr",
+    "format_date",
+    "opponent.abbr",
+    "goals",
+    "assists",
+    "points",
+    "plusMinus",
+    "penaltyMinutes",
+    "shots",
+    "hits",
+    "blocked",
+    "faceOffWins",
+    "powerPlayPoints",
+    "shortHandedPoints",
+    "timeOnIce",
+    "powerPlayTimeOnIce",
+    "shortHandedTimeOnIce",
 ]
 COLUMNS_GOALIES_GAMELOG = [
-    'player.name',
-    'team.abbr',
-    'format_date',
-    'opponent.abbr',
-    'decision',
-    'timeOnIce',
-    'goalsAgainst',
-    'savePercentage',
-    'saves',
-    'shots',
-    'shutout',
+    "player.name",
+    "team.abbr",
+    "format_date",
+    "opponent.abbr",
+    "decision",
+    "timeOnIce",
+    "goalsAgainst",
+    "savePercentage",
+    "saves",
+    "shots",
+    "shutout",
 ]
 COLUMNS = [
-    'number',
-    'favoriting',
-    'name',
-    'position_abbr',
-    'team',
-    'nation_abbr',
-    'height',
-    'weight',
-    'birth_date',
-    'age',
-    'draft_number',
-    'draft_year',
-    'games',
+    "number",
+    "favoriting",
+    "name",
+    "position_abbr",
+    "team",
+    "nation_abbr",
+    "height",
+    "weight",
+    "birth_date",
+    "age",
+    "draft_number",
+    "draft_year",
+    "games",
 ]
 COLUMNS_AVG = [
-    'goals_avg',
-    'assists_avg',
-    'points_avg',
-    'plus_minus_avg',
-    'penalty_min_avg',
-    'shots_avg',
-    'hits_avg',
-    'blocks_avg',
-    'faceoff_wins_avg',
-    'pp_points_avg',
-    'sh_points_avg',
+    "goals_avg",
+    "assists_avg",
+    "points_avg",
+    "plus_minus_avg",
+    "penalty_min_avg",
+    "shots_avg",
+    "hits_avg",
+    "blocks_avg",
+    "faceoff_wins_avg",
+    "pp_points_avg",
+    "sh_points_avg",
 ]
 COLUMNS_TOT = [
-    'goals',
-    'assists',
-    'points',
-    'plus_minus',
-    'penalty_min',
-    'shots',
-    'hits',
-    'blocks',
-    'faceoff_wins',
-    'pp_points',
-    'sh_points',
+    "goals",
+    "assists",
+    "points",
+    "plus_minus",
+    "penalty_min",
+    "shots",
+    "hits",
+    "blocks",
+    "faceoff_wins",
+    "pp_points",
+    "sh_points",
 ]
 COLUMNS_TOI = [
-    'time_on_ice',
-    'time_on_ice_pp',
-    'time_on_ice_sh',
+    "time_on_ice",
+    "time_on_ice_pp",
+    "time_on_ice_sh",
 ]
 COLUMNS_GOALIES = [
-    'wins',
-    'losses',
-    'ot_losses',
-    'goals_against_av',
-    'saves_perc',
-    'saves',
-    'shotouts',
+    "wins",
+    "losses",
+    "ot_losses",
+    "goals_against_av",
+    "saves_perc",
+    "saves",
+    "shotouts",
 ]
 
 # 'team.name' and 'opponent.name' not being used now
 EXTRA_FIELDS = [
-    'last_name',
-    'height_cm',
-    'nation',
-    'weight_kg',
-    'team.name',
-    'opponent.name',
+    "last_name",
+    "height_cm",
+    "nation",
+    "weight_kg",
+    "team.name",
+    "opponent.name",
 ]
 
 EURO_MEASUREMENTS = {
-    'height': 'height_cm',
-    'weight': 'weight_kg',
+    "height": "height_cm",
+    "weight": "weight_kg",
 }
 
 TOOLTIP_CSS_CLASSES = [
-    'cell-with-tooltip',
-    'css-tooltip',
-    'cell-with-filters-tooltip',
+    "cell-with-tooltip",
+    "css-tooltip",
+    "cell-with-filters-tooltip",
 ]
 MAP_ORDER = {
-    0: '',
-    1: '-',
+    0: "",
+    1: "-",
 }
 MAP_GAMELOG_ORDER = {
     0: False,
     1: True,
 }
 FAV_ALERT_DIV = [
-    "<div id=\"pls-fav-alert\" class=\"alert alert-primary js-fav-alert\" role=\"alert\">",
-    "<span class=\"js-fav-message\"></span><button type=\"button\" class=\"close\"",
-    "data-dismiss=\"alert\" aria-label=\"Close\">",
-    "<span aria-hidden=start\"true\">&times;</span></button></div>",
+    '<div id="pls-fav-alert" class="alert alert-primary js-fav-alert" role="alert">',
+    '<span class="js-fav-message"></span><button type="button" class="close"',
+    'data-dismiss="alert" aria-label="Close">',
+    '<span aria-hidden=start"true">&times;</span></button></div>',
 ]
 
-SORT_COL_REGEX = r'^\w{3}\[(\d{1,2})\]\=(\d)'
+SORT_COL_REGEX = r"^\w{3}\[(\d{1,2})\]\=(\d)"
 # FILT_COL_REGEX = r'^\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})'
-FILT_COL_REGEX = r'\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})\ ?\-?\ ?([a-zA-Z0-9 ]{1,})?'
+FILT_COL_REGEX = r"\w{4}\[(\d{1,2})\]\=([a-zA-Z0-9 ]{1,})\ ?\-?\ ?([a-zA-Z0-9 ]{1,})?"
 HEIGHT_REGEX = r"(\d)\' (\d{1,2})\""
-PLAYER_URL = 'player'
-FAVORITE_URL = 'player_favorite'
+PLAYER_URL = "player"
+FAVORITE_URL = "player_favorite"
 TEMPLATES = [
-    'players/partial_skaters_comparison_season_avg.html',
-    'players/partial_skaters_comparison_season_tot.html',
-    'players/partial_skaters_comparison_career_avg.html',
-    'players/partial_skaters_comparison_career_tot.html',
-    'players/partial_goalies_comparison_career_tot.html',
-    'players/partial_goalies_comparison_season_tot.html',
-    'players/partial_skaters_team_detail.html',
-    'players/partial_skaters_team_detail_averages.html',
-    'players/game_goalies_table.html',
+    "players/partial_skaters_comparison_season_avg.html",
+    "players/partial_skaters_comparison_season_tot.html",
+    "players/partial_skaters_comparison_career_avg.html",
+    "players/partial_skaters_comparison_career_tot.html",
+    "players/partial_goalies_comparison_career_tot.html",
+    "players/partial_goalies_comparison_season_tot.html",
+    "players/partial_skaters_team_detail.html",
+    "players/partial_skaters_team_detail_averages.html",
+    "players/game_goalies_table.html",
 ]
 POSITION_FILTERS = [
-    'd',
-    'f',
-    't',
+    "d",
+    "f",
+    "t",
 ]
-TIMEZONE = 'US/Pacific'
-DATE_TEMPLATE = '%Y-%m-%d'
+TIMEZONE = "US/Pacific"
+DATE_TEMPLATE = "%Y-%m-%d"
 
 
 def checkbox(array, checkbox_class, **kwargs):
-    html_string = ''
+    html_string = ""
 
     for index, option in enumerate(array):
         try:
-            if kwargs['checked']:
-                if option[0] in kwargs['checked']:
-                    kwargs['check_this'] = True
+            if kwargs["checked"]:
+                if option[0] in kwargs["checked"]:
+                    kwargs["check_this"] = True
                 else:
-                    kwargs['check_this'] = False
+                    kwargs["check_this"] = False
         except KeyError:
-            kwargs['check_this'] = False
+            kwargs["check_this"] = False
 
         html_string += checkbox_option(option, checkbox_class, **kwargs)
 
-        if (index+1) % 8 == 0:
+        if (index + 1) % 8 == 0:
             html_string += "<br>"
 
     return html_string
@@ -249,22 +250,26 @@ def checkbox(array, checkbox_class, **kwargs):
 def checkbox_option(option, checkbox_class, **kwargs):
     classes = TOOLTIP_CSS_CLASSES
 
-    if kwargs['tip']:
-        start = f'<label for=\"{option[0]}\" class=\"{checkbox_class} {classes[0]}\">{option[0]} <span class=\"{classes[1]}\">{option[1]}</span></label>'
+    if kwargs["tip"]:
+        start = f'<label for="{option[0]}" class="{checkbox_class} {classes[0]}">{option[0]} <span class="{classes[1]}">{option[1]}</span></label>'
     else:
-        start = f'<label for=\"{option[0]}\" class=\"{checkbox_class} {classes[0]}\">{option[0]} </label>'
+        start = (
+            f'<label for="{option[0]}" class="{checkbox_class} {classes[0]}">{option[0]} </label>'
+        )
 
-    if kwargs['check_this']:
-        end = f'<input type=\"checkbox\" class=\"{checkbox_class} checkbox_button\" value=\"{option[0]}\" id=\"{option[0]}\" checked> &nbsp'
+    if kwargs["check_this"]:
+        end = f'<input type="checkbox" class="{checkbox_class} checkbox_button" value="{option[0]}" id="{option[0]}" checked> &nbsp'
     else:
-        end = f'<input type=\"checkbox\" class=\"{checkbox_class} checkbox_button\" value=\"{option[0]}\" id=\"{option[0]}\"> &nbsp'
+        end = f'<input type="checkbox" class="{checkbox_class} checkbox_button" value="{option[0]}" id="{option[0]}"> &nbsp'
 
     return start + end
 
 
 def get_range(players, column):
-    return (players.aggregate(Min(f'{column}'))[f'{column}__min'],
-            players.aggregate(Max(f'{column}'))[f'{column}__max'])
+    return (
+        players.aggregate(Min(f"{column}"))[f"{column}__min"],
+        players.aggregate(Max(f"{column}"))[f"{column}__max"],
+    )
 
 
 def get_us_pacific_date():
@@ -303,59 +308,59 @@ def process_json(request, columns, domain, json, total_rows, start):
     for index, player in enumerate(json):
         data["rows"].append([])
 
-        slug = player['fields']['slug']
-        nhl_id = str(player['fields']['nhl_id'])
-        link = os.path.join('//', domain, PLAYER_URL, slug, nhl_id)
+        slug = player["fields"]["slug"]
+        nhl_id = str(player["fields"]["nhl_id"])
+        link = os.path.join("//", domain, PLAYER_URL, slug, nhl_id)
 
         for column in columns:
             if column == COLUMNS[0]:
-                player['fields'][column] = start + (index + 1)
+                player["fields"][column] = start + (index + 1)
 
             if column == COLUMNS[1]:
-                player['fields'][column] = make_fav_link(request, player, link, column)
+                player["fields"][column] = make_fav_link(request, player, link, column)
 
             if column == COLUMNS[2]:
-                player_name = player['fields'][column]
-                player['fields'][column] = make_name_link(player_name, link)
+                player_name = player["fields"][column]
+                player["fields"][column] = make_name_link(player_name, link)
 
             if column == COLUMNS[4]:
-                if player['fields'][column]:
-                    value = player['fields'][column][0]
-                    tip = player['fields'][column][1]
+                if player["fields"][column]:
+                    value = player["fields"][column][0]
+                    tip = player["fields"][column][1]
                 else:
-                    value = '—'
-                    tip = 'No team'
-                player['fields'][column] = make_tooltip(value, tip)
+                    value = "—"
+                    tip = "No team"
+                player["fields"][column] = make_tooltip(value, tip)
 
             if column == COLUMNS[5]:
-                value = player['fields'][column]
-                tip = player['fields'][EXTRA_FIELDS[2]]
-                player['fields'][column] = make_tooltip(value, tip)
+                value = player["fields"][column]
+                tip = player["fields"][EXTRA_FIELDS[2]]
+                player["fields"][column] = make_tooltip(value, tip)
 
             if user.is_authenticated:
                 if measurements_format_is_euro(user):
                     if column in COLUMNS[6]:
-                        player['fields'][column] = player['fields'][EXTRA_FIELDS[1]]
+                        player["fields"][column] = player["fields"][EXTRA_FIELDS[1]]
 
                     if column in COLUMNS[7]:
-                        player['fields'][column] = player['fields'][EXTRA_FIELDS[3]]
+                        player["fields"][column] = player["fields"][EXTRA_FIELDS[3]]
 
             if column in COLUMNS[10:12]:
-                if player['fields'][column] is None:
-                    value = '—'
-                    tip = 'Undrafted'
-                    player['fields'][column] = make_tooltip(value, tip)
+                if player["fields"][column] is None:
+                    value = "—"
+                    tip = "Undrafted"
+                    player["fields"][column] = make_tooltip(value, tip)
 
             if column == COLUMNS_GOALIES[3]:
-                player['fields'][column] = "%.2f" % player['fields'][column]
+                player["fields"][column] = "%.2f" % player["fields"][column]
 
             if column == COLUMNS_GOALIES[4]:
-                player['fields'][column] = "%.3f" % player['fields'][column] 
+                player["fields"][column] = "%.3f" % player["fields"][column]
 
-            if player['fields'][column] is None:
-                player['fields'][column] = '—'
+            if player["fields"][column] is None:
+                player["fields"][column] = "—"
 
-            data["rows"][index].append(player['fields'][column])
+            data["rows"][index].append(player["fields"][column])
 
     return data
 
@@ -375,18 +380,18 @@ def adjust_measurements(player):
 def anon_alert(request, redir):
     domain = request.get_host()
     reg_link = REG_LINK.format(domain)
-    next_ = f'?next={redir}'
+    next_ = f"?next={redir}"
     login_link = LOGIN_LINK.format(domain, next_)
     return ALERT_ANONYMOUS.format(reg_link, login_link)
 
 
 def parse_url_param(string):
-    return int(string.split('=')[1])
+    return int(string.split("=")[1])
 
 
 def filter_gamelog(games, filtering, columns):
     for sublist in filtering:
-        path = columns[int(sublist[0])].split('.')
+        path = columns[int(sublist[0])].split(".")
         query = sublist[1]
         games = [game for game in games if query.lower() in game[path[0]][path[1]].lower()]
     return games
@@ -397,8 +402,11 @@ def sort_gamelog(sorting, games, columns):
     for sublist in reversed(sorting):
         column = columns[sublist[0]]
         boolean_value = MAP_GAMELOG_ORDER[sublist[1]]
-        games = sorted(games, key=lambda game, column=column: get_sorting_value(game, column),
-                       reverse=boolean_value)
+        games = sorted(
+            games,
+            key=lambda game, column=column: get_sorting_value(game, column),
+            reverse=boolean_value,
+        )
     return games
 
 
@@ -406,23 +414,23 @@ def sort_gamelog(sorting, games, columns):
 # ALSO INVESTIGATE WHY TOI SORTING WORKS in players
 def get_sorting_value(game, column):
     value = get_cell_value(game, column)
-    if 'date' in column:
+    if "date" in column:
         return (MONTHS_MAP[value[:3]], int(value[4:]))
 
-    if 'name' in column:
+    if "name" in column:
         return value.split()[1]
 
     # TOI sorting
     if column in COLUMNS_SKATERS_GAMELOG[15:17]:
-        min_, sec = value.split(':')
-        return int(min_*60) + int(sec)
+        min_, sec = value.split(":")
+        return int(min_ * 60) + int(sec)
 
     return value
 
 
 def get_cell_value(game, column, *args):
 
-    keys = column.split('.')
+    keys = column.split(".")
 
     if args:
         return game[keys[0]][args[0]]
@@ -433,40 +441,41 @@ def get_cell_value(game, column, *args):
         value = None
 
     if value is None:
-        value = '—'
+        value = "—"
     return value
 
 
 def get_team_detail_context(team, user):
-    stat_type = 'avg'
-    pos_filt = 'default'
-    sort_order = ['-points', 'games', '-goals']
+    stat_type = "avg"
+    pos_filt = "default"
+    sort_order = ["-points", "games", "-goals"]
 
     context = {
-        'goalies': team.goalies.all().order_by('-wins', 'games'),
-        'skaters': [
+        "goalies": team.goalies.all().order_by("-wins", "games"),
+        "skaters": [
             {
-                'type': DEF,
-                'list': filter_position(team.skaters.all(), [POSITIONS[1]], sort_order),
-                'table_id': TABLE_IDS[0],
+                "type": DEF,
+                "list": filter_position(team.skaters.all(), [POSITIONS[1]], sort_order),
+                "table_id": TABLE_IDS[0],
             },
             {
-                'type': FRW,
-                'list': filter_position(team.skaters.all(), POSITIONS[2:], sort_order),
-                'table_id': TABLE_IDS[1],
-            }
+                "type": FRW,
+                "list": filter_position(team.skaters.all(), POSITIONS[2:], sort_order),
+                "table_id": TABLE_IDS[1],
+            },
         ],
-        'team': team,
-        'tbody_skaters': 'players/partial_skaters_team_detail.html',
-        'tbody_goalies': 'players/partial_goalies_team_detail.html',
-        'stat_type': stat_type,
-        'pos_filt': pos_filt,
+        "team": team,
+        "tbody_skaters": "players/partial_skaters_team_detail.html",
+        "tbody_goalies": "players/partial_goalies_team_detail.html",
+        "stat_type": stat_type,
+        "pos_filt": pos_filt,
     }
 
     if user.is_authenticated:
         if measurements_format_is_euro(user):
-            players = chain(context['goalies'], context['skaters'][0]['list'],
-                            context['skaters'][1]['list'])
+            players = chain(
+                context["goalies"], context["skaters"][0]["list"], context["skaters"][1]["list"]
+            )
 
             for player in players:
                 player = adjust_measurements(player)
@@ -474,27 +483,27 @@ def get_team_detail_context(team, user):
         fav_goalies = team.goalies.all().filter(favoriting__username=user)
         fav_skaters = team.skaters.all().filter(favoriting__username=user)
         fav_players = list(chain(fav_goalies, fav_skaters))
-        context['favorites'] = fav_players
+        context["favorites"] = fav_players
 
     return context
 
 
 def clear_comparison_list(request, player_type, user):
     data = {}
-    field = getattr(user, f'comparable_{player_type}')
+    field = getattr(user, f"comparable_{player_type}")
     field.clear()
     context = get_comparison_context(user)
-    data[f'{player_type}_button'] = f'{player_type.upper()} ({context[f"numb_of_{player_type}"]})'
-    template = f'players/partial_{player_type}_comparison_base.html'
-    data[f'compare_{player_type}'] = render_to_string(template, context, request=request)
+    data[f"{player_type}_button"] = f"{player_type.upper()} ({context[f'numb_of_{player_type}']})"
+    template = f"players/partial_{player_type}_comparison_base.html"
+    data[f"compare_{player_type}"] = render_to_string(template, context, request=request)
     return data
 
 
 def get_comparison_context(user):
-    stat_type = 'season_avg'
-    player_type = 'skaters'
-    comp_gls = user.comparable_goalies.select_related('team')
-    comp_skt = user.comparable_skaters.select_related('team')
+    stat_type = "season_avg"
+    player_type = "skaters"
+    comp_gls = user.comparable_goalies.select_related("team")
+    comp_skt = user.comparable_skaters.select_related("team")
     numb_of_goalies = comp_gls.count()
     numb_of_skaters = comp_skt.count()
 
@@ -503,22 +512,22 @@ def get_comparison_context(user):
             player = adjust_measurements(player)
 
     context = {
-        'comp_gls': comp_gls,
-        'comp_skt': comp_skt,
-        'favorites_g': comp_gls.filter(favoriting__username=user),
-        'favorites_s': comp_skt.filter(favoriting__username=user),
-        'stat_type': stat_type,
-        'player_type': player_type,
-        'numb_of_goalies': numb_of_goalies,
-        'numb_of_skaters': numb_of_skaters,
-        'empty': (numb_of_goalies + numb_of_skaters == 0),
+        "comp_gls": comp_gls,
+        "comp_skt": comp_skt,
+        "favorites_g": comp_gls.filter(favoriting__username=user),
+        "favorites_s": comp_skt.filter(favoriting__username=user),
+        "stat_type": stat_type,
+        "player_type": player_type,
+        "numb_of_goalies": numb_of_goalies,
+        "numb_of_skaters": numb_of_skaters,
+        "empty": (numb_of_goalies + numb_of_skaters == 0),
     }
 
     return context
 
 
 def get_fav_alert_div():
-    return ''.join(FAV_ALERT_DIV)
+    return "".join(FAV_ALERT_DIV)
 
 
 def process_json_gamelog(columns, domain, one_page_slice, total_rows):
@@ -528,10 +537,10 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
     for index, game in enumerate(one_page_slice):
         data["rows"].append([])
 
-        slug = str(game['player']['slug'])
-        nhl_id = str(game['player']['nhl_id'])
-        link = os.path.join('//', domain, PLAYER_URL, slug, nhl_id)
-        player_name = game['player']['name']
+        slug = str(game["player"]["slug"])
+        nhl_id = str(game["player"]["nhl_id"])
+        link = os.path.join("//", domain, PLAYER_URL, slug, nhl_id)
+        player_name = game["player"]["name"]
 
         for column in columns:
             cell_value = get_cell_value(game, column)
@@ -543,8 +552,8 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
             if column in (COLUMNS_SKATERS_GAMELOG[1], COLUMNS_SKATERS_GAMELOG[3]):
                 value = cell_value
                 # what is 'name'?
-                # was needed with fields like team.name and opponent.name 
-                tip = get_cell_value(game, column, 'name')
+                # was needed with fields like team.name and opponent.name
+                tip = get_cell_value(game, column, "name")
                 # tip = get_cell_value(game, column)
                 cell_value = make_tooltip(value, tip)
 
@@ -557,34 +566,34 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
 
 
 def make_name_link(player_name, link):
-    start = "<td class=\"name\"><a class=\"name\""
-    end = f"href=\"{link}\">{player_name}</td>"
+    start = '<td class="name"><a class="name"'
+    end = f'href="{link}">{player_name}</td>'
     return start + end
 
 
 def make_tooltip(column, tip_field):
     classes = TOOLTIP_CSS_CLASSES
-    value = f"<td class=\"{classes[0]}\">{column}"
-    tip = f"<span class=\"{classes[1]} {classes[2]}\">{tip_field}</span></td>"
+    value = f'<td class="{classes[0]}">{column}'
+    tip = f'<span class="{classes[1]} {classes[2]}">{tip_field}</span></td>'
     return value + tip
 
 
 def make_fav_link(request, player, link, column):
     fav_link = os.path.join(link, FAVORITE_URL)
     # makes a flat array
-    player_followers = list(chain.from_iterable(player['fields'][column]))
+    player_followers = list(chain.from_iterable(player["fields"][column]))
 
     if request.user.username in player_followers:
-        js_class = "\"js-fav-del\""
-        title = "\"Unfollow player\""
-        font_class = "\"fas fa-star\""
+        js_class = '"js-fav-del"'
+        title = '"Unfollow player"'
+        font_class = '"fas fa-star"'
     else:
-        js_class = "\"js-fav-add\""
-        title = "\"Follow player\""
-        font_class = "\"far fa-star\""
+        js_class = '"js-fav-add"'
+        title = '"Follow player"'
+        font_class = '"far fa-star"'
 
-    start = "<div id=\"favorite_section\">"
-    middle = f"<a class={js_class} href=\"{fav_link}\" title={title}>"
+    start = '<div id="favorite_section">'
+    middle = f'<a class={js_class} href="{fav_link}" title={title}>'
     end = f"<i class={font_class}></i></a></div>"
 
     return start + middle + end
@@ -597,23 +606,23 @@ def sort_table(request, stat_type, sorting, players_query, columns):
         for sub_list in sorting:
             if sub_list[0] == 2:
                 # sort names as lastnames
-                sorting_args.append(f'{MAP_ORDER[sub_list[1]]}{EXTRA_FIELDS[0]}')
+                sorting_args.append(f"{MAP_ORDER[sub_list[1]]}{EXTRA_FIELDS[0]}")
             elif sub_list[0] == 4:
                 # sort by team.abbr
-                sorting_args.append(f'{MAP_ORDER[sub_list[1]]}{columns[sub_list[0]]}__abbr')
+                sorting_args.append(f"{MAP_ORDER[sub_list[1]]}{columns[sub_list[0]]}__abbr")
             elif sub_list[0] == 6:
                 # sort height as height in cm
-                sorting_args.append(f'{MAP_ORDER[sub_list[1]]}{EXTRA_FIELDS[1]}')
+                sorting_args.append(f"{MAP_ORDER[sub_list[1]]}{EXTRA_FIELDS[1]}")
             elif sub_list[0] == 7:
                 # sort weight by kilos if user chose a euro format
                 if user.is_authenticated:
                     if measurements_format_is_euro(user):
-                        sorting_args.append(f'{MAP_ORDER[sub_list[1]]}{EXTRA_FIELDS[3]}')
+                        sorting_args.append(f"{MAP_ORDER[sub_list[1]]}{EXTRA_FIELDS[3]}")
                     else:
-                        sorting_args.append(f'{MAP_ORDER[sub_list[1]]}{columns[sub_list[0]]}')
+                        sorting_args.append(f"{MAP_ORDER[sub_list[1]]}{columns[sub_list[0]]}")
             else:
-                sorting_args.append(f'{MAP_ORDER[sub_list[1]]}{columns[sub_list[0]]}')
-        sorting_args.append('pk')
+                sorting_args.append(f"{MAP_ORDER[sub_list[1]]}{columns[sub_list[0]]}")
+        sorting_args.append("pk")
     else:
         sorting_args = DEFAULT_SORTING[stat_type]
 
@@ -630,21 +639,21 @@ def apply_filters(request, players_query, filtering, columns):
             if user.is_authenticated:
                 if measurements_format_is_euro(user):
                     if field == columns[6] or field == columns[7]:
-                        kwargs[f'{EURO_MEASUREMENTS[field]}__range'] = (sub_list[1], sub_list[2])
+                        kwargs[f"{EURO_MEASUREMENTS[field]}__range"] = (sub_list[1], sub_list[2])
                     else:
-                        kwargs[f'{field}__range'] = (sub_list[1], sub_list[2])
+                        kwargs[f"{field}__range"] = (sub_list[1], sub_list[2])
 
                 else:
-                    kwargs[f'{field}__range'] = (sub_list[1], sub_list[2])
+                    kwargs[f"{field}__range"] = (sub_list[1], sub_list[2])
         else:
             # filter team name
             if field == columns[4]:
-                kwargs[f'{field}__abbr__icontains'] = sub_list[1]
+                kwargs[f"{field}__abbr__icontains"] = sub_list[1]
             # filter full nation name
             elif field == columns[5]:
-                kwargs[f'{EXTRA_FIELDS[2]}__icontains'] = sub_list[1]
+                kwargs[f"{EXTRA_FIELDS[2]}__icontains"] = sub_list[1]
             else:
-                kwargs[f'{field}__icontains'] = sub_list[1]
+                kwargs[f"{field}__icontains"] = sub_list[1]
 
             adjust_range = True
 
@@ -661,7 +670,7 @@ def filter_checkbox_opts(players_query, field_names):
     else:
         sorted_opts = zip_longest(sorted_opts[0], EMPTY_LIST)
 
-    return [el if el is not None else '—' for el in sorted_opts]
+    return [el if el is not None else "—" for el in sorted_opts]
 
 
 def get_uniques(queryset, field):
@@ -689,7 +698,7 @@ def sort_height_list(height_list):
 
 
 def sorting_columns(sort_col):
-    columns = sort_col.split('&')
+    columns = sort_col.split("&")
 
     array = []
     for index, column in enumerate(columns):
@@ -703,7 +712,7 @@ def sorting_columns(sort_col):
 
 
 def filter_columns(filt_col):
-    columns = filt_col.split('&')
+    columns = filt_col.split("&")
     array = []
     for index, column in enumerate(columns):
         matches = re.search(FILT_COL_REGEX, column)
@@ -712,22 +721,22 @@ def filter_columns(filt_col):
             array.append([])
             array[index].append(matches[1])
             # Removes extra whitespaces between first and last name
-            array[index].append(' '.join(matches[2].split()))
+            array[index].append(" ".join(matches[2].split()))
             if matches[3]:
-                array[index].append(' '.join(matches[3].split()))
+                array[index].append(" ".join(matches[3].split()))
 
     return array
 
 
 def rookie_filter(rookie_filt):
-    if rookie_filt.split('=')[1]:
+    if rookie_filt.split("=")[1]:
         return True
     return False
 
 
 def checkbox_filter(checkbox_filt, column):
-    if checkbox_filt.split('=')[1]:
-        team_str = checkbox_filt.split('=')[1]
+    if checkbox_filt.split("=")[1]:
+        team_str = checkbox_filt.split("=")[1]
         team_str = json.loads(team_str)
 
         try:
@@ -752,15 +761,15 @@ def add_comp_info(request, player):
         A nested dictionary with HTML attributes for a 'player_compare' link
     """
     context = {}
-    context['comp'] = {}
+    context["comp"] = {}
     if is_compare(request, player):
-        context['comp']['class'] = HTML_ATTRS['del_comp_class']
-        context['comp']['title'] = HTML_ATTRS['del_comp_title']
-        context['comp']['html_content'] = HTML_ATTRS['del_comp_html_content']
+        context["comp"]["class"] = HTML_ATTRS["del_comp_class"]
+        context["comp"]["title"] = HTML_ATTRS["del_comp_title"]
+        context["comp"]["html_content"] = HTML_ATTRS["del_comp_html_content"]
     else:
-        context['comp']['class'] = HTML_ATTRS['add_comp_class']
-        context['comp']['title'] = HTML_ATTRS['add_comp_title']
-        context['comp']['html_content'] = HTML_ATTRS['add_comp_html_content']
+        context["comp"]["class"] = HTML_ATTRS["add_comp_class"]
+        context["comp"]["title"] = HTML_ATTRS["add_comp_title"]
+        context["comp"]["html_content"] = HTML_ATTRS["add_comp_html_content"]
 
     return context
 
@@ -779,15 +788,15 @@ def add_fav_info(request, player):
         A nested dictionary with HTML attributes for a 'player_favorite' link
     """
     context = {}
-    context['fav'] = {}
+    context["fav"] = {}
     if is_favorite(request, player):
-        context['fav']['class'] = HTML_ATTRS['del_fav_class']
-        context['fav']['title'] = HTML_ATTRS['del_fav_title']
-        context['fav']['icon_class'] = HTML_ATTRS['del_fav_icon_class']
+        context["fav"]["class"] = HTML_ATTRS["del_fav_class"]
+        context["fav"]["title"] = HTML_ATTRS["del_fav_title"]
+        context["fav"]["icon_class"] = HTML_ATTRS["del_fav_icon_class"]
     else:
-        context['fav']['class'] = HTML_ATTRS['add_fav_class']
-        context['fav']['title'] = HTML_ATTRS['add_fav_title']
-        context['fav']['icon_class'] = HTML_ATTRS['add_fav_icon_class']
+        context["fav"]["class"] = HTML_ATTRS["add_fav_class"]
+        context["fav"]["title"] = HTML_ATTRS["add_fav_title"]
+        context["fav"]["icon_class"] = HTML_ATTRS["add_fav_icon_class"]
 
     return context
 
@@ -810,8 +819,11 @@ def favorite_players_gamelog(fav_players):
         for _, game in player.gamelog_stats.items():
             games_list.append(game)
 
-    return sorted(games_list, reverse=True,
-                  key=lambda x: (MONTHS_MAP[x['format_date'][:3]], int(x['format_date'][4:])))
+    return sorted(
+        games_list,
+        reverse=True,
+        key=lambda x: (MONTHS_MAP[x["format_date"][:3]], int(x["format_date"][4:])),
+    )
 
 
 def get_checked_dict(player, positions_extra):
@@ -840,9 +852,7 @@ def get_checked_dict(player, positions_extra):
         pos = [player.position_abbr]
 
     # Creating a dict with checked/unchecked positions
-    checked_dict = {
-        key: 'checked' if key in pos else None for key in POSITIONS[1:5]
-    }
+    checked_dict = {key: "checked" if key in pos else None for key in POSITIONS[1:5]}
 
     return checked_dict
 
@@ -861,7 +871,7 @@ def unpack_list_positions(player, positions_extra):
         just returns a string with default position for a player.
     """
     if positions_extra:
-        return (', ').join(positions_extra.data)
+        return (", ").join(positions_extra.data)
 
     return player.position_abbr
 
@@ -911,10 +921,10 @@ def get_player(nhl_id, slug):
         slug: a string representing a slug of an object
     """
     try:
-        return models.Skater.objects.select_related('team').get(nhl_id=nhl_id, slug=slug)
+        return models.Skater.objects.select_related("team").get(nhl_id=nhl_id, slug=slug)
     except models.Skater.DoesNotExist:
         try:
-            return models.Goalie.objects.select_related('team').get(nhl_id=nhl_id, slug=slug)
+            return models.Goalie.objects.select_related("team").get(nhl_id=nhl_id, slug=slug)
         except models.Goalie.DoesNotExist:
             return None
 
@@ -967,8 +977,8 @@ def get_user_favorites(request):
     user = request.user
     context = {}
     if user.is_authenticated:
-        context['favorites_g'] = user.favorite_goalies.all()
-        context['favorites_s'] = user.favorite_skaters.all()
+        context["favorites_g"] = user.favorite_goalies.all()
+        context["favorites_s"] = user.favorite_skaters.all()
     return context
 
 
@@ -986,8 +996,8 @@ def get_user_compares(request):
     user = request.user
     context = {}
     if user.is_authenticated:
-        context['compare_g'] = user.comparable_goalies.all()
-        context['compare_s'] = user.comparable_skaters.all()
+        context["compare_g"] = user.comparable_goalies.all()
+        context["compare_s"] = user.comparable_skaters.all()
     return context
 
 
@@ -1001,7 +1011,7 @@ def get_gamelog(player, *slicer):
     Args:
       player: object of Skater's or Goalie's models
       *slicer: a tuple with an optional argument as a slicer
-          constructor to slice the desired number of elements   
+          constructor to slice the desired number of elements
     """
     log = player.gamelog_stats
     if not log:

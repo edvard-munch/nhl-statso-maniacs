@@ -1,4 +1,5 @@
 """Read .env file"""
+
 import os.path
 
 import environ  # type: ignore
@@ -8,7 +9,7 @@ env = environ.Env(
     CI=(bool, False),
 )
 
-os.chdir('..')
+os.chdir("..")
 if os.path.exists("nhl_web_app/.env"):
     environ.Env.read_env("nhl_web_app/.env")  # reading .env file
 

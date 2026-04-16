@@ -25,15 +25,15 @@ class Command(BaseCommand):
         """
 
         Args:
-          *args: 
-          **options: 
+          *args:
+          **options:
 
         Returns:
 
         """
         print(f"\n Uploading FW from {REP_TYPE} report")
 
-        for year in tqdm(range(FIRST, LAST+1)):
+        for year in tqdm(range(FIRST, LAST + 1)):
             skaters = Skater.objects.all().filter(nhl_debut__range=(FIRST, year))
             season = str(year) + str(year + 1)
             form_season = f"{season[:4]}-{season[6:]}"
@@ -54,30 +54,33 @@ class Command(BaseCommand):
                     for item in data:
                         if item["playerId"] == skater.nhl_id:
                             if skater in multi_seasons_sk:
-                                if form_season not in skater.multiteams_seasons_appl or form_season[:4] == LAST:
+                                if (
+                                    form_season not in skater.multiteams_seasons_appl
+                                    or form_season[:4] == LAST
+                                ):
                                     dict_ = {
                                         "stat": {
                                             "games": item["gamesPlayed"],
                                             "goals": item["goals"],
                                             "assists": sum(
                                                 season["stat"]["assists"]
-                                                for season
-                                                in skater.sbs_stats if season["season"] == form_season
+                                                for season in skater.sbs_stats
+                                                if season["season"] == form_season
                                             ),
                                             "points": sum(
                                                 season["stat"]["points"]
-                                                for season
-                                                in skater.sbs_stats if season["season"] == form_season
+                                                for season in skater.sbs_stats
+                                                if season["season"] == form_season
                                             ),
                                             "plusMinus": sum(
                                                 season["stat"]["plusMinus"]
-                                                for season
-                                                in skater.sbs_stats if season["season"] == form_season
+                                                for season in skater.sbs_stats
+                                                if season["season"] == form_season
                                             ),
                                             "pim": sum(
                                                 int(season["stat"]["penaltyMinutes"])
-                                                for season
-                                                in skater.sbs_stats if season["season"] == form_season
+                                                for season in skater.sbs_stats
+                                                if season["season"] == form_season
                                             ),
                                             "shots": item["shots"],
                                             "hits": item["hits"],
@@ -85,37 +88,46 @@ class Command(BaseCommand):
                                             "faceoffsWon": item["faceoffsWon"],
                                             "powerPlayPoints": sum(
                                                 season["stat"]["powerPlayPoints"]
-                                                for season
-                                                in skater.sbs_stats if season["season"] == form_season
+                                                for season in skater.sbs_stats
+                                                if season["season"] == form_season
                                             ),
                                             "shortHandedPoints": sum(
                                                 season["stat"]["shortHandedPoints"]
-                                                for season
-                                                in skater.sbs_stats if season["season"] == form_season
+                                                for season in skater.sbs_stats
+                                                if season["season"] == form_season
                                             ),
                                             "timeOnIce": time_from_sec(
-                                                sum(time_to_sec(season["stat"]["timeOnIce"])
+                                                sum(
+                                                    time_to_sec(season["stat"]["timeOnIce"])
                                                     * season["stat"]["games"]
-                                                    for season
-                                                    in skater.sbs_stats if season["season"] == form_season)
-                                                /item["gamesPlayed"]
+                                                    for season in skater.sbs_stats
+                                                    if season["season"] == form_season
+                                                )
+                                                / item["gamesPlayed"]
                                             ),
                                             "powerPlayTimeOnIce": time_from_sec(
-                                                sum(time_to_sec(season["stat"]["powerPlayTimeOnIce"])
+                                                sum(
+                                                    time_to_sec(
+                                                        season["stat"]["powerPlayTimeOnIce"]
+                                                    )
                                                     * season["stat"]["games"]
-                                                    for season
-                                                    in skater.sbs_stats if season["season"] == form_season)
-                                                /item["gamesPlayed"]
+                                                    for season in skater.sbs_stats
+                                                    if season["season"] == form_season
+                                                )
+                                                / item["gamesPlayed"]
                                             ),
                                             "shortHandedTimeOnIce": time_from_sec(
-                                                sum(time_to_sec(season["stat"]["shortHandedTimeOnIce"])
+                                                sum(
+                                                    time_to_sec(
+                                                        season["stat"]["shortHandedTimeOnIce"]
+                                                    )
                                                     * season["stat"]["games"]
-                                                    for season
-                                                    in skater.sbs_stats if season["season"] == form_season)
-                                                /item["gamesPlayed"]
+                                                    for season in skater.sbs_stats
+                                                    if season["season"] == form_season
+                                                )
+                                                / item["gamesPlayed"]
                                             ),
                                         },
-
                                         "season": f"{form_season} total",
                                         "team": {
                                             "abbr": item["playerTeamsPlayedFor"],
@@ -125,33 +137,45 @@ class Command(BaseCommand):
                                     dict_avg = {
                                         "stat": {
                                             "games": item["gamesPlayed"],
-                                            "goals": round(item["goals"]
-                                                           /item["gamesPlayed"], 2),
-                                            "assists": round(dict_["stat"]["assists"]
-                                                             /item["gamesPlayed"], 2),
-                                            "points": round(dict_["stat"]["points"]
-                                                            /item["gamesPlayed"], 2),
-                                            "plusMinus": round(dict_["stat"]["plusMinus"]
-                                                               /item["gamesPlayed"], 2),
-                                            "pim": round(dict_["stat"]["pim"]
-                                                         /item["gamesPlayed"], 2),
-                                            "shots": round(item["shots"]
-                                                           /item["gamesPlayed"], 2),
-                                            "hits": round(item["hits"]
-                                                          /item["gamesPlayed"], 2),
-                                            "blocked": round(item["blockedShots"]
-                                                             /item["gamesPlayed"], 2),
-                                            "faceoffsWon": round(item["faceoffsWon"]
-                                                                 /item["gamesPlayed"], 2),
-                                            "powerPlayPoints": round(dict_["stat"]["powerPlayPoints"]
-                                                                     /item["gamesPlayed"], 2),
-                                            "shortHandedPoints": round(dict_["stat"]["shortHandedPoints"]
-                                                                       /item["gamesPlayed"], 2),
+                                            "goals": round(item["goals"] / item["gamesPlayed"], 2),
+                                            "assists": round(
+                                                dict_["stat"]["assists"] / item["gamesPlayed"], 2
+                                            ),
+                                            "points": round(
+                                                dict_["stat"]["points"] / item["gamesPlayed"], 2
+                                            ),
+                                            "plusMinus": round(
+                                                dict_["stat"]["plusMinus"] / item["gamesPlayed"], 2
+                                            ),
+                                            "pim": round(
+                                                dict_["stat"]["pim"] / item["gamesPlayed"], 2
+                                            ),
+                                            "shots": round(item["shots"] / item["gamesPlayed"], 2),
+                                            "hits": round(item["hits"] / item["gamesPlayed"], 2),
+                                            "blocked": round(
+                                                item["blockedShots"] / item["gamesPlayed"], 2
+                                            ),
+                                            "faceoffsWon": round(
+                                                item["faceoffsWon"] / item["gamesPlayed"], 2
+                                            ),
+                                            "powerPlayPoints": round(
+                                                dict_["stat"]["powerPlayPoints"]
+                                                / item["gamesPlayed"],
+                                                2,
+                                            ),
+                                            "shortHandedPoints": round(
+                                                dict_["stat"]["shortHandedPoints"]
+                                                / item["gamesPlayed"],
+                                                2,
+                                            ),
                                             "timeOnIce": dict_["stat"]["timeOnIce"],
-                                            "powerPlayTimeOnIce": dict_["stat"]["powerPlayTimeOnIce"],
-                                            "shortHandedTimeOnIce": dict_["stat"]["shortHandedTimeOnIce"],
+                                            "powerPlayTimeOnIce": dict_["stat"][
+                                                "powerPlayTimeOnIce"
+                                            ],
+                                            "shortHandedTimeOnIce": dict_["stat"][
+                                                "shortHandedTimeOnIce"
+                                            ],
                                         },
-
                                         "season": f"{form_season} total",
                                         "team": {
                                             "abbr": item["playerTeamsPlayedFor"],
@@ -168,7 +192,7 @@ class Command(BaseCommand):
                                 if form_season not in skater.multiteams_seasons_appl:
                                     skater.multiteams_seasons_appl.append(form_season)
 
-                                skater.seasons_count += (skater.multiteams_seasons[form_season])
+                                skater.seasons_count += skater.multiteams_seasons[form_season]
 
                             else:
                                 skater.sbs_stats[skater.seasons_count]["stat"]["faceoffsWon"] = (
@@ -176,12 +200,20 @@ class Command(BaseCommand):
                                 )
                                 skater.fw_stats[form_season] = item["faceoffsWon"]
 
-                                skater.sbs_stats_avg[skater.seasons_count]["stat"]["faceoffsWon"] = (
-                                    round(item["faceoffsWon"] / item["gamesPlayed"], 2)
-                                )
+                                skater.sbs_stats_avg[skater.seasons_count]["stat"][
+                                    "faceoffsWon"
+                                ] = round(item["faceoffsWon"] / item["gamesPlayed"], 2)
 
                             skater.seasons_count += 1
-                            skater.save(update_fields=["sbs_stats", "sbs_stats_avg", "seasons_count", "fw_stats", "multiteams_seasons_appl"])
+                            skater.save(
+                                update_fields=[
+                                    "sbs_stats",
+                                    "sbs_stats_avg",
+                                    "seasons_count",
+                                    "fw_stats",
+                                    "multiteams_seasons_appl",
+                                ]
+                            )
 
         for skater in tqdm(Skater.objects.all()):
             sum_ = 0
@@ -192,8 +224,9 @@ class Command(BaseCommand):
                     pass
             skater.career_stats["faceoffsWon"] = sum_
             try:
-                skater.career_stats_avg["faceoffsWon"] = round(skater.career_stats["faceoffsWon"]
-                                                               /skater.career_stats["games"], 2)
+                skater.career_stats_avg["faceoffsWon"] = round(
+                    skater.career_stats["faceoffsWon"] / skater.career_stats["games"], 2
+                )
             except KeyError:
                 print(skater.name)
 
@@ -205,7 +238,7 @@ def time_from_sec(time):
     """
 
     Args:
-      time: 
+      time:
 
     Returns:
 
@@ -220,22 +253,22 @@ def time_to_sec(time):
     """
 
     Args:
-      time: 
+      time:
 
     Returns:
 
     """
     min_sec = time.split(":")
-    return int(min_sec[0])*60 + int(min_sec[1])
+    return int(min_sec[0]) * 60 + int(min_sec[1])
 
 
 def players_resp(rep_type, pl_type, season):
     """
 
     Args:
-      rep_type: 
-      pl_type: 
-      season: 
+      rep_type:
+      pl_type:
+      season:
 
     Returns:
 

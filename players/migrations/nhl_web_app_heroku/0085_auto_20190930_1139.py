@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0084_auto_20190930_1136'),
+        ("players", "0084_auto_20190930_1136"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='game',
-            name='goalies',
-            field=models.ManyToManyField(blank=True, related_name='roster_goalies', to='players.Goalie'),
+            model_name="game",
+            name="goalies",
+            field=models.ManyToManyField(
+                blank=True, related_name="roster_goalies", to="players.Goalie"
+            ),
         ),
         migrations.AddField(
-            model_name='game',
-            name='skaters',
-            field=models.ManyToManyField(blank=True, related_name='roster_skaters', to='players.Skater'),
+            model_name="game",
+            name="skaters",
+            field=models.ManyToManyField(
+                blank=True, related_name="roster_skaters", to="players.Skater"
+            ),
         ),
     ]

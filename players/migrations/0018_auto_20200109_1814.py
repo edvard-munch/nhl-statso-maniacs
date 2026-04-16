@@ -4,35 +4,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0017_auto_20200109_1813'),
+        ("players", "0017_auto_20200109_1813"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='goalie',
-            name='goals_against_av',
+            model_name="goalie",
+            name="goals_against_av",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='losses',
+            model_name="goalie",
+            name="losses",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='ot_losses',
+            model_name="goalie",
+            name="ot_losses",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='saves',
+            model_name="goalie",
+            name="saves",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='saves_perc',
+            model_name="goalie",
+            name="saves_perc",
             field=models.FloatField(null=True),
         ),
     ]

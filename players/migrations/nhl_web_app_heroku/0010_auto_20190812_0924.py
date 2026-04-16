@@ -6,40 +6,57 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0009_auto_20190724_1850'),
+        ("players", "0009_auto_20190724_1850"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='goalie',
-            name='comparing',
-            field=models.ManyToManyField(blank=True, related_name='comparable_goalies', to=settings.AUTH_USER_MODEL),
+            model_name="goalie",
+            name="comparing",
+            field=models.ManyToManyField(
+                blank=True, related_name="comparable_goalies", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='favoriting',
-            field=models.ManyToManyField(blank=True, related_name='favorite_goalies', to=settings.AUTH_USER_MODEL),
+            model_name="goalie",
+            name="favoriting",
+            field=models.ManyToManyField(
+                blank=True, related_name="favorite_goalies", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='team',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='goalies', to='players.Team'),
+            model_name="goalie",
+            name="team",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="goalies",
+                to="players.Team",
+            ),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='comparing',
-            field=models.ManyToManyField(blank=True, related_name='comparable_skaters', to=settings.AUTH_USER_MODEL),
+            model_name="skater",
+            name="comparing",
+            field=models.ManyToManyField(
+                blank=True, related_name="comparable_skaters", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='favoriting',
-            field=models.ManyToManyField(blank=True, related_name='favorite_skaters', to=settings.AUTH_USER_MODEL),
+            model_name="skater",
+            name="favoriting",
+            field=models.ManyToManyField(
+                blank=True, related_name="favorite_skaters", to=settings.AUTH_USER_MODEL
+            ),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='team',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='skaters', to='players.Team'),
+            model_name="skater",
+            name="team",
+            field=models.ForeignKey(
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="skaters",
+                to="players.Team",
+            ),
         ),
     ]

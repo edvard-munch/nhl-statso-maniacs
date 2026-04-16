@@ -4,23 +4,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0057_goalie_boxscore'),
+        ("players", "0057_goalie_boxscore"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='goalie',
-            name='boxscore',
+            model_name="goalie",
+            name="boxscore",
         ),
         migrations.RemoveField(
-            model_name='goalie',
-            name='shotouts',
+            model_name="goalie",
+            name="shotouts",
         ),
         migrations.AddField(
-            model_name='game',
-            name='test',
+            model_name="game",
+            name="test",
             field=models.FloatField(default=1.0),
         ),
     ]

@@ -5,20 +5,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0015_auto_20191017_1625'),
+        ("players", "0015_auto_20191017_1625"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='goalie',
-            name='gamelog_stats',
+            model_name="goalie",
+            name="gamelog_stats",
             field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
         ),
         migrations.AddField(
-            model_name='skater',
-            name='gamelog_stats',
+            model_name="skater",
+            name="gamelog_stats",
             field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
         ),
     ]

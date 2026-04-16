@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0002_profile_measurements_format'),
+        ("users", "0002_profile_measurements_format"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='profile',
-            name='measurements_format',
-            field=models.CharField(choices=[('USA', 'USA (default)'), ('Europe', 'Europe')], default='USA', max_length=55),
+            model_name="profile",
+            name="measurements_format",
+            field=models.CharField(
+                choices=[("USA", "USA (default)"), ("Europe", "Europe")],
+                default="USA",
+                max_length=55,
+            ),
         ),
     ]

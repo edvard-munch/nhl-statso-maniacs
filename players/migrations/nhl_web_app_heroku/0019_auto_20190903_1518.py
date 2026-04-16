@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0018_auto_20190903_1517'),
+        ("players", "0018_auto_20190903_1517"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='goalie',
-            name='nation_abbr',
-            field=models.CharField(default='NO', max_length=128),
+            model_name="goalie",
+            name="nation_abbr",
+            field=models.CharField(default="NO", max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='nation_abbr',
-            field=models.CharField(default='NO', max_length=128),
+            model_name="skater",
+            name="nation_abbr",
+            field=models.CharField(default="NO", max_length=128),
         ),
     ]

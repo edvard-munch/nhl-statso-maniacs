@@ -9,33 +9,35 @@ from players.models import Goalie, Skater
 
 from . import upd_pls_tot
 
-STAT_TYPE = 'onPaceRegularSeason'
-API_END = f'?hydrate=stats(splits={STAT_TYPE})'
+STAT_TYPE = "onPaceRegularSeason"
+API_END = f"?hydrate=stats(splits={STAT_TYPE})"
 
 
 class Command(BaseCommand):
     """ """
+
     def handle(self, *args, **options):
         """
 
         Args:
-          *args: 
-          **options: 
+          *args:
+          **options:
 
         Returns:
 
         """
         players = list(chain(Goalie.objects.all(), Skater.objects.all()))
-        print(f'\n Uploading from {STAT_TYPE} report')
+        print(f"\n Uploading from {STAT_TYPE} report")
         for player in tqdm(players):
-            data = player_ind_stats(player.nhl_id).json()['people'][0]
+            data = player_ind_stats(player.nhl_id).json()["people"][0]
             nhl_id = data["id"]
             try:
-                proj_stats = data['stats'][0]['splits'][0]['stat']
+                proj_stats = data["stats"][0]["splits"][0]["stat"]
                 player = get_player(nhl_id=nhl_id)
                 if player.position_abbr in utils.POSITIONS[1:]:
-                    proj_stats["faceoff_wins"] = int(round(player.faceoff_wins_avg
-                                                           * proj_stats["games"]))
+                    proj_stats["faceoff_wins"] = int(
+                        round(player.faceoff_wins_avg * proj_stats["games"])
+                    )
                 player.proj_stats = proj_stats
                 player.save(update_fields=["proj_stats"])
             except IndexError:
@@ -46,7 +48,7 @@ def get_player(nhl_id):
     """
 
     Args:
-      nhl_id: 
+      nhl_id:
 
     Returns:
 
@@ -61,12 +63,12 @@ def player_ind_stats(nhl_id):
     """
 
     Args:
-      nhl_id: 
+      nhl_id:
 
     Returns:
 
     """
-    url = ''.join([upd_pls_tot.PLAYER_ENDPOINT_URL, str(nhl_id), API_END])
+    url = "".join([upd_pls_tot.PLAYER_ENDPOINT_URL, str(nhl_id), API_END])
 
     response = requests.get(url)
     response.raise_for_status()

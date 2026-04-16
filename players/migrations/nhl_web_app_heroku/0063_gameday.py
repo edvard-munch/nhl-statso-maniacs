@@ -6,18 +6,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0062_auto_20190925_1435'),
+        ("players", "0062_auto_20190925_1435"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Gameday',
+            name="Gameday",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('date', models.DateField(default=datetime.date(2018, 9, 25), unique=True)),
-                ('games', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True, primary_key=True, serialize=False, verbose_name="ID"
+                    ),
+                ),
+                ("date", models.DateField(default=datetime.date(2018, 9, 25), unique=True)),
+                ("games", django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
             ],
         ),
     ]

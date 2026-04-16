@@ -4,20 +4,19 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0041_game_game_final'),
+        ("players", "0041_game_game_final"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='game',
-            old_name='game_final',
-            new_name='game_finished',
+            model_name="game",
+            old_name="game_final",
+            new_name="game_finished",
         ),
         migrations.RenameField(
-            model_name='gameday',
-            old_name='all_games_final',
-            new_name='all_games_finished',
+            model_name="gameday",
+            old_name="all_games_final",
+            new_name="all_games_finished",
         ),
     ]

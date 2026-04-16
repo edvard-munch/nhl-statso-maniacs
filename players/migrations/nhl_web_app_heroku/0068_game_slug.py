@@ -4,16 +4,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0067_auto_20190926_1338'),
+        ("players", "0067_auto_20190926_1338"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='game',
-            name='slug',
-            field=models.SlugField(default='slg'),
+            model_name="game",
+            name="slug",
+            field=models.SlugField(default="slg"),
             preserve_default=False,
         ),
     ]

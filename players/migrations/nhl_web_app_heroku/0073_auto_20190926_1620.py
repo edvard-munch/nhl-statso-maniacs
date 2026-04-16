@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0072_auto_20190926_1611'),
+        ("players", "0072_auto_20190926_1611"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='game',
-            name='teams',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=80), blank=True, default=list, size=None),
+            model_name="game",
+            name="teams",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(blank=True, max_length=80),
+                blank=True,
+                default=list,
+                size=None,
+            ),
         ),
     ]

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+
 # from correct.package import __BASE_URL
 from django.core.management import call_command
 from players.management.commands import upd_pls
@@ -16,26 +17,32 @@ from players.management.commands import upd_pls
 #         call_command('loaddata', 'games_objects.json')
 
 
-@pytest.mark.parametrize('born, today, age', [
-    ['1984-06-04', '2020-06-04', 36],
-    ['1984-06-04', '2007-06-04', 23],
-    ['1984-06-05', '2020-06-04', 35],
-    ['1973-06-08', '2020-06-04', 46],
-    ['1993-04-17', '2020-06-04', 27],
-    ['1993-04-17', '2020-04-16', 26],
-])
+@pytest.mark.parametrize(
+    "born, today, age",
+    [
+        ["1984-06-04", "2020-06-04", 36],
+        ["1984-06-04", "2007-06-04", 23],
+        ["1984-06-05", "2020-06-04", 35],
+        ["1973-06-08", "2020-06-04", 46],
+        ["1993-04-17", "2020-06-04", 27],
+        ["1993-04-17", "2020-04-16", 26],
+    ],
+)
 def test_calculate_age(born, today, age):
-    born = datetime.strptime(born, '%Y-%m-%d')
-    today = datetime.strptime(today, '%Y-%m-%d')
+    born = datetime.strptime(born, "%Y-%m-%d")
+    today = datetime.strptime(today, "%Y-%m-%d")
 
     assert upd_pls.calculate_age(born, today) == age
 
 
-@pytest.mark.parametrize('dict_, key, expected', [
-    [{'name': 'John'}, 'name', 'John'],
-    [{'name': 'John'}, 'weight', ''],
-    [{'name': 'John', 'weight': ''}, 'weight', ''],
-])
+@pytest.mark.parametrize(
+    "dict_, key, expected",
+    [
+        [{"name": "John"}, "name", "John"],
+        [{"name": "John"}, "weight", ""],
+        [{"name": "John", "weight": ""}, "weight", ""],
+    ],
+)
 def test_get_char_field_value(dict_, key, expected):
     assert upd_pls.get_char_field_value(dict_, key) == expected
 

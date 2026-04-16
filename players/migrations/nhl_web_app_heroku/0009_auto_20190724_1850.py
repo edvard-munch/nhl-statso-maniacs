@@ -4,30 +4,29 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0008_auto_20190719_1530'),
+        ("players", "0008_auto_20190719_1530"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='goalie',
-            old_name='compare',
-            new_name='comparing',
+            model_name="goalie",
+            old_name="compare",
+            new_name="comparing",
         ),
         migrations.RenameField(
-            model_name='goalie',
-            old_name='favorite',
-            new_name='favoriting',
+            model_name="goalie",
+            old_name="favorite",
+            new_name="favoriting",
         ),
         migrations.RenameField(
-            model_name='skater',
-            old_name='compare',
-            new_name='comparing',
+            model_name="skater",
+            old_name="compare",
+            new_name="comparing",
         ),
         migrations.RenameField(
-            model_name='skater',
-            old_name='favorite',
-            new_name='favoriting',
+            model_name="skater",
+            old_name="favorite",
+            new_name="favoriting",
         ),
     ]

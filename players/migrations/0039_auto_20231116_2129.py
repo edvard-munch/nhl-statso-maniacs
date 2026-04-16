@@ -5,15 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0038_auto_20231116_2127'),
+        ("players", "0038_auto_20231116_2127"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='gameday',
-            name='day',
+            model_name="gameday",
+            name="day",
             field=models.DateField(default=datetime.date.today, unique=True),
         ),
     ]

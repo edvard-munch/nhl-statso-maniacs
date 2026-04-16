@@ -5,12 +5,13 @@ from users.choices import *
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(default='default.jpg', upload_to='profile_pics')
-    measurements_format = models.CharField(choices=MEASUREMENTS_FORMAT_CHOICES,
-                                            max_length=55, default='USA')
+    image = models.ImageField(default="default.jpg", upload_to="profile_pics")
+    measurements_format = models.CharField(
+        choices=MEASUREMENTS_FORMAT_CHOICES, max_length=55, default="USA"
+    )
 
     def __str__(self):
-        return f'{self.user.username} Profile'
+        return f"{self.user.username} Profile"
 
     # create AWS lambda function for resizing images
 

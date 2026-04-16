@@ -1,6 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.fields import (GenericForeignKey,
-                                                GenericRelation)
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db import models
@@ -14,8 +13,7 @@ class Team(models.Model):
     nhl_id = models.IntegerField(unique=True)
     abbr = models.CharField(max_length=128)
     slug = models.SlugField()
-    image = models.ImageField(upload_to='teams_logos', max_length=None,
-                              storage=OverwriteStorage())
+    image = models.ImageField(upload_to="teams_logos", max_length=None, storage=OverwriteStorage())
     arena_name = models.CharField(max_length=128)
     arena_location = models.CharField(max_length=128)
     division = models.CharField(max_length=128)
@@ -24,7 +22,7 @@ class Team(models.Model):
     nhl_debut = models.CharField(max_length=128)
 
     def __str__(self):
-        return f'{self.name}'
+        return f"{self.name}"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -42,7 +40,7 @@ class Gameday(models.Model):
     all_games_uploaded = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.day}'
+        return f"{self.day}"
 
 
 class Player(models.Model):
@@ -51,9 +49,13 @@ class Player(models.Model):
     last_name = models.CharField(max_length=128)
     nhl_id = models.IntegerField(unique=True)
     slug = models.SlugField()
-    image = models.ImageField(upload_to='players_pics', default='skater_default.png',
-                              max_length=None, storage=OverwriteStorage())
-    relevant_video = models.URLField(max_length=128, default='')
+    image = models.ImageField(
+        upload_to="players_pics",
+        default="skater_default.png",
+        max_length=None,
+        storage=OverwriteStorage(),
+    )
+    relevant_video = models.URLField(max_length=128, default="")
     video_link_updated_at = models.DateField(default=datetime.date.today)
     position_abbr = models.CharField(max_length=128, blank=True)
     position_name = models.CharField(max_length=128, blank=True)
@@ -67,8 +69,11 @@ class Player(models.Model):
     birth_country = models.CharField(max_length=128, blank=True)
     birth_country_abbr = models.CharField(max_length=128, blank=True)
     nation = models.CharField(max_length=128, blank=True)
-    nation_abbr = models.CharField(max_length=128, blank=True,)
-    nation_flag = models.ImageField(upload_to='flags', default='flag.png')
+    nation_abbr = models.CharField(
+        max_length=128,
+        blank=True,
+    )
+    nation_flag = models.ImageField(upload_to="flags", default="flag.png")
     draft_year = models.IntegerField(null=True)
     draft_round = models.IntegerField(null=True)
     draft_number = models.IntegerField(null=True)
@@ -86,10 +91,10 @@ class Player(models.Model):
     multiteams_seasons = JSONField(null=True)
     seasons_count = models.IntegerField(null=True)
     proj_stats = JSONField(null=True)
-    note = GenericRelation('Note')
+    note = GenericRelation("Note")
 
     def __str__(self):
-        return f'{self.name} - {self.nhl_id}'
+        return f"{self.name} - {self.nhl_id}"
 
     def save(self, *args, **kwargs):
         is_new = self.pk is None
@@ -113,7 +118,7 @@ class Note(models.Model):
     content_object = GenericForeignKey()
 
     def __str__(self):
-        return f'{self.author} about {self.player_name}'
+        return f"{self.author} about {self.player_name}"
 
 
 class Position(models.Model):
@@ -125,13 +130,13 @@ class Position(models.Model):
     content_object = GenericForeignKey()
 
     def __str__(self):
-        return f'{self.author} positions for {self.player_name}'
+        return f"{self.author} positions for {self.player_name}"
 
 
 class Skater(Player):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, related_name="skaters")
-    favoriting = models.ManyToManyField(User, related_name='favorite_skaters', blank=True)
-    comparing = models.ManyToManyField(User, related_name='comparable_skaters', blank=True)
+    favoriting = models.ManyToManyField(User, related_name="favorite_skaters", blank=True)
+    comparing = models.ManyToManyField(User, related_name="comparable_skaters", blank=True)
     goals = models.IntegerField(null=True)
     goals_avg = models.FloatField(null=True)
     assists = models.IntegerField(null=True)
@@ -164,8 +169,8 @@ class Skater(Player):
 
 class Goalie(Player):
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, related_name="goalies")
-    favoriting = models.ManyToManyField(User, related_name='favorite_goalies', blank=True)
-    comparing = models.ManyToManyField(User, related_name='comparable_goalies', blank=True)
+    favoriting = models.ManyToManyField(User, related_name="favorite_goalies", blank=True)
+    comparing = models.ManyToManyField(User, related_name="comparable_goalies", blank=True)
     wins = models.IntegerField(null=True)
     losses = models.IntegerField(null=True)
     ot_losses = models.IntegerField(null=True)
@@ -181,49 +186,35 @@ class Game(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=128)
     game_finished = models.BooleanField(default=False)
-    result = models.CharField(max_length=128, default='')
+    result = models.CharField(max_length=128, default="")
 
-    teams = models.ManyToManyField(Team,
-                                   related_name='team_games',
-                                   blank=True,
-                                   through='Side')
-    gameday = models.ForeignKey(Gameday,
-                                on_delete=models.CASCADE,
-                                null=True,
-                                related_name="games")
+    teams = models.ManyToManyField(Team, related_name="team_games", blank=True, through="Side")
+    gameday = models.ForeignKey(Gameday, on_delete=models.CASCADE, null=True, related_name="games")
 
-    away_defencemen = models.ManyToManyField(Skater,
-                                             related_name='defencemen_away_games',
-                                             blank=True)
-    away_forwards = models.ManyToManyField(Skater,
-                                           related_name='forwards_away_games',
-                                           blank=True)
-    away_goalies = models.ManyToManyField(Goalie,
-                                          related_name='goalie_away_games',
-                                          blank=True)
-    home_defencemen = models.ManyToManyField(Skater,
-                                             related_name='defencemen_home_games',
-                                             blank=True)
-    home_forwards = models.ManyToManyField(Skater,
-                                           related_name='forwards_home_games',
-                                           blank=True)
-    home_goalies = models.ManyToManyField(Goalie,
-                                          related_name='goalie_home_games',
-                                          blank=True)
+    away_defencemen = models.ManyToManyField(
+        Skater, related_name="defencemen_away_games", blank=True
+    )
+    away_forwards = models.ManyToManyField(Skater, related_name="forwards_away_games", blank=True)
+    away_goalies = models.ManyToManyField(Goalie, related_name="goalie_away_games", blank=True)
+    home_defencemen = models.ManyToManyField(
+        Skater, related_name="defencemen_home_games", blank=True
+    )
+    home_forwards = models.ManyToManyField(Skater, related_name="forwards_home_games", blank=True)
+    home_goalies = models.ManyToManyField(Goalie, related_name="goalie_home_games", blank=True)
 
     def __str__(self):
-        return f'{self.gameday} - {self.result}'
+        return f"{self.gameday} - {self.result}"
 
 
 class Side(models.Model):
     nhl_side_id = models.IntegerField(unique=True)
     team = models.ForeignKey(Team, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    side = models.CharField(max_length=128, default='')
+    side = models.CharField(max_length=128, default="")
 
     def __str__(self):
-        return f'{self.team.name} as {self.side} side of {self.game.gameday.day} game'
+        return f"{self.team.name} as {self.side} side of {self.game.gameday.day} game"
 
 
 def teams_list(game_obj):
-    return list(game_obj.teams.all().values_list('name', flat=True))
+    return list(game_obj.teams.all().values_list("name", flat=True))

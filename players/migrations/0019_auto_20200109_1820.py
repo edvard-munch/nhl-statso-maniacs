@@ -4,70 +4,69 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0018_auto_20200109_1814'),
+        ("players", "0018_auto_20200109_1814"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='skater',
-            name='assists',
+            model_name="skater",
+            name="assists",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='assists_avg',
+            model_name="skater",
+            name="assists_avg",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='goals',
+            model_name="skater",
+            name="goals",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='goals_avg',
+            model_name="skater",
+            name="goals_avg",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='penalty_min',
+            model_name="skater",
+            name="penalty_min",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='penalty_min_avg',
+            model_name="skater",
+            name="penalty_min_avg",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='plus_minus',
+            model_name="skater",
+            name="plus_minus",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='plus_minus_avg',
+            model_name="skater",
+            name="plus_minus_avg",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='points',
+            model_name="skater",
+            name="points",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='points_avg',
+            model_name="skater",
+            name="points_avg",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='shots',
+            model_name="skater",
+            name="shots",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='shots_avg',
+            model_name="skater",
+            name="shots_avg",
             field=models.FloatField(null=True),
         ),
     ]

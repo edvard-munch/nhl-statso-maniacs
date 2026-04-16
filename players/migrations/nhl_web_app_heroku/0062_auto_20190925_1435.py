@@ -5,20 +5,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0061_remove_game_test'),
+        ("players", "0061_remove_game_test"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='goalie',
-            name='shotouts',
+            model_name="goalie",
+            name="shotouts",
             field=models.IntegerField(default=0),
         ),
         migrations.AlterField(
-            model_name='game',
-            name='teams',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(blank=True, max_length=80), blank=True, default=list, size=None),
+            model_name="game",
+            name="teams",
+            field=django.contrib.postgres.fields.ArrayField(
+                base_field=models.CharField(blank=True, max_length=80),
+                blank=True,
+                default=list,
+                size=None,
+            ),
         ),
     ]

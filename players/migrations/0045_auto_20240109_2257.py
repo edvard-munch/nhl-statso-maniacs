@@ -5,21 +5,20 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0044_auto_20231218_1257'),
+        ("players", "0044_auto_20231218_1257"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='game',
-            name='created_date',
+            model_name="game",
+            name="created_date",
             field=models.DateTimeField(auto_now_add=True, default=django.utils.timezone.now),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='game',
-            name='updated_date',
+            model_name="game",
+            name="updated_date",
             field=models.DateTimeField(auto_now=True),
         ),
     ]

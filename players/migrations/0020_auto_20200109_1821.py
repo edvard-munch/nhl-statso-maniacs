@@ -4,30 +4,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0019_auto_20200109_1820'),
+        ("players", "0019_auto_20200109_1820"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='skater',
-            name='pp_points',
+            model_name="skater",
+            name="pp_points",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='pp_points_avg',
+            model_name="skater",
+            name="pp_points_avg",
             field=models.FloatField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='sh_points',
+            model_name="skater",
+            name="sh_points",
             field=models.IntegerField(null=True),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='sh_points_avg',
+            model_name="skater",
+            name="sh_points_avg",
             field=models.FloatField(null=True),
         ),
     ]

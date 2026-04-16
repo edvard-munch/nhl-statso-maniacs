@@ -4,110 +4,109 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('players', '0028_auto_20231107_1625'),
+        ("players", "0028_auto_20231107_1625"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='goalie',
-            name='birth_country',
+            model_name="goalie",
+            name="birth_country",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='birth_country_abbr',
+            model_name="goalie",
+            name="birth_country_abbr",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='birth_state',
+            model_name="goalie",
+            name="birth_state",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='height',
+            model_name="goalie",
+            name="height",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='nation',
+            model_name="goalie",
+            name="nation",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='nation_abbr',
+            model_name="goalie",
+            name="nation_abbr",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='nhl_debut',
+            model_name="goalie",
+            name="nhl_debut",
             field=models.CharField(blank=True, max_length=12),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='position_abbr',
+            model_name="goalie",
+            name="position_abbr",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='position_name',
+            model_name="goalie",
+            name="position_name",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='goalie',
-            name='roster_status',
+            model_name="goalie",
+            name="roster_status",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='birth_country',
+            model_name="skater",
+            name="birth_country",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='birth_country_abbr',
+            model_name="skater",
+            name="birth_country_abbr",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='birth_state',
+            model_name="skater",
+            name="birth_state",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='height',
+            model_name="skater",
+            name="height",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='nation',
+            model_name="skater",
+            name="nation",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='nation_abbr',
+            model_name="skater",
+            name="nation_abbr",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='nhl_debut',
+            model_name="skater",
+            name="nhl_debut",
             field=models.CharField(blank=True, max_length=12),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='position_abbr',
+            model_name="skater",
+            name="position_abbr",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='position_name',
+            model_name="skater",
+            name="position_name",
             field=models.CharField(blank=True, max_length=128),
         ),
         migrations.AlterField(
-            model_name='skater',
-            name='roster_status',
+            model_name="skater",
+            name="roster_status",
             field=models.CharField(blank=True, max_length=128),
         ),
     ]

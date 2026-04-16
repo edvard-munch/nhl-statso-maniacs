@@ -8,7 +8,7 @@ from players.models import Skater
 from players.models import Goalie
 
 
-URL_PICS = 'https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg'
+URL_PICS = "https://nhl.bamcontent.com/images/headshots/current/168x168/{}.jpg"
 
 
 class Command(BaseCommand):
@@ -18,16 +18,16 @@ class Command(BaseCommand):
         """
 
         Args:
-          *args: 
-          **options: 
+          *args:
+          **options:
 
         Returns:
 
         """
-        g = Goalie.all().values_list('name', 'nhl_id')
-        s = Skater.all().values_list('name', 'nhl_id')
+        g = Goalie.all().values_list("name", "nhl_id")
+        s = Skater.all().values_list("name", "nhl_id")
         favorites = g.union(s)
         for item in favorites:
             content = urllib.urlretrieve(URL_PICS.format(item.nhl_id))
-            pic = File(open(content[0], 'rb'))
-            name_pattern = f'{item.slug}.jpg'
+            pic = File(open(content[0], "rb"))
+            name_pattern = f"{item.slug}.jpg"

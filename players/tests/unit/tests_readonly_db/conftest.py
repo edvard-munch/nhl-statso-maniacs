@@ -1,7 +1,7 @@
 import pytest
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def django_db_setup():
     """Avoid creating/setting up the test database"""
     pass
@@ -15,7 +15,7 @@ def db_access_without_rollback_and_truncate(request, django_db_setup, django_db_
 
 @pytest.fixture
 def msg():
-    return 'AAAAAAAAAAA----------------------------------------AAAAAAAAAA'
+    return "AAAAAAAAAAA----------------------------------------AAAAAAAAAA"
 
 
 # def decorator(func):
