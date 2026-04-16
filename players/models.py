@@ -177,6 +177,8 @@ class Goalie(Player):
 
 class Game(models.Model):
     nhl_id = models.IntegerField(unique=True)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=128)
     game_finished = models.BooleanField(default=False)
     result = models.CharField(max_length=128, default='')

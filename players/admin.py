@@ -29,6 +29,7 @@ class PositionAdmin(admin.ModelAdmin):
 
 
 class GameAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'created_date', 'updated_date')
     list_per_page = 100
 
 
