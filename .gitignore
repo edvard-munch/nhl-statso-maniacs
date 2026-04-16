@@ -13,3 +13,11 @@ quick_test.py
 endpoints.py
 
 links.txt
+
+*.png
+
+*.svg
+
+*.sublime-project
+
+*.sublime-workspace
