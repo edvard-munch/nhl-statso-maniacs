@@ -11,7 +11,7 @@ check:
 	python -m ruff format --check .
 
 hooks:
-	python -m pre_commit install
+	pre-commit install
 
 hooks-run:
-	python -m pre_commit run --all-files
+	pre-commit run --all-files

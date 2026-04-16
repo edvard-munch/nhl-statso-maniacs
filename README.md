@@ -31,12 +31,15 @@ make lint
 make check
 ```
 
-Pre-commit hooks:
+Optional pre-commit hooks:
 
 ```bash
-python -m pre_commit install
-python -m pre_commit run --all-files
+pip install pre-commit
+pre-commit install
+pre-commit run --all-files
 ```
+
+Pre-commit uses Ruff's official hook configuration, so it does not depend on a GUI app resolving your local `python` executable.
 
 
 ## Environment Variables
