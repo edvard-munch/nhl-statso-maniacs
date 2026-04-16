@@ -488,6 +488,13 @@ def autocomplete(request):
 
 def player_detail(request, slug, nhl_id):
     player = utils.get_player(nhl_id, slug)
+    current_season_id = get_latest_loaded_season_id()
+    show_current_stats = bool(
+        player.games
+        and player.stats_season_id
+        and current_season_id
+        and player.stats_season_id == current_season_id
+    )
     user = request.user
     if user.is_authenticated:
         if utils.measurements_format_is_euro(user):
@@ -513,6 +520,7 @@ def player_detail(request, slug, nhl_id):
         "proj_stats": utils.season_in_prog() and player.proj_stats,
         "note": utils.get_object(request, player, Note),
         "skater": skater,
+        "show_current_stats": show_current_stats,
         "note_max_length": Note._meta.get_field("text").max_length,
     }
 

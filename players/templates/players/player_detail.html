@@ -129,6 +129,7 @@
 
 {% if not skater %}
 <!-- GOALIES CURRENT       -->
+{% if show_current_stats %}
 <table>
   <thead>
     <tr>
@@ -172,6 +173,10 @@
   </tbody>
 </table>
 <div class="gap-20"></div>
+{% else %}
+<p>Current-season stats are not available for this player.</p>
+<div class="gap-20"></div>
+{% endif %}
 
 <!-- GOALIES ALL SEASONS       -->
 <h5>Career</h5>
@@ -257,6 +262,7 @@
 {% else %}
 
 <!-- SKATERS CURRENT       -->
+{% if show_current_stats %}
 <table>
   <thead>
     <tr>
@@ -338,6 +344,10 @@
   </tbody>
 </table>
 <div class="gap-20"></div>
+{% else %}
+<p>Current-season stats are not available for this player.</p>
+<div class="gap-20"></div>
+{% endif %}
 
 <!-- SKATERS ALL SEASONS       -->
 {% for item in stats %}
