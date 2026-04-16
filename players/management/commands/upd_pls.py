@@ -1,3 +1,4 @@
+import logging
 import os
 import urllib
 from datetime import date
@@ -40,6 +41,8 @@ REQUEST_PARAMS = {
                 {"property":"playerId","direction":"ASC_CI"}]""",
 }
 TIMEOUT = 3
+logger = logging.getLogger("django")
+UNKNOWN_COUNTRY_CODES = set()
 
 # Find a table with this, or transfer the dict to the external file
 COUNTRIES = {
@@ -69,6 +72,7 @@ COUNTRIES = {
     "UKR": "Ukraine",
     "UZB": "Uzbekistan",
     "BLR": "Belarus",
+    "POL": "Poland",
     None: "",
 }
 
@@ -87,6 +91,8 @@ class Command(BaseCommand):
         Returns:
 
         """
+
+        UNKNOWN_COUNTRY_CODES.clear()
 
         reports_list = [
             [REP_TYPE1, PL_TYPE1],  # 0 bios goalies
@@ -125,6 +131,12 @@ class Command(BaseCommand):
             for player in tqdm(players_list):
                 import_player(player, index)
 
+        if UNKNOWN_COUNTRY_CODES:
+            logger.warning(
+                "Unknown country codes from NHL API in upd_pls: %s",
+                ", ".join(sorted(UNKNOWN_COUNTRY_CODES)),
+            )
+
 
 def import_player(player, index):
     """
@@ -152,9 +164,9 @@ def import_player(player, index):
             "birth_date": birth_date,
             "birth_city": get_char_field_value(player, "birthCity"),
             "birth_state": get_char_field_value(player, "birthStateProvinceCode"),
-            "birth_country": COUNTRIES[player["birthCountryCode"]],
+            "birth_country": get_country_name(player["birthCountryCode"]),
             "birth_country_abbr": get_char_field_value(player, "birthCountryCode"),
-            "nation": COUNTRIES[player["nationalityCode"]],
+            "nation": get_country_name(player["nationalityCode"]),
             "nation_abbr": get_char_field_value(player, "nationalityCode"),
             "games": player["gamesPlayed"],
             "age": calculate_age(birth_date, TODAY),
@@ -297,6 +309,17 @@ def get_num_field_value(player, field):
     if player[field] is None:
         player[field] = 0
     return player[field]
+
+
+def get_country_name(country_code):
+    if country_code in COUNTRIES:
+        return COUNTRIES[country_code]
+
+    if country_code not in UNKNOWN_COUNTRY_CODES:
+        UNKNOWN_COUNTRY_CODES.add(country_code)
+        logger.warning("Unknown country code from NHL API: %s", country_code)
+
+    return country_code
 
 
 def pic_missing(pic_name, field, directory):
