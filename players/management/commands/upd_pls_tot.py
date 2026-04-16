@@ -86,7 +86,7 @@ def import_player(data, player):
         "height_cm": data["heightInCentimeters"],
         "weight": data["weightInPounds"],
         "weight_kg": data["weightInKilograms"],
-        "pl_number": data["sweaterNumber"],
+        "pl_number": data.get("sweaterNumber"),
         "position_abbr": get_position_abbreviation(data["position"]),
         "position_name": POSITION_CODES[data["position"]],
     }
