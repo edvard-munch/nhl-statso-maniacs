@@ -107,7 +107,9 @@ def regular_season_game(game):
 
 
 def get_score(game_data):
-    if game_data['gameState'] != GAME_STATES['scheduled']:
+    if game_data['gameState'] not in [
+            GAME_STATES['scheduled'], GAME_STATES['pregame']
+    ]:
         away_score = game_data["boxscore"]["linescore"]["totals"][
             "away"]
         home_score = game_data["boxscore"]["linescore"]["totals"][
@@ -117,7 +119,7 @@ def get_score(game_data):
         if game_data['gameState'] == GAME_STATES['live']:
             score += GAME_LIVE_SUFFIX
 
-        if game_data['period'] > REGULAR_PERIODS_AMOUNT:
+        if game_data['periodDescriptor']['number'] > REGULAR_PERIODS_AMOUNT:
             if game_data['gameState'] == GAME_STATES['finished']:
                 score += f' {game_data["gameOutcome"]["lastPeriodType"]}'
     else:
@@ -157,7 +159,9 @@ def process_games(day):
                                         str(game_obj.gameday.day))
                 game_obj.save(update_fields=['slug'])
 
-            if game_data['gameState'] != GAME_STATES['scheduled']:
+            if game_data['gameState'] not in [
+                    GAME_STATES['scheduled'], GAME_STATES['pregame']
+            ]:
                 rosters_api = get_rosters_api(game_data)
                 rosters_database = prepare_rosters_for_database(rosters_api, team_objects,
                                                                 gameday_obj)
