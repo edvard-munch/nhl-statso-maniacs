@@ -54,28 +54,29 @@ TIMEZONE = "US/Pacific"
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        today = datetime.now(timezone(TIMEZONE)).date()
-        schedule = get_schedule(today)
-        regular_season_end_date = datetime_from_string(schedule["regularSeasonEndDate"])
+        with requests.Session() as session:
+            today = datetime.now(timezone(TIMEZONE)).date()
+            schedule = get_schedule(today, session)
+            regular_season_end_date = datetime_from_string(schedule["regularSeasonEndDate"])
 
-        first_unfinished_gameday_in_db = (
-            Gameday.objects.filter(all_games_finished=False).order_by("day").first()
-        )
+            first_unfinished_gameday_in_db = (
+                Gameday.objects.filter(all_games_finished=False).order_by("day").first()
+            )
 
-        first_notloaded_gameday_in_db = (
-            Gameday.objects.filter(all_games_uploaded=False).order_by("day").first()
-        )
+            first_notloaded_gameday_in_db = (
+                Gameday.objects.filter(all_games_uploaded=False).order_by("day").first()
+            )
 
-        if first_unfinished_gameday_in_db:
-            check_for_games(first_unfinished_gameday_in_db.day, today)
+            if first_unfinished_gameday_in_db:
+                check_for_games(first_unfinished_gameday_in_db.day, today, session)
 
-        if first_notloaded_gameday_in_db:
-            check_for_games(first_notloaded_gameday_in_db.day, regular_season_end_date)
+            if first_notloaded_gameday_in_db:
+                check_for_games(first_notloaded_gameday_in_db.day, regular_season_end_date, session)
 
 
-def check_for_games(date, date_end):
+def check_for_games(date, date_end, session):
     while date <= date_end:
-        schedule = get_schedule(date)
+        schedule = get_schedule(date, session)
 
         for weekday in schedule["gameWeek"]:
             date = datetime_from_string(weekday["date"])
@@ -85,7 +86,7 @@ def check_for_games(date, date_end):
 
             if weekday["games"]:
                 print(f"{weekday['date']} games loading")
-                process_games(weekday)
+                process_games(weekday, session)
 
         next_start_date = schedule.get("nextStartDate")
         if next_start_date:
@@ -121,7 +122,7 @@ def get_score(game_data):
     return score
 
 
-def process_games(day):
+def process_games(day, session):
     date_api = datetime_from_string(day["date"])
     gameday_obj = Gameday.objects.update_or_create(day=date_api)[0]
     games_finished_total = 0
@@ -129,7 +130,7 @@ def process_games(day):
     for game in day["games"]:
         game_finished = False
         if regular_season_game(game):
-            game_data = get_game_data(game["id"], URL_BOXSCORE)
+            game_data = get_game_data(game["id"], URL_BOXSCORE, session)
 
             team_objects = [
                 Team.objects.get(nhl_id=game_data["awayTeam"]["id"]),
@@ -269,8 +270,9 @@ def get_played_goalies(goalies):
     return [goalie for goalie in goalies if goalie["toi"] != ZERO_TOI]
 
 
-def get_schedule(date):
-    return requests.get(URL_SCHEDULE.format(date)).json()
+def get_schedule(date, session=None):
+    client = session or requests
+    return client.get(URL_SCHEDULE.format(date)).json()
 
 
 def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team, opponent, goalies_count):
@@ -370,5 +372,6 @@ def get_player(nhl_id):
             return None
 
 
-def get_game_data(game_id, url):
-    return requests.get(url.format(game_id)).json()
+def get_game_data(game_id, url, session=None):
+    client = session or requests
+    return client.get(url.format(game_id)).json()
