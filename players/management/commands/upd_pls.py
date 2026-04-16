@@ -133,7 +133,7 @@ class Command(BaseCommand):
                     players_list += data
 
             for player in tqdm(players_list):
-                import_player(player, index)
+                import_player(player, index, season)
 
         if UNKNOWN_COUNTRY_CODES:
             logger.warning(
@@ -142,7 +142,7 @@ class Command(BaseCommand):
             )
 
 
-def import_player(player, index):
+def import_player(player, index, season):
     """
 
     Args:
@@ -176,6 +176,7 @@ def import_player(player, index):
             "age": calculate_age(birth_date, TODAY),
             "nhl_debut": upd_pls_tot.format_season(str(player["firstSeasonForGameType"])),
             "team": Team.objects.filter(abbr=team_abbreviation).first(),
+            "stats_season_id": season,
         }
 
         defaults_dr = {}
@@ -208,6 +209,7 @@ def import_player(player, index):
             "goals_against_av": get_num_field_value(player, "goalsAgainstAverage"),
             "saves_perc": get_num_field_value(player, "savePct"),
             "saves": get_num_field_value(player, "saves"),
+            "stats_season_id": season,
         }
 
         Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)
@@ -231,6 +233,7 @@ def import_player(player, index):
             "pp_points_avg": round(player["ppPoints"] / player["gamesPlayed"], 2),
             "sh_points": player["shPoints"],
             "sh_points_avg": round(player["shPoints"] / player["gamesPlayed"], 2),
+            "stats_season_id": season,
         }
 
         Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
@@ -241,6 +244,7 @@ def import_player(player, index):
             "hits_avg": round(player["hits"] / player["gamesPlayed"], 2),
             "blocks": player["blockedShots"],
             "blocks_avg": round(player["blockedShots"] / player["gamesPlayed"], 2),
+            "stats_season_id": season,
         }
 
         Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
@@ -250,6 +254,7 @@ def import_player(player, index):
             "time_on_ice": time_from_sec(player["timeOnIcePerGame"]),
             "time_on_ice_pp": time_from_sec(player["ppTimeOnIcePerGame"]),
             "time_on_ice_sh": time_from_sec(player["shTimeOnIcePerGame"]),
+            "stats_season_id": season,
         }
 
         Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
@@ -258,6 +263,7 @@ def import_player(player, index):
         defaults = {
             "faceoff_wins": player["totalFaceoffWins"],
             "faceoff_wins_avg": round(player["totalFaceoffWins"] / player["gamesPlayed"], 2),
+            "stats_season_id": season,
         }
 
         Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)

@@ -195,6 +195,29 @@ def ajax_fav_players_gamelog(request, stat_type, page, size, sort_col, filt_col)
         return JsonResponse(data, safe=False)
 
 
+def get_latest_loaded_season_id():
+    skater_season = (
+        Skater.objects.exclude(stats_season_id__isnull=True)
+        .exclude(stats_season_id="")
+        .order_by("-stats_season_id")
+        .values_list("stats_season_id", flat=True)
+        .first()
+    )
+    goalie_season = (
+        Goalie.objects.exclude(stats_season_id__isnull=True)
+        .exclude(stats_season_id="")
+        .order_by("-stats_season_id")
+        .values_list("stats_season_id", flat=True)
+        .first()
+    )
+
+    seasons = [season for season in [skater_season, goalie_season] if season]
+    if not seasons:
+        return None
+
+    return max(seasons)
+
+
 def ajax_players(
     request, stat_type, page, size, sort_col, filt_col, rookie_filt, checkbox_filt, fav_filt=None
 ):
@@ -219,6 +242,12 @@ def ajax_players(
             players = user.favorite_skaters.select_related("team")
         else:
             players = Skater.objects.select_related("team")
+
+    if not favorites:
+        current_season_id = get_latest_loaded_season_id()
+        if current_season_id:
+            players = players.filter(stats_season_id=current_season_id)
+        players = players.filter(games__gt=0)
 
     init_age_range = utils.get_range(players, "age")
 

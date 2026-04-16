@@ -91,6 +91,7 @@ class Player(models.Model):
     multiteams_seasons = JSONField(null=True)
     seasons_count = models.IntegerField(null=True)
     proj_stats = JSONField(null=True)
+    stats_season_id = models.CharField(max_length=16, blank=True, null=True)
     note = GenericRelation("Note")
 
     def __str__(self):
