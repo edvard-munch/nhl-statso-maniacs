@@ -21,6 +21,24 @@ pip install -r requirements.txt
 
 If you use pyenv, this repo includes `.python-version` pinned to `3.7.17`.
 
+## Code Quality
+
+This project uses Ruff for formatting and linting.
+
+```bash
+make format
+make lint
+make check
+```
+
+Pre-commit hooks:
+
+```bash
+python -m pre_commit install
+python -m pre_commit run --all-files
+```
+
+
 ## Environment Variables
 
 Create a `.env` file in the project root with these keys:
