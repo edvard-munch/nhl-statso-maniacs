@@ -14,7 +14,8 @@ from tqdm import tqdm
 from . import upd_tms
 from . import upd_pls_tot
 
-SEASON = "20232024"
+DEFAULT_SEASON = "20252026"
+URL_SCHEDULE_CALENDAR_NOW = "https://api-web.nhle.com/v1/schedule-calendar/now"
 
 URL_PLAYERS = "https://api.nhle.com/stats/rest/en/{}/{}"
 FLAGS_DIR = "flags"
@@ -36,7 +37,7 @@ REQUEST_PARAMS = {
     "isGame": "false",
     "limit": PLAYERS_PER_PAGE,
     "start": 0,
-    "cayenneExp": f"gameTypeId=2 and seasonId={SEASON}",
+    "cayenneExp": f"gameTypeId=2 and seasonId={DEFAULT_SEASON}",
     "sort": """[{"property":"lastName","direction":"ASC_CI"},
                 {"property":"playerId","direction":"ASC_CI"}]""",
 }
@@ -93,6 +94,9 @@ class Command(BaseCommand):
         """
 
         UNKNOWN_COUNTRY_CODES.clear()
+        season = get_season_id()
+        REQUEST_PARAMS["cayenneExp"] = f"gameTypeId=2 and seasonId={season}"
+        logger.info("upd_pls using seasonId=%s", season)
 
         reports_list = [
             [REP_TYPE1, PL_TYPE1],  # 0 bios goalies
@@ -286,6 +290,32 @@ def get_response(rep_type, pl_type, start_from_index):
     except requests.exceptions.ReadTimeout:
         print("Timeout!")
         return None
+
+
+def get_season_id():
+    try:
+        response = requests.get(URL_SCHEDULE_CALENDAR_NOW, timeout=TIMEOUT).json()
+        season_ids = {
+            str(team["seasonId"]) for team in response.get("teams", []) if team.get("seasonId")
+        }
+
+        if len(season_ids) == 1:
+            return season_ids.pop()
+
+        if season_ids:
+            season_id = sorted(season_ids)[-1]
+            logger.warning(
+                "Multiple seasonId values from NHL schedule API (%s), using %s",
+                ", ".join(sorted(season_ids)),
+                season_id,
+            )
+            return season_id
+
+    except requests.exceptions.RequestException as exc:
+        logger.warning("Failed to autodetect seasonId from NHL API: %s", exc)
+
+    logger.warning("Falling back to default seasonId=%s", DEFAULT_SEASON)
+    return DEFAULT_SEASON
 
 
 def calculate_age(born, today):
