@@ -68,10 +68,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         players = list(chain(Goalie.objects.all(), Skater.objects.all()))
 
-        for player in tqdm(players):
-            print(f"\n Uploading from {player.name} page")
-            data = get_response(player.nhl_id).json()
-            import_player(data, player)
+        with requests.Session() as session:
+            for player in tqdm(players):
+                print(f"\n Uploading from {player.name} page")
+                data = get_response(player.nhl_id, session).json()
+                import_player(data, player)
 
 
 def import_player(data, player):
@@ -121,8 +122,9 @@ def upload_profile_image(image_url, player_object, image_name):
     player_object.image.save(name=image_name, content=pic)
 
 
-def get_response(nhl_id):
-    return requests.get(PLAYER_ENDPOINT_URL.format(nhl_id))
+def get_response(nhl_id, session=None):
+    client = session or requests
+    return client.get(PLAYER_ENDPOINT_URL.format(nhl_id))
 
 
 def get_career_average_stats(career_stats_average):
