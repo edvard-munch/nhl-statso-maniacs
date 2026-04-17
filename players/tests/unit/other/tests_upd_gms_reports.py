@@ -194,3 +194,23 @@ def test_get_goal_points_key_handles_advantage_and_disadvantage():
     )
     assert upd_gms.get_goal_points_key(sh_goal_play, away_team_id, home_team_id) == "shPoints"
     assert upd_gms.get_goal_points_key(even_goal_play, away_team_id, home_team_id) is None
+
+
+def test_normalize_player_game_stats_sets_defaults_for_missing_values():
+    player_data = {
+        "faceoffs": "",
+        "powerPlayPoints": None,
+        "shPoints": "",
+        "powerPlayToi": None,
+        "shorthandedToi": "",
+    }
+
+    upd_gms.normalize_player_game_stats(player_data)
+
+    assert player_data == {
+        "faceoffs": 0,
+        "powerPlayPoints": 0,
+        "shPoints": 0,
+        "powerPlayToi": "00:00",
+        "shorthandedToi": "00:00",
+    }

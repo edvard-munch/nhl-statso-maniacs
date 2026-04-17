@@ -43,6 +43,13 @@ REPORT_STAT_KEYS = [
     "powerPlayToi",
     "shorthandedToi",
 ]
+STAT_DEFAULTS = {
+    "faceoffs": 0,
+    "powerPlayPoints": 0,
+    "shPoints": 0,
+    "powerPlayToi": ZERO_TOI,
+    "shorthandedToi": ZERO_TOI,
+}
 GOAL_EVENT_TYPE = "goal"
 POWER_PLAY_POINTS_KEY = "powerPlayPoints"
 SHORTHANDED_POINTS_KEY = "shPoints"
@@ -398,6 +405,7 @@ def add_player(
     report_player_stats=None,
 ):
     hydrate_player_stats_from_reports(player_data, report_player_stats)
+    normalize_player_game_stats(player_data)
 
     if player_data["position"] == "G":
         if player_data["goalsAgainst"] == 0 and goalies_count == 1:
@@ -417,6 +425,12 @@ def add_player(
         skaters_list[1].append(player)
 
     return player_data
+
+
+def normalize_player_game_stats(player_data):
+    for stat_key, default_value in STAT_DEFAULTS.items():
+        if player_data.get(stat_key) in [None, ""]:
+            player_data[stat_key] = default_value
 
 
 def hydrate_player_stats_from_reports(player_data, report_player_stats):
