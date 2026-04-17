@@ -123,6 +123,50 @@ def test_enrich_current_season_stats_from_player_can_overwrite_existing_values()
     assert enriched == [{"season": "2025-26", "hits": 0.46}]
 
 
+def test_enrich_season_stats_from_enrichment_updates_non_current_seasons():
+    seasons_stats = [
+        {"season": "2023-24", "hits": None, "blocked": None, "faceoffsWon": None},
+        {"season": "2025-26", "hits": 37, "blocked": 65, "faceoffsWon": 723},
+    ]
+    season_enrichment = {
+        "2023-24": {
+            "totals": {"hits": 200, "blocked": 31, "faceoffsWon": 700},
+            "averages": {"hits": 2.44, "blocked": 0.38, "faceoffsWon": 8.54},
+        }
+    }
+
+    enriched = upd_pls_tot.enrich_season_stats_from_enrichment(
+        seasons_stats, season_enrichment, "totals"
+    )
+
+    assert enriched == [
+        {"season": "2023-24", "hits": 200, "blocked": 31, "faceoffsWon": 700},
+        {"season": "2025-26", "hits": 37, "blocked": 65, "faceoffsWon": 723},
+    ]
+
+
+def test_enrich_season_stats_from_enrichment_overwrites_for_avg_bucket_when_enabled():
+    seasons_stats_avg = [
+        {"season": "2023-24", "hits": 200, "blocked": 31, "faceoffsWon": 700},
+    ]
+    season_enrichment = {
+        "2023-24": {
+            "averages": {"hits": 2.44, "blocked": 0.38, "faceoffsWon": 8.54},
+        }
+    }
+
+    enriched = upd_pls_tot.enrich_season_stats_from_enrichment(
+        seasons_stats_avg,
+        season_enrichment,
+        "averages",
+        overwrite_existing=True,
+    )
+
+    assert enriched == [
+        {"season": "2023-24", "hits": 2.44, "blocked": 0.38, "faceoffsWon": 8.54},
+    ]
+
+
 # class utilsTests(SimpleTestCase):
 #     def test_time_from_sec(self):
 #         self.assertEqual(utils.time_from_sec(456546), '7609:06')

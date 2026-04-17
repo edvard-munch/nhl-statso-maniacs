@@ -12,6 +12,7 @@ from players.models import Goalie, Skater
 from . import upd_pls
 
 PLAYER_ENDPOINT_URL = "https://api-web.nhle.com/v1/player/{}/landing"
+STATS_REST_SKATER_URL = "https://api.nhle.com/stats/rest/en/skater/{}"
 PLAYERS_PICS_DIR = "players_pics"
 
 INCH_TO_FEET_COEFFICIENT = 12
@@ -25,6 +26,11 @@ POSITION_CODES = {
 WINGERS_POSITION_CODES = ["L", "R", "W"]
 REGULAR_SEASON_CODE = 2
 NHL_LEAGUE_CODE = "NHL"
+SKATER_REPORT_REALTIME = "realtime"
+SKATER_REPORT_FACEOFF_WINS = "faceoffwins"
+SKATER_REPORT_TIME_ON_ICE = "timeonice"
+STATS_REST_TIMEOUT = 10
+STATS_REST_LIMIT = 250
 CURRENT_SEASON_STATS_FIELD_MAP = {
     "hits": "hits",
     "blocked": "blocks",
@@ -86,10 +92,10 @@ class Command(BaseCommand):
             for player in tqdm(players):
                 print(f"\n Uploading from {player.name} page")
                 data = get_response(player.nhl_id, session).json()
-                import_player(data, player)
+                import_player(data, player, session)
 
 
-def import_player(data, player):
+def import_player(data, player, session=None):
     image_name = f"{player.slug}.png"
 
     if upd_pls.pic_missing(image_name, player.image, PLAYERS_PICS_DIR):
@@ -108,6 +114,13 @@ def import_player(data, player):
 
     defaults["career_stats"] = data["careerTotals"]["regularSeason"]
     defaults["sbs_stats"] = get_season_by_season_stats(data["seasonTotals"], data["position"])
+
+    if data["position"] in list(POSITION_CODES.keys())[1:]:
+        season_enrichment = get_skater_season_enrichment(player, session)
+        defaults["sbs_stats"] = enrich_season_stats_from_enrichment(
+            defaults["sbs_stats"], season_enrichment, "totals"
+        )
+
     defaults["sbs_stats"] = enrich_current_season_stats_from_player(
         defaults["sbs_stats"], player, CURRENT_SEASON_STATS_FIELD_MAP
     )
@@ -123,6 +136,9 @@ def import_player(data, player):
 
         defaults["career_stats_avg"] = get_career_average_stats(career_stats)
         defaults["sbs_stats_avg"] = get_season_by_season_average_stats(sbs_stats)
+        defaults["sbs_stats_avg"] = enrich_season_stats_from_enrichment(
+            defaults["sbs_stats_avg"], season_enrichment, "averages", overwrite_existing=True
+        )
         defaults["sbs_stats_avg"] = enrich_current_season_stats_from_player(
             defaults["sbs_stats_avg"],
             player,
@@ -209,6 +225,162 @@ def get_position_abbreviation(position_code):
         return position_code + WINGERS_POSITION_CODES[2]
     else:
         return position_code
+
+
+def get_skater_season_enrichment(player, session=None):
+    season_enrichment = {}
+    current_season = get_player_current_season(player)
+
+    realtime_rows = get_stats_rest_rows(SKATER_REPORT_REALTIME, player.nhl_id, session)
+    faceoff_rows = get_stats_rest_rows(SKATER_REPORT_FACEOFF_WINS, player.nhl_id, session)
+    toi_rows = get_stats_rest_rows(SKATER_REPORT_TIME_ON_ICE, player.nhl_id, session)
+
+    for row in realtime_rows:
+        season = format_season(str(row.get("seasonId")))
+        if season == current_season:
+            continue
+
+        games_played = row.get("gamesPlayed") or 0
+        add_season_enrichment(
+            season_enrichment,
+            season,
+            "totals",
+            {
+                "hits": row.get("hits"),
+                "blocked": row.get("blockedShots"),
+            },
+        )
+        add_season_enrichment(
+            season_enrichment,
+            season,
+            "averages",
+            {
+                "hits": safe_per_game(row.get("hits"), games_played),
+                "blocked": safe_per_game(row.get("blockedShots"), games_played),
+            },
+        )
+
+    for row in faceoff_rows:
+        season = format_season(str(row.get("seasonId")))
+        if season == current_season:
+            continue
+
+        games_played = row.get("gamesPlayed") or 0
+        total_faceoff_wins = row.get("totalFaceoffWins")
+        add_season_enrichment(
+            season_enrichment,
+            season,
+            "totals",
+            {"faceoffsWon": total_faceoff_wins},
+        )
+        add_season_enrichment(
+            season_enrichment,
+            season,
+            "averages",
+            {"faceoffsWon": safe_per_game(total_faceoff_wins, games_played)},
+        )
+
+    for row in toi_rows:
+        season = format_season(str(row.get("seasonId")))
+        if season == current_season:
+            continue
+
+        pp_toi = time_from_seconds_value(row.get("ppTimeOnIcePerGame"))
+        sh_toi = time_from_seconds_value(row.get("shTimeOnIcePerGame"))
+        add_season_enrichment(
+            season_enrichment,
+            season,
+            "totals",
+            {
+                "powerPlayTimeOnIce": pp_toi,
+                "shortHandedTimeOnIce": sh_toi,
+            },
+        )
+        add_season_enrichment(
+            season_enrichment,
+            season,
+            "averages",
+            {
+                "powerPlayTimeOnIce": pp_toi,
+                "shortHandedTimeOnIce": sh_toi,
+            },
+        )
+
+    return season_enrichment
+
+
+def get_stats_rest_rows(report_type, player_id, session=None):
+    client = session or requests
+    params = {
+        "isAggregate": "false",
+        "isGame": "false",
+        "limit": STATS_REST_LIMIT,
+        "start": 0,
+        "cayenneExp": f"gameTypeId={REGULAR_SEASON_CODE} and playerId={player_id}",
+    }
+
+    try:
+        response = client.get(
+            STATS_REST_SKATER_URL.format(report_type),
+            params=params,
+            timeout=STATS_REST_TIMEOUT,
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        return []
+
+    return response.json().get("data", [])
+
+
+def get_player_current_season(player):
+    stats_season_id = getattr(player, "stats_season_id", None)
+    if not stats_season_id:
+        return None
+
+    return format_season(str(stats_season_id))
+
+
+def add_season_enrichment(season_enrichment, season, bucket, values):
+    season_enrichment.setdefault(season, {})
+    season_enrichment[season].setdefault(bucket, {})
+    season_enrichment[season][bucket].update(values)
+
+
+def safe_per_game(value, games_played):
+    if value is None or not games_played:
+        return None
+
+    return round(value / games_played, 2)
+
+
+def time_from_seconds_value(seconds):
+    if seconds is None:
+        return None
+
+    return upd_pls.time_from_sec(seconds)
+
+
+def enrich_season_stats_from_enrichment(
+    seasons_stats,
+    season_enrichment,
+    bucket,
+    overwrite_existing=False,
+):
+    for season in seasons_stats:
+        season_key = season.get("season")
+        if season_key not in season_enrichment:
+            continue
+
+        for field, value in season_enrichment[season_key].get(bucket, {}).items():
+            if value in [None, ""]:
+                continue
+
+            if not overwrite_existing and season.get(field) not in [None, ""]:
+                continue
+
+            season[field] = value
+
+    return seasons_stats
 
 
 def enrich_current_season_stats_from_player(
