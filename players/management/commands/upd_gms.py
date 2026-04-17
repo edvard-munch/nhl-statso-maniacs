@@ -1,4 +1,5 @@
 import re
+from html import unescape
 from datetime import datetime
 
 import requests
@@ -12,6 +13,14 @@ logger = logging.getLogger(__name__)
 
 ZERO_TOI = "00:00"
 DATE_REGEX = r"^(\d{4})\-(\d{2})\-(\d{2})"
+WHITESPACE_REGEX = r"\s+"
+HTML_TABLE_REGEX = r"<table[^>]*>(.*?)</table>"
+HTML_ROW_REGEX = r"<tr[^>]*>(.*?)</tr>"
+HTML_CELL_REGEX = r"<t[dh][^>]*>(.*?)</t[dh]>"
+HTML_TAG_REGEX = r"<[^>]+>"
+HEADER_NORMALIZE_REGEX = r"[^a-z0-9#]"
+INT_REGEX = r"-?\d+"
+TIME_MM_SS_REGEX = r"^\d{1,2}:\d{2}$"
 
 # get winning goalie
 URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/{}"
@@ -22,6 +31,13 @@ REGULAR_PERIODS_AMOUNT = 3
 REPORT_FETCH_TIMEOUT = 10
 
 GAME_REPORT_LINK_KEYS = ["eventSummary", "faceoffSummary", "toiAway", "toiHome"]
+REPORT_STAT_KEYS = [
+    "faceoffs",
+    "powerPlayPoints",
+    "shPoints",
+    "powerPlayToi",
+    "shorthandedToi",
+]
 
 GAME_STATES = {
     "scheduled": "FUT",
@@ -173,10 +189,11 @@ def process_games(day, session):
                 game_obj.save(update_fields=["slug"])
 
             if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
+                report_player_stats = get_game_report_player_stats(game["id"], session)
                 rosters_api = get_rosters_api(game_data)
                 if rosters_api:
                     rosters_database = prepare_rosters_for_database(
-                        rosters_api, team_objects, gameday_obj
+                        rosters_api, team_objects, gameday_obj, report_player_stats
                     )
 
                     if rosters_equal(rosters_api, rosters_database):
@@ -225,7 +242,9 @@ def get_rosters_api(game_data):
     return rosters_api
 
 
-def prepare_rosters_for_database(rosters_api, team_objects, gameday_object):
+def prepare_rosters_for_database(
+    rosters_api, team_objects, gameday_object, report_player_stats=None
+):
     away_goalies_count = len(rosters_api["awayTeam"]["goalies"])
     home_goalies_count = len(rosters_api["homeTeam"]["goalies"])
     away_skaters = [[], []]
@@ -244,6 +263,7 @@ def prepare_rosters_for_database(rosters_api, team_objects, gameday_object):
         away_team,
         home_team,
         away_goalies_count,
+        report_player_stats,
     )
     iterate_players(
         gameday_object,
@@ -253,6 +273,7 @@ def prepare_rosters_for_database(rosters_api, team_objects, gameday_object):
         home_team,
         away_team,
         home_goalies_count,
+        report_player_stats,
     )
 
     rosters_database = {
@@ -312,14 +333,30 @@ def get_schedule(date, session=None):
     return client.get(URL_SCHEDULE.format(date)).json()
 
 
-def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team, opponent, goalies_count):
+def iterate_players(
+    gameday_obj,
+    roster,
+    skaters_list,
+    goalies_list,
+    team,
+    opponent,
+    goalies_count,
+    report_player_stats=None,
+):
     for _, value in roster.items():
         for player_data in value:
             player = get_player(player_data["playerId"])
 
             if player:
                 game_stats = add_player(
-                    player_data, player, skaters_list, goalies_list, team, opponent, goalies_count
+                    player_data,
+                    player,
+                    skaters_list,
+                    goalies_list,
+                    team,
+                    opponent,
+                    goalies_count,
+                    report_player_stats,
                 )
                 format_date = date_convert(gameday_obj.day)
 
@@ -337,10 +374,21 @@ def iterate_players(gameday_obj, roster, skaters_list, goalies_list, team, oppon
 
 def date_convert(date):
     date_str = date.strftime("%b %e")
-    return re.sub(r"\s+", " ", date_str)
+    return re.sub(WHITESPACE_REGEX, " ", date_str)
 
 
-def add_player(player_data, player, skaters_list, goalies_list, team, opponent, goalies_count):
+def add_player(
+    player_data,
+    player,
+    skaters_list,
+    goalies_list,
+    team,
+    opponent,
+    goalies_count,
+    report_player_stats=None,
+):
+    hydrate_player_stats_from_reports(player_data, report_player_stats)
+
     if player_data["position"] == "G":
         if player_data["goalsAgainst"] == 0 and goalies_count == 1:
             player_data["shutout"] = 1
@@ -359,6 +407,28 @@ def add_player(player_data, player, skaters_list, goalies_list, team, opponent, 
         skaters_list[1].append(player)
 
     return player_data
+
+
+def hydrate_player_stats_from_reports(player_data, report_player_stats):
+    if not report_player_stats:
+        return
+
+    sweater_number = player_data.get("sweaterNumber")
+    report_stats = report_player_stats.get(sweater_number)
+
+    if not report_stats:
+        report_stats = report_player_stats.get(str(sweater_number))
+
+    if not report_stats:
+        return
+
+    for stat_key in REPORT_STAT_KEYS:
+        report_value = report_stats.get(stat_key)
+        if report_value in [None, ""]:
+            continue
+
+        if player_data.get(stat_key) in [None, ""]:
+            player_data[stat_key] = report_value
 
 
 def add_values(game_stats, team, opponent, player):
@@ -450,3 +520,157 @@ def fetch_report_html(report_url, session=None):
         return None
 
     return response.text
+
+
+def get_game_report_player_stats(game_id, session=None):
+    links = get_game_report_links(game_id, session)
+    report_stats = {}
+
+    event_html = fetch_report_html(links.get("eventSummary"), session)
+    merge_player_report_stats(report_stats, parse_event_summary_report(event_html))
+
+    faceoff_html = fetch_report_html(links.get("faceoffSummary"), session)
+    merge_player_report_stats(report_stats, parse_faceoff_summary_report(faceoff_html))
+
+    toi_away_html = fetch_report_html(links.get("toiAway"), session)
+    merge_player_report_stats(report_stats, parse_toi_report(toi_away_html))
+
+    toi_home_html = fetch_report_html(links.get("toiHome"), session)
+    merge_player_report_stats(report_stats, parse_toi_report(toi_home_html))
+
+    return report_stats
+
+
+def merge_player_report_stats(base_stats, stats_to_merge):
+    for sweater_number, report_stats in stats_to_merge.items():
+        base_stats.setdefault(sweater_number, {})
+        base_stats[sweater_number].update(report_stats)
+
+
+def parse_event_summary_report(report_html):
+    return parse_report_table(
+        report_html,
+        {
+            "powerPlayPoints": ["ppp", "powerplaypoints"],
+            "shPoints": ["shp", "shorthandedpoints", "short-handedpoints"],
+        },
+        {"powerPlayPoints": parse_int_stat, "shPoints": parse_int_stat},
+    )
+
+
+def parse_faceoff_summary_report(report_html):
+    return parse_report_table(
+        report_html,
+        {"faceoffs": ["fow", "faceoffwins", "faceoffs"]},
+        {"faceoffs": parse_int_stat},
+    )
+
+
+def parse_toi_report(report_html):
+    return parse_report_table(
+        report_html,
+        {
+            "powerPlayToi": ["toipp", "powerplaytoi", "pp"],
+            "shorthandedToi": ["toish", "shorthandedtoi", "sh"],
+        },
+        {"powerPlayToi": parse_time_stat, "shorthandedToi": parse_time_stat},
+    )
+
+
+def parse_report_table(report_html, stat_headers, stat_parsers):
+    rows = parse_html_table_rows(report_html)
+    if len(rows) < 2:
+        return {}
+
+    header = [normalize_header_name(cell) for cell in rows[0]]
+    sweater_col = find_header_index(header, ["#", "number", "num", "jersey"])
+    if sweater_col is None:
+        return {}
+
+    stat_columns = {}
+    for stat_key, aliases in stat_headers.items():
+        stat_column = find_header_index(header, aliases)
+        if stat_column is not None:
+            stat_columns[stat_key] = stat_column
+
+    if not stat_columns:
+        return {}
+
+    parsed = {}
+    for row in rows[1:]:
+        sweater_number = parse_int_stat(get_cell_value(row, sweater_col))
+        if sweater_number is None:
+            continue
+
+        parsed_row = {}
+        for stat_key, stat_column in stat_columns.items():
+            parser = stat_parsers[stat_key]
+            parsed_row[stat_key] = parser(get_cell_value(row, stat_column))
+
+        parsed[sweater_number] = parsed_row
+
+    return parsed
+
+
+def parse_html_table_rows(report_html):
+    if not report_html:
+        return []
+
+    table_match = re.search(HTML_TABLE_REGEX, report_html, flags=re.IGNORECASE | re.DOTALL)
+    if not table_match:
+        return []
+
+    table_html = table_match.group(1)
+    rows = []
+    row_matches = re.findall(HTML_ROW_REGEX, table_html, flags=re.IGNORECASE | re.DOTALL)
+    for row_html in row_matches:
+        cell_matches = re.findall(HTML_CELL_REGEX, row_html, flags=re.IGNORECASE | re.DOTALL)
+        if cell_matches:
+            rows.append([clean_html_cell(cell) for cell in cell_matches])
+
+    return rows
+
+
+def clean_html_cell(cell_html):
+    text = re.sub(HTML_TAG_REGEX, " ", cell_html)
+    text = unescape(text)
+    return re.sub(WHITESPACE_REGEX, " ", text).strip()
+
+
+def normalize_header_name(header):
+    return re.sub(HEADER_NORMALIZE_REGEX, "", header.lower())
+
+
+def find_header_index(header, aliases):
+    normalized_aliases = {normalize_header_name(alias) for alias in aliases}
+    for index, header_name in enumerate(header):
+        if header_name in normalized_aliases:
+            return index
+
+    return None
+
+
+def get_cell_value(row, index):
+    if index is None or index >= len(row):
+        return ""
+
+    return row[index]
+
+
+def parse_int_stat(value):
+    matches = re.findall(INT_REGEX, value or "")
+    if not matches:
+        return None
+
+    return int(matches[0])
+
+
+def parse_time_stat(value):
+    value = (value or "").strip()
+    if not value:
+        return ""
+
+    if re.match(TIME_MM_SS_REGEX, value):
+        return value
+
+    return ""
