@@ -110,14 +110,27 @@ def regular_season_game(game):
 
 def get_score(game_data):
     if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
-        away_score = game_data["boxscore"]["linescore"]["totals"]["away"]
-        home_score = game_data["boxscore"]["linescore"]["totals"]["home"]
+        away_score = game_data.get("awayTeam", {}).get("score")
+        home_score = game_data.get("homeTeam", {}).get("score")
+
+        if away_score is None or home_score is None:
+            away_score = (
+                game_data.get("boxscore", {}).get("linescore", {}).get("totals", {}).get("away")
+            )
+            home_score = (
+                game_data.get("boxscore", {}).get("linescore", {}).get("totals", {}).get("home")
+            )
+
+        if away_score is None or home_score is None:
+            return ""
+
         score = f"{away_score}:{home_score}"
 
         if game_data["gameState"] == GAME_STATES["live"]:
             score += GAME_LIVE_SUFFIX
 
-        if game_data["periodDescriptor"]["number"] > REGULAR_PERIODS_AMOUNT:
+        period_number = game_data.get("periodDescriptor", {}).get("number", 0)
+        if period_number > REGULAR_PERIODS_AMOUNT:
             if game_data["gameState"] == GAME_STATES["finished"]:
                 score += f" {game_data['gameOutcome']['lastPeriodType']}"
     else:
@@ -157,16 +170,19 @@ def process_games(day, session):
 
             if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
                 rosters_api = get_rosters_api(game_data)
-                rosters_database = prepare_rosters_for_database(
-                    rosters_api, team_objects, gameday_obj
-                )
+                if rosters_api:
+                    rosters_database = prepare_rosters_for_database(
+                        rosters_api, team_objects, gameday_obj
+                    )
 
-                if rosters_equal(rosters_api, rosters_database):
-                    games_finished_total += 1
-                    game_obj.game_finished = True
-                    game_obj.save(update_fields=["game_finished"])
+                    if rosters_equal(rosters_api, rosters_database):
+                        games_finished_total += 1
+                        game_obj.game_finished = True
+                        game_obj.save(update_fields=["game_finished"])
 
-                save_rosters_to_database(rosters_database, game_obj)
+                    save_rosters_to_database(rosters_database, game_obj)
+                else:
+                    logger.warning("Roster data missing for game %s", game["id"])
 
             save_game_side(team_objects[0], SIDES["away"], game_obj, day["date"])
             save_game_side(team_objects[1], SIDES["home"], game_obj, day["date"])
@@ -184,10 +200,23 @@ def process_games(day, session):
 
 
 def get_rosters_api(game_data):
-    rosters_api = game_data["boxscore"]["playerByGameStats"]
+    rosters_api = game_data.get("playerByGameStats") or game_data.get("boxscore", {}).get(
+        "playerByGameStats"
+    )
+    if not rosters_api:
+        return None
 
-    rosters_api["awayTeam"]["goalies"] = get_played_goalies(rosters_api["awayTeam"]["goalies"])
-    rosters_api["homeTeam"]["goalies"] = get_played_goalies(rosters_api["homeTeam"]["goalies"])
+    away_team = rosters_api.get("awayTeam")
+    home_team = rosters_api.get("homeTeam")
+    if not away_team or not home_team:
+        return None
+
+    rosters_api["awayTeam"]["goalies"] = get_played_goalies(
+        rosters_api["awayTeam"].get("goalies", [])
+    )
+    rosters_api["homeTeam"]["goalies"] = get_played_goalies(
+        rosters_api["homeTeam"].get("goalies", [])
+    )
 
     return rosters_api
 
@@ -271,7 +300,7 @@ def rosters_equal(rosters_api, rosters_database):
 
 
 def get_played_goalies(goalies):
-    return [goalie for goalie in goalies if goalie["toi"] != ZERO_TOI]
+    return [goalie for goalie in goalies if goalie.get("toi", ZERO_TOI) != ZERO_TOI]
 
 
 def get_schedule(date, session=None):
