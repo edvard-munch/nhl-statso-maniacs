@@ -1,10 +1,11 @@
 from datetime import datetime
+from types import SimpleNamespace
 
 import pytest
 
 # from correct.package import __BASE_URL
 from django.core.management import call_command
-from players.management.commands import upd_pls
+from players.management.commands import upd_pls, upd_pls_tot
 
 
 # @pytest.fixture(scope='session')
@@ -45,6 +46,81 @@ def test_calculate_age(born, today, age):
 )
 def test_get_char_field_value(dict_, key, expected):
     assert upd_pls.get_char_field_value(dict_, key) == expected
+
+
+def test_enrich_current_season_stats_from_player_updates_missing_current_season_fields_only():
+    seasons_stats = [
+        {
+            "season": "2024-25",
+            "hits": None,
+            "blocked": None,
+            "faceoffsWon": None,
+            "powerPlayTimeOnIce": "",
+            "shortHandedTimeOnIce": "",
+        },
+        {
+            "season": "2025-26",
+            "hits": None,
+            "blocked": None,
+            "faceoffsWon": None,
+            "powerPlayTimeOnIce": "",
+            "shortHandedTimeOnIce": "",
+        },
+    ]
+    player = SimpleNamespace(
+        stats_season_id="20252026",
+        hits=10,
+        blocks=5,
+        faceoff_wins=20,
+        time_on_ice_pp="02:34",
+        time_on_ice_sh="00:45",
+    )
+
+    enriched = upd_pls_tot.enrich_current_season_stats_from_player(
+        seasons_stats, player, upd_pls_tot.CURRENT_SEASON_STATS_FIELD_MAP
+    )
+
+    assert enriched[0] == {
+        "season": "2024-25",
+        "hits": None,
+        "blocked": None,
+        "faceoffsWon": None,
+        "powerPlayTimeOnIce": "",
+        "shortHandedTimeOnIce": "",
+    }
+    assert enriched[1] == {
+        "season": "2025-26",
+        "hits": 10,
+        "blocked": 5,
+        "faceoffsWon": 20,
+        "powerPlayTimeOnIce": "02:34",
+        "shortHandedTimeOnIce": "00:45",
+    }
+
+
+def test_enrich_current_season_stats_from_player_skips_without_stats_season_id():
+    seasons_stats = [{"season": "2025-26", "hits": None}]
+    player = SimpleNamespace(stats_season_id=None, hits=10)
+
+    enriched = upd_pls_tot.enrich_current_season_stats_from_player(
+        seasons_stats, player, upd_pls_tot.CURRENT_SEASON_STATS_FIELD_MAP
+    )
+
+    assert enriched == [{"season": "2025-26", "hits": None}]
+
+
+def test_enrich_current_season_stats_from_player_can_overwrite_existing_values():
+    seasons_stats = [{"season": "2025-26", "hits": 37}]
+    player = SimpleNamespace(stats_season_id="20252026", hits_avg=0.46)
+
+    enriched = upd_pls_tot.enrich_current_season_stats_from_player(
+        seasons_stats,
+        player,
+        {"hits": "hits_avg"},
+        overwrite_existing=True,
+    )
+
+    assert enriched == [{"season": "2025-26", "hits": 0.46}]
 
 
 # class utilsTests(SimpleTestCase):

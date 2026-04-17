@@ -25,6 +25,20 @@ POSITION_CODES = {
 WINGERS_POSITION_CODES = ["L", "R", "W"]
 REGULAR_SEASON_CODE = 2
 NHL_LEAGUE_CODE = "NHL"
+CURRENT_SEASON_STATS_FIELD_MAP = {
+    "hits": "hits",
+    "blocked": "blocks",
+    "faceoffsWon": "faceoff_wins",
+    "powerPlayTimeOnIce": "time_on_ice_pp",
+    "shortHandedTimeOnIce": "time_on_ice_sh",
+}
+CURRENT_SEASON_AVG_FIELD_MAP = {
+    "hits": "hits_avg",
+    "blocked": "blocks_avg",
+    "faceoffsWon": "faceoff_wins_avg",
+    "powerPlayTimeOnIce": "time_on_ice_pp",
+    "shortHandedTimeOnIce": "time_on_ice_sh",
+}
 
 TEAM_ABBR_FROM_NAME = {
     "Anaheim Ducks": "ANA",
@@ -94,6 +108,9 @@ def import_player(data, player):
 
     defaults["career_stats"] = data["careerTotals"]["regularSeason"]
     defaults["sbs_stats"] = get_season_by_season_stats(data["seasonTotals"], data["position"])
+    defaults["sbs_stats"] = enrich_current_season_stats_from_player(
+        defaults["sbs_stats"], player, CURRENT_SEASON_STATS_FIELD_MAP
+    )
 
     seasons_count = collections.Counter(item["season"] for item in defaults["sbs_stats"])
     defaults["multiteams_seasons"] = {
@@ -106,6 +123,12 @@ def import_player(data, player):
 
         defaults["career_stats_avg"] = get_career_average_stats(career_stats)
         defaults["sbs_stats_avg"] = get_season_by_season_average_stats(sbs_stats)
+        defaults["sbs_stats_avg"] = enrich_current_season_stats_from_player(
+            defaults["sbs_stats_avg"],
+            player,
+            CURRENT_SEASON_AVG_FIELD_MAP,
+            overwrite_existing=True,
+        )
         Skater.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
 
     else:
@@ -186,6 +209,36 @@ def get_position_abbreviation(position_code):
         return position_code + WINGERS_POSITION_CODES[2]
     else:
         return position_code
+
+
+def enrich_current_season_stats_from_player(
+    seasons_stats,
+    player,
+    field_map,
+    overwrite_existing=False,
+):
+    stats_season_id = getattr(player, "stats_season_id", None)
+    if not stats_season_id:
+        return seasons_stats
+
+    current_season = format_season(str(stats_season_id))
+    for season in seasons_stats:
+        if season.get("season") != current_season:
+            continue
+
+        for season_field, player_field in field_map.items():
+            if not overwrite_existing and season.get(season_field) not in [None, ""]:
+                continue
+
+            player_value = getattr(player, player_field, None)
+            if player_value in [None, ""]:
+                continue
+
+            season[season_field] = player_value
+
+        break
+
+    return seasons_stats
 
 
 def inches_to_feet(height):
