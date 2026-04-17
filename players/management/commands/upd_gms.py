@@ -30,6 +30,7 @@ FACEOFF_TOTAL_VALUE_REGEX = r"^(\d+)\s*-"
 URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/{}"
 URL_BOXSCORE = "https://api-web.nhle.com/v1/gamecenter/{}/boxscore"
 URL_RIGHT_RAIL = "https://api-web.nhle.com/v1/gamecenter/{}/right-rail"
+URL_PLAY_BY_PLAY = "https://api-web.nhle.com/v1/gamecenter/{}/play-by-play"
 REGULAR_SEASON_CODE = "02"
 REGULAR_PERIODS_AMOUNT = 3
 REPORT_FETCH_TIMEOUT = 10
@@ -42,6 +43,9 @@ REPORT_STAT_KEYS = [
     "powerPlayToi",
     "shorthandedToi",
 ]
+GOAL_EVENT_TYPE = "goal"
+POWER_PLAY_POINTS_KEY = "powerPlayPoints"
+SHORTHANDED_POINTS_KEY = "shPoints"
 
 GAME_STATES = {
     "scheduled": "FUT",
@@ -193,7 +197,9 @@ def process_games(day, session):
                 game_obj.save(update_fields=["slug"])
 
             if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
-                report_player_stats = get_game_report_player_stats(game["id"], session)
+                report_player_stats = get_game_report_player_stats(
+                    game["id"], game_data=game_data, session=session
+                )
                 rosters_api = get_rosters_api(game_data)
                 if rosters_api:
                     rosters_database = prepare_rosters_for_database(
@@ -526,7 +532,7 @@ def fetch_report_html(report_url, session=None):
     return response.text
 
 
-def get_game_report_player_stats(game_id, session=None):
+def get_game_report_player_stats(game_id, game_data=None, session=None):
     links = get_game_report_links(game_id, session)
     report_stats = {}
 
@@ -542,6 +548,16 @@ def get_game_report_player_stats(game_id, session=None):
     toi_home_html = fetch_report_html(links.get("toiHome"), session)
     merge_player_report_stats(report_stats, parse_toi_report(toi_home_html))
 
+    play_by_play_data = get_game_data(game_id, URL_PLAY_BY_PLAY, session)
+    player_special_teams_points = parse_special_teams_points(play_by_play_data)
+    player_id_to_sweater = map_player_ids_to_sweaters(game_data)
+    merge_player_report_stats(
+        report_stats,
+        convert_special_teams_points_to_report_stats(
+            player_special_teams_points, player_id_to_sweater
+        ),
+    )
+
     return report_stats
 
 
@@ -549,6 +565,111 @@ def merge_player_report_stats(base_stats, stats_to_merge):
     for sweater_number, report_stats in stats_to_merge.items():
         base_stats.setdefault(sweater_number, {})
         base_stats[sweater_number].update(report_stats)
+
+
+def map_player_ids_to_sweaters(game_data):
+    player_map = {}
+    rosters_api = (game_data or {}).get("playerByGameStats")
+    if not isinstance(rosters_api, dict):
+        return player_map
+
+    for side in ["awayTeam", "homeTeam"]:
+        side_data = rosters_api.get(side, {})
+        if not isinstance(side_data, dict):
+            continue
+
+        for group_players in side_data.values():
+            if not isinstance(group_players, list):
+                continue
+
+            for player_data in group_players:
+                player_id = player_data.get("playerId")
+                sweater_number = player_data.get("sweaterNumber")
+                if player_id is not None and sweater_number is not None:
+                    player_map[player_id] = sweater_number
+
+    return player_map
+
+
+def parse_special_teams_points(play_by_play_data):
+    away_team_id = (play_by_play_data or {}).get("awayTeam", {}).get("id")
+    home_team_id = (play_by_play_data or {}).get("homeTeam", {}).get("id")
+    points = {}
+
+    for play in (play_by_play_data or {}).get("plays", []):
+        if play.get("typeDescKey") != GOAL_EVENT_TYPE:
+            continue
+
+        points_key = get_goal_points_key(play, away_team_id, home_team_id)
+        if not points_key:
+            continue
+
+        details = play.get("details", {})
+        for player_id in [
+            details.get("scoringPlayerId"),
+            details.get("assist1PlayerId"),
+            details.get("assist2PlayerId"),
+        ]:
+            if player_id is None:
+                continue
+
+            points.setdefault(player_id, {POWER_PLAY_POINTS_KEY: 0, SHORTHANDED_POINTS_KEY: 0})
+            points[player_id][points_key] += 1
+
+    return points
+
+
+def get_goal_points_key(goal_play, away_team_id, home_team_id):
+    owner_team_id = goal_play.get("details", {}).get("eventOwnerTeamId")
+    if owner_team_id not in [away_team_id, home_team_id]:
+        return None
+
+    skaters = parse_situation_skaters(goal_play.get("situationCode"))
+    if not skaters:
+        return None
+
+    away_skaters, home_skaters = skaters
+    if owner_team_id == away_team_id:
+        team_skaters = away_skaters
+        opponent_skaters = home_skaters
+    else:
+        team_skaters = home_skaters
+        opponent_skaters = away_skaters
+
+    if team_skaters > opponent_skaters:
+        return POWER_PLAY_POINTS_KEY
+
+    if team_skaters < opponent_skaters:
+        return SHORTHANDED_POINTS_KEY
+
+    return None
+
+
+def parse_situation_skaters(situation_code):
+    if situation_code is None:
+        return None
+
+    code = str(situation_code)
+    if not code.isdigit():
+        return None
+
+    code = code.zfill(4)
+    return int(code[1]), int(code[2])
+
+
+def convert_special_teams_points_to_report_stats(player_points, player_id_to_sweater):
+    report_stats = {}
+    for player_id, points in player_points.items():
+        sweater_number = player_id_to_sweater.get(player_id)
+        if sweater_number is None:
+            continue
+
+        report_stats[sweater_number] = {
+            POWER_PLAY_POINTS_KEY: points.get(POWER_PLAY_POINTS_KEY),
+            SHORTHANDED_POINTS_KEY: points.get(SHORTHANDED_POINTS_KEY),
+        }
+
+    return report_stats
 
 
 def parse_event_summary_report(report_html):

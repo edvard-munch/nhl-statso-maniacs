@@ -117,3 +117,80 @@ def test_parse_toi_report_fallback_player_blocks():
         13: {"powerPlayToi": "05:10", "shorthandedToi": "01:16"},
         15: {"powerPlayToi": "03:37", "shorthandedToi": "01:14"},
     }
+
+
+def test_parse_special_teams_points_from_play_by_play_goal_events():
+    play_by_play_data = {
+        "awayTeam": {"id": 16},
+        "homeTeam": {"id": 13},
+        "plays": [
+            {
+                "typeDescKey": "goal",
+                "situationCode": 1451,
+                "details": {
+                    "eventOwnerTeamId": 13,
+                    "scoringPlayerId": 100,
+                    "assist1PlayerId": 101,
+                    "assist2PlayerId": 102,
+                },
+            },
+            {
+                "typeDescKey": "goal",
+                "situationCode": 1541,
+                "details": {
+                    "eventOwnerTeamId": 13,
+                    "scoringPlayerId": 200,
+                    "assist1PlayerId": 201,
+                },
+            },
+            {
+                "typeDescKey": "goal",
+                "situationCode": 1551,
+                "details": {
+                    "eventOwnerTeamId": 13,
+                    "scoringPlayerId": 300,
+                    "assist1PlayerId": 301,
+                },
+            },
+            {"typeDescKey": "shot-on-goal", "details": {"eventOwnerTeamId": 13}},
+        ],
+    }
+
+    assert upd_gms.parse_special_teams_points(play_by_play_data) == {
+        100: {"powerPlayPoints": 1, "shPoints": 0},
+        101: {"powerPlayPoints": 1, "shPoints": 0},
+        102: {"powerPlayPoints": 1, "shPoints": 0},
+        200: {"powerPlayPoints": 0, "shPoints": 1},
+        201: {"powerPlayPoints": 0, "shPoints": 1},
+    }
+
+
+def test_convert_special_teams_points_to_report_stats_uses_sweater_mapping():
+    player_points = {
+        100: {"powerPlayPoints": 2, "shPoints": 0},
+        101: {"powerPlayPoints": 0, "shPoints": 1},
+        999: {"powerPlayPoints": 1, "shPoints": 0},
+    }
+    player_id_to_sweater = {100: 13, 101: 16}
+
+    assert upd_gms.convert_special_teams_points_to_report_stats(
+        player_points, player_id_to_sweater
+    ) == {
+        13: {"powerPlayPoints": 2, "shPoints": 0},
+        16: {"powerPlayPoints": 0, "shPoints": 1},
+    }
+
+
+def test_get_goal_points_key_handles_advantage_and_disadvantage():
+    away_team_id = 16
+    home_team_id = 13
+
+    pp_goal_play = {"situationCode": 1451, "details": {"eventOwnerTeamId": 13}}
+    sh_goal_play = {"situationCode": 1541, "details": {"eventOwnerTeamId": 13}}
+    even_goal_play = {"situationCode": 1551, "details": {"eventOwnerTeamId": 13}}
+
+    assert (
+        upd_gms.get_goal_points_key(pp_goal_play, away_team_id, home_team_id) == "powerPlayPoints"
+    )
+    assert upd_gms.get_goal_points_key(sh_goal_play, away_team_id, home_team_id) == "shPoints"
+    assert upd_gms.get_goal_points_key(even_goal_play, away_team_id, home_team_id) is None
