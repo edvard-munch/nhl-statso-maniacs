@@ -167,6 +167,66 @@ def test_enrich_season_stats_from_enrichment_overwrites_for_avg_bucket_when_enab
     ]
 
 
+def test_enrich_career_stats_fills_only_missing_without_overwrite():
+    career_stats = {
+        "hits": None,
+        "blocked": None,
+        "powerPlayPoints": 111,
+        "shorthandedPoints": None,
+        "powerPlayTimeOnIcePerGame": None,
+        "shortHandedTimeOnIcePerGame": None,
+    }
+    career_enrichment = {
+        upd_pls_tot.CAREER_ENRICHMENT_TOTALS: {
+            "hits": 534,
+            "blocked": 461,
+            "powerPlayPoints": 238,
+            "shorthandedPoints": 20,
+            "powerPlayTimeOnIcePerGame": "03:15",
+            "shortHandedTimeOnIcePerGame": "01:51",
+        }
+    }
+
+    enriched = upd_pls_tot.enrich_career_stats(
+        career_stats,
+        career_enrichment,
+        upd_pls_tot.CAREER_ENRICHMENT_TOTALS,
+    )
+
+    assert enriched == {
+        "hits": 534,
+        "blocked": 461,
+        "powerPlayPoints": 111,
+        "shorthandedPoints": 20,
+        "powerPlayTimeOnIcePerGame": "03:15",
+        "shortHandedTimeOnIcePerGame": "01:51",
+    }
+
+
+def test_enrich_career_stats_overwrites_when_enabled():
+    career_stats_avg = {"avgToi": "17:12"}
+    career_enrichment = {
+        upd_pls_tot.CAREER_ENRICHMENT_AVERAGES: {
+            "avgToi": "18:00",
+            "powerPlayTimeOnIcePerGame": "03:15",
+            "shortHandedTimeOnIcePerGame": "01:51",
+        }
+    }
+
+    enriched = upd_pls_tot.enrich_career_stats(
+        career_stats_avg,
+        career_enrichment,
+        upd_pls_tot.CAREER_ENRICHMENT_AVERAGES,
+        overwrite_existing=True,
+    )
+
+    assert enriched == {
+        "avgToi": "18:00",
+        "powerPlayTimeOnIcePerGame": "03:15",
+        "shortHandedTimeOnIcePerGame": "01:51",
+    }
+
+
 # class utilsTests(SimpleTestCase):
 #     def test_time_from_sec(self):
 #         self.assertEqual(utils.time_from_sec(456546), '7609:06')

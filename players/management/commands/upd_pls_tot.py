@@ -31,6 +31,8 @@ SKATER_REPORT_FACEOFF_WINS = "faceoffwins"
 SKATER_REPORT_TIME_ON_ICE = "timeonice"
 STATS_REST_TIMEOUT = 10
 STATS_REST_LIMIT = 250
+CAREER_ENRICHMENT_TOTALS = "totals"
+CAREER_ENRICHMENT_AVERAGES = "averages"
 CURRENT_SEASON_STATS_FIELD_MAP = {
     "hits": "hits",
     "blocked": "blocks",
@@ -117,6 +119,12 @@ def import_player(data, player, session=None):
 
     if data["position"] in list(POSITION_CODES.keys())[1:]:
         season_enrichment = get_skater_season_enrichment(player, session)
+        career_enrichment = get_skater_career_enrichment(player, session)
+        defaults["career_stats"] = enrich_career_stats(
+            defaults["career_stats"],
+            career_enrichment,
+            CAREER_ENRICHMENT_TOTALS,
+        )
         defaults["sbs_stats"] = enrich_season_stats_from_enrichment(
             defaults["sbs_stats"], season_enrichment, "totals"
         )
@@ -135,6 +143,12 @@ def import_player(data, player, session=None):
         sbs_stats = copy.deepcopy(defaults["sbs_stats"])
 
         defaults["career_stats_avg"] = get_career_average_stats(career_stats)
+        defaults["career_stats_avg"] = enrich_career_stats(
+            defaults["career_stats_avg"],
+            career_enrichment,
+            CAREER_ENRICHMENT_AVERAGES,
+            overwrite_existing=True,
+        )
         defaults["sbs_stats_avg"] = get_season_by_season_average_stats(sbs_stats)
         defaults["sbs_stats_avg"] = enrich_season_stats_from_enrichment(
             defaults["sbs_stats_avg"], season_enrichment, "averages", overwrite_existing=True
@@ -309,10 +323,83 @@ def get_skater_season_enrichment(player, session=None):
     return season_enrichment
 
 
-def get_stats_rest_rows(report_type, player_id, session=None):
+def get_skater_career_enrichment(player, session=None):
+    career_enrichment = {
+        CAREER_ENRICHMENT_TOTALS: {},
+        CAREER_ENRICHMENT_AVERAGES: {},
+    }
+
+    realtime_rows = get_stats_rest_rows(
+        SKATER_REPORT_REALTIME,
+        player.nhl_id,
+        session,
+        aggregate=True,
+    )
+    faceoff_rows = get_stats_rest_rows(
+        SKATER_REPORT_FACEOFF_WINS,
+        player.nhl_id,
+        session,
+        aggregate=True,
+    )
+    toi_rows = get_stats_rest_rows(
+        SKATER_REPORT_TIME_ON_ICE,
+        player.nhl_id,
+        session,
+        aggregate=True,
+    )
+
+    if realtime_rows:
+        row = realtime_rows[0]
+        games_played = row.get("gamesPlayed") or 0
+        career_enrichment[CAREER_ENRICHMENT_TOTALS].update(
+            {
+                "hits": row.get("hits"),
+                "blocked": row.get("blockedShots"),
+            }
+        )
+        career_enrichment[CAREER_ENRICHMENT_AVERAGES].update(
+            {
+                "hits": safe_per_game(row.get("hits"), games_played),
+                "blocked": safe_per_game(row.get("blockedShots"), games_played),
+            }
+        )
+
+    if faceoff_rows:
+        row = faceoff_rows[0]
+        games_played = row.get("gamesPlayed") or 0
+        total_faceoff_wins = row.get("totalFaceoffWins")
+        career_enrichment[CAREER_ENRICHMENT_TOTALS]["faceoffsWon"] = total_faceoff_wins
+        career_enrichment[CAREER_ENRICHMENT_AVERAGES]["faceoffsWon"] = safe_per_game(
+            total_faceoff_wins,
+            games_played,
+        )
+
+    if toi_rows:
+        row = toi_rows[0]
+        career_enrichment[CAREER_ENRICHMENT_TOTALS].update(
+            {
+                "powerPlayTimeOnIcePerGame": time_from_seconds_value(row.get("ppTimeOnIcePerGame")),
+                "shortHandedTimeOnIcePerGame": time_from_seconds_value(
+                    row.get("shTimeOnIcePerGame")
+                ),
+            }
+        )
+        career_enrichment[CAREER_ENRICHMENT_AVERAGES].update(
+            {
+                "powerPlayTimeOnIcePerGame": time_from_seconds_value(row.get("ppTimeOnIcePerGame")),
+                "shortHandedTimeOnIcePerGame": time_from_seconds_value(
+                    row.get("shTimeOnIcePerGame")
+                ),
+            }
+        )
+
+    return career_enrichment
+
+
+def get_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
     client = session or requests
     params = {
-        "isAggregate": "false",
+        "isAggregate": "true" if aggregate else "false",
         "isGame": "false",
         "limit": STATS_REST_LIMIT,
         "start": 0,
@@ -381,6 +468,20 @@ def enrich_season_stats_from_enrichment(
             season[field] = value
 
     return seasons_stats
+
+
+def enrich_career_stats(career_stats, career_enrichment, bucket, overwrite_existing=False):
+    values = (career_enrichment or {}).get(bucket, {})
+    for field, value in values.items():
+        if value in [None, ""]:
+            continue
+
+        if not overwrite_existing and career_stats.get(field) not in [None, ""]:
+            continue
+
+        career_stats[field] = value
+
+    return career_stats
 
 
 def enrich_current_season_stats_from_player(
