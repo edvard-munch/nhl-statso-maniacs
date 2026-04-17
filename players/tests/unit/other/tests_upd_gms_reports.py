@@ -82,3 +82,38 @@ def test_parse_toi_report_parses_times_and_handles_empty_or_invalid_values():
         59: {"powerPlayToi": "", "shorthandedToi": ""},
         16: {"powerPlayToi": "3:10", "shorthandedToi": "0:44"},
     }
+
+
+def test_parse_faceoff_summary_report_fallback_player_blocks():
+    report_html = """
+    <table>
+      <tr><td>13 C REINHART, SAM</td></tr>
+      <tr><td>Strength</td><td>Off.</td><td>Def.</td><td>Neu.</td><td>TOT</td></tr>
+      <tr><td>TOT</td><td>4-6/67%</td><td>0-1/0%</td><td>1-2/50%</td><td>5-9/56%</td></tr>
+      <tr><td>15 C LUNDELL, ANTON</td></tr>
+      <tr><td>TOT</td><td>1-1/100%</td><td>2-4/50%</td><td>0-0/0%</td><td>3-5/60%</td></tr>
+    </table>
+    """
+
+    assert upd_gms.parse_faceoff_summary_report(report_html) == {
+        13: {"faceoffs": 5},
+        15: {"faceoffs": 3},
+    }
+
+
+def test_parse_toi_report_fallback_player_blocks():
+    report_html = """
+    <table>
+      <tr><td>13 REINHART, SAM</td></tr>
+      <tr><td>Per</td><td>SHF</td><td>AVG</td><td>TOI</td><td>EV TOT</td><td>PP TOT</td><td>SH TOT</td></tr>
+      <tr><td>1</td><td>9</td><td>00:50</td><td>07:34</td><td>05:06</td><td>01:20</td><td>01:08</td></tr>
+      <tr><td>TOT</td><td>25</td><td>00:54</td><td>22:31</td><td>16:05</td><td>05:10</td><td>01:16</td></tr>
+      <tr><td>15 LUNDELL, ANTON</td></tr>
+      <tr><td>TOT</td><td>24</td><td>00:43</td><td>17:19</td><td>12:28</td><td>03:37</td><td>01:14</td></tr>
+    </table>
+    """
+
+    assert upd_gms.parse_toi_report(report_html) == {
+        13: {"powerPlayToi": "05:10", "shorthandedToi": "01:16"},
+        15: {"powerPlayToi": "03:37", "shorthandedToi": "01:14"},
+    }

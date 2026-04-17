@@ -21,6 +21,10 @@ HTML_TAG_REGEX = r"<[^>]+>"
 HEADER_NORMALIZE_REGEX = r"[^a-z0-9#]"
 INT_REGEX = r"-?\d+"
 TIME_MM_SS_REGEX = r"^\d{1,2}:\d{2}$"
+PLAYER_HEADING_WITH_POSITION_REGEX = r"^(\d+)\s+[A-Z]{1,2}\s+.+"
+PLAYER_HEADING_REGEX = r"^(\d+)\s+[A-Z\-\.' ]+,\s*[A-Z\-\.' ]+"
+TOTAL_ROW_LABEL = "TOT"
+FACEOFF_TOTAL_VALUE_REGEX = r"^(\d+)\s*-"
 
 # get winning goalie
 URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/{}"
@@ -559,15 +563,19 @@ def parse_event_summary_report(report_html):
 
 
 def parse_faceoff_summary_report(report_html):
-    return parse_report_table(
+    parsed = parse_report_table(
         report_html,
         {"faceoffs": ["fow", "faceoffwins", "faceoffs"]},
         {"faceoffs": parse_int_stat},
     )
+    if parsed:
+        return parsed
+
+    return parse_faceoff_summary_blocks(report_html)
 
 
 def parse_toi_report(report_html):
-    return parse_report_table(
+    parsed = parse_report_table(
         report_html,
         {
             "powerPlayToi": ["toipp", "powerplaytoi", "pp"],
@@ -575,54 +583,160 @@ def parse_toi_report(report_html):
         },
         {"powerPlayToi": parse_time_stat, "shorthandedToi": parse_time_stat},
     )
+    if parsed:
+        return parsed
+
+    return parse_toi_blocks(report_html)
 
 
-def parse_report_table(report_html, stat_headers, stat_parsers):
-    rows = parse_html_table_rows(report_html)
-    if len(rows) < 2:
-        return {}
-
-    header = [normalize_header_name(cell) for cell in rows[0]]
-    sweater_col = find_header_index(header, ["#", "number", "num", "jersey"])
-    if sweater_col is None:
-        return {}
-
-    stat_columns = {}
-    for stat_key, aliases in stat_headers.items():
-        stat_column = find_header_index(header, aliases)
-        if stat_column is not None:
-            stat_columns[stat_key] = stat_column
-
-    if not stat_columns:
-        return {}
-
+def parse_faceoff_summary_blocks(report_html):
+    rows = parse_html_rows(report_html)
     parsed = {}
-    for row in rows[1:]:
-        sweater_number = parse_int_stat(get_cell_value(row, sweater_col))
-        if sweater_number is None:
+    index = 0
+
+    while index < len(rows):
+        heading_row = " ".join(rows[index])
+        match = parse_player_heading_sweater(heading_row)
+        if not match:
+            index += 1
             continue
 
-        parsed_row = {}
-        for stat_key, stat_column in stat_columns.items():
-            parser = stat_parsers[stat_key]
-            parsed_row[stat_key] = parser(get_cell_value(row, stat_column))
+        sweater_number = match
+        wins = None
+        scan_index = index + 1
+        while scan_index < len(rows):
+            scan_row_text = " ".join(rows[scan_index])
+            if parse_player_heading_sweater(scan_row_text):
+                break
 
-        parsed[sweater_number] = parsed_row
+            if rows[scan_index] and rows[scan_index][0] == TOTAL_ROW_LABEL:
+                total_cell = rows[scan_index][-1]
+                total_match = re.match(FACEOFF_TOTAL_VALUE_REGEX, total_cell)
+                if total_match:
+                    wins = int(total_match.group(1))
+                break
+
+            scan_index += 1
+
+        if wins is not None:
+            parsed[sweater_number] = {"faceoffs": wins}
+
+        index = scan_index
 
     return parsed
 
 
-def parse_html_table_rows(report_html):
+def parse_toi_blocks(report_html):
+    rows = parse_html_rows(report_html)
+    parsed = {}
+    index = 0
+
+    while index < len(rows):
+        heading_row = " ".join(rows[index])
+        match = parse_player_heading_sweater(heading_row)
+        if not match:
+            index += 1
+            continue
+
+        sweater_number = match
+        scan_index = index + 1
+        while scan_index < len(rows):
+            scan_row_text = " ".join(rows[scan_index])
+            if parse_player_heading_sweater(scan_row_text):
+                break
+
+            if (
+                rows[scan_index]
+                and rows[scan_index][0] == TOTAL_ROW_LABEL
+                and len(rows[scan_index]) >= 7
+            ):
+                parsed[sweater_number] = {
+                    "powerPlayToi": parse_time_stat(rows[scan_index][-2]),
+                    "shorthandedToi": parse_time_stat(rows[scan_index][-1]),
+                }
+                break
+
+            scan_index += 1
+
+        index = scan_index
+
+    return parsed
+
+
+def parse_report_table(report_html, stat_headers, stat_parsers):
+    tables_rows = parse_html_tables_rows(report_html)
+    for rows in tables_rows:
+        parsed = parse_report_table_rows(rows, stat_headers, stat_parsers)
+        if parsed:
+            return parsed
+
+    return {}
+
+
+def parse_report_table_rows(rows, stat_headers, stat_parsers):
+    if len(rows) < 2:
+        return {}
+
+    for header_index, row in enumerate(rows):
+        header = [normalize_header_name(cell) for cell in row]
+        sweater_col = find_header_index(header, ["#", "number", "num", "jersey"])
+        if sweater_col is None:
+            continue
+
+        stat_columns = {}
+        for stat_key, aliases in stat_headers.items():
+            stat_column = find_header_index(header, aliases)
+            if stat_column is not None:
+                stat_columns[stat_key] = stat_column
+
+        if not stat_columns:
+            continue
+
+        parsed = {}
+        for data_row in rows[header_index + 1 :]:
+            sweater_number = parse_int_stat(get_cell_value(data_row, sweater_col))
+            if sweater_number is None:
+                continue
+
+            parsed_row = {}
+            for stat_key, stat_column in stat_columns.items():
+                parser = stat_parsers[stat_key]
+                parsed_row[stat_key] = parser(get_cell_value(data_row, stat_column))
+
+            parsed[sweater_number] = parsed_row
+
+        if parsed:
+            return parsed
+
+    return {}
+
+
+def parse_html_tables_rows(report_html):
     if not report_html:
         return []
 
-    table_match = re.search(HTML_TABLE_REGEX, report_html, flags=re.IGNORECASE | re.DOTALL)
-    if not table_match:
+    tables_rows = []
+    table_matches = re.findall(HTML_TABLE_REGEX, report_html, flags=re.IGNORECASE | re.DOTALL)
+    for table_html in table_matches:
+        rows = []
+        row_matches = re.findall(HTML_ROW_REGEX, table_html, flags=re.IGNORECASE | re.DOTALL)
+        for row_html in row_matches:
+            cell_matches = re.findall(HTML_CELL_REGEX, row_html, flags=re.IGNORECASE | re.DOTALL)
+            if cell_matches:
+                rows.append([clean_html_cell(cell) for cell in cell_matches])
+
+        if rows:
+            tables_rows.append(rows)
+
+    return tables_rows
+
+
+def parse_html_rows(report_html):
+    if not report_html:
         return []
 
-    table_html = table_match.group(1)
     rows = []
-    row_matches = re.findall(HTML_ROW_REGEX, table_html, flags=re.IGNORECASE | re.DOTALL)
+    row_matches = re.findall(HTML_ROW_REGEX, report_html, flags=re.IGNORECASE | re.DOTALL)
     for row_html in row_matches:
         cell_matches = re.findall(HTML_CELL_REGEX, row_html, flags=re.IGNORECASE | re.DOTALL)
         if cell_matches:
@@ -674,3 +788,15 @@ def parse_time_stat(value):
         return value
 
     return ""
+
+
+def parse_player_heading_sweater(row_text):
+    match = re.match(PLAYER_HEADING_WITH_POSITION_REGEX, row_text)
+    if match:
+        return int(match.group(1))
+
+    match = re.match(PLAYER_HEADING_REGEX, row_text)
+    if match and not row_text.startswith(TOTAL_ROW_LABEL):
+        return int(match.group(1))
+
+    return None
