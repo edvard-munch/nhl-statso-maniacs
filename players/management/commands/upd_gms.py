@@ -16,8 +16,12 @@ DATE_REGEX = r"^(\d{4})\-(\d{2})\-(\d{2})"
 # get winning goalie
 URL_SCHEDULE = "https://api-web.nhle.com/v1/schedule/{}"
 URL_BOXSCORE = "https://api-web.nhle.com/v1/gamecenter/{}/boxscore"
+URL_RIGHT_RAIL = "https://api-web.nhle.com/v1/gamecenter/{}/right-rail"
 REGULAR_SEASON_CODE = "02"
 REGULAR_PERIODS_AMOUNT = 3
+REPORT_FETCH_TIMEOUT = 10
+
+GAME_REPORT_LINK_KEYS = ["eventSummary", "faceoffSummary", "toiAway", "toiHome"]
 
 GAME_STATES = {
     "scheduled": "FUT",
@@ -408,3 +412,41 @@ def get_player(nhl_id):
 def get_game_data(game_id, url, session=None):
     client = session or requests
     return client.get(url.format(game_id)).json()
+
+
+def get_game_report_links(game_id, session=None):
+    right_rail_data = get_game_data(game_id, URL_RIGHT_RAIL, session)
+    return extract_game_report_links(right_rail_data)
+
+
+def extract_game_report_links(right_rail_data):
+    links = {key: None for key in GAME_REPORT_LINK_KEYS}
+    reports = right_rail_data.get("gameReports") if isinstance(right_rail_data, dict) else None
+
+    if not isinstance(reports, dict):
+        return links
+
+    for key in GAME_REPORT_LINK_KEYS:
+        report_url = reports.get(key)
+        if is_valid_report_url(report_url):
+            links[key] = report_url
+
+    return links
+
+
+def is_valid_report_url(report_url):
+    return isinstance(report_url, str) and report_url.startswith(("http://", "https://"))
+
+
+def fetch_report_html(report_url, session=None):
+    if not is_valid_report_url(report_url):
+        return None
+
+    client = session or requests
+    try:
+        response = client.get(report_url, timeout=REPORT_FETCH_TIMEOUT)
+        response.raise_for_status()
+    except requests.RequestException:
+        return None
+
+    return response.text
