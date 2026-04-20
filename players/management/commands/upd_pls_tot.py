@@ -87,14 +87,34 @@ TEAM_ABBR_FROM_NAME = {
 
 
 class Command(BaseCommand):
-    def handle(self, *args, **options):
-        players = list(chain(Goalie.objects.all(), Skater.objects.all()))
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--mode",
+            choices=["full", "current"],
+            default="full",
+            help="Choose update mode: full (default) or current",
+        )
 
-        with requests.Session() as session:
-            for player in tqdm(players):
-                print(f"\n Uploading from {player.name} page")
-                data = get_response(player.nhl_id, session).json()
-                import_player(data, player, session)
+    def handle(self, *args, **options):
+        mode = options.get("mode", "full")
+        if mode == "current":
+            return run_current_mode()
+
+        return run_full_mode()
+
+
+def run_full_mode():
+    players = list(chain(Goalie.objects.all(), Skater.objects.all()))
+
+    with requests.Session() as session:
+        for player in tqdm(players):
+            print(f"\n Uploading from {player.name} page")
+            data = get_response(player.nhl_id, session).json()
+            import_player(data, player, session)
+
+
+def run_current_mode():
+    return run_full_mode()
 
 
 def import_player(data, player, session=None):

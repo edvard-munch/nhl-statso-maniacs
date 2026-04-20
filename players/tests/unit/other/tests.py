@@ -227,6 +227,40 @@ def test_enrich_career_stats_overwrites_when_enabled():
     }
 
 
+def test_upd_pls_tot_routes_to_full_mode(monkeypatch):
+    calls = []
+
+    def fake_full_mode():
+        calls.append("full")
+
+    def fake_current_mode():
+        calls.append("current")
+
+    monkeypatch.setattr(upd_pls_tot, "run_full_mode", fake_full_mode)
+    monkeypatch.setattr(upd_pls_tot, "run_current_mode", fake_current_mode)
+
+    upd_pls_tot.Command().handle(mode="full")
+
+    assert calls == ["full"]
+
+
+def test_upd_pls_tot_routes_to_current_mode(monkeypatch):
+    calls = []
+
+    def fake_full_mode():
+        calls.append("full")
+
+    def fake_current_mode():
+        calls.append("current")
+
+    monkeypatch.setattr(upd_pls_tot, "run_full_mode", fake_full_mode)
+    monkeypatch.setattr(upd_pls_tot, "run_current_mode", fake_current_mode)
+
+    upd_pls_tot.Command().handle(mode="current")
+
+    assert calls == ["current"]
+
+
 # class utilsTests(SimpleTestCase):
 #     def test_time_from_sec(self):
 #         self.assertEqual(utils.time_from_sec(456546), '7609:06')
