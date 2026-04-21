@@ -106,5 +106,13 @@ Open: `http://127.0.0.1:8000/`
 ## Tests
 
 ```bash
-pytest players/tests
+make test
+make test-cov
+make test-ci
+```
+
+Run live external API tests explicitly (for example in nightly jobs):
+
+```bash
+pytest -c players/tests/pytest.ini -m external players/tests/integration
 ```

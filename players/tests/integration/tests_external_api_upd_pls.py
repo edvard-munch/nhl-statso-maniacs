@@ -1,5 +1,10 @@
 from players.management.commands import upd_pls
 
+import pytest
+
+
+pytestmark = [pytest.mark.integration, pytest.mark.external]
+
 START_FROM_INDEX = 0
 
 

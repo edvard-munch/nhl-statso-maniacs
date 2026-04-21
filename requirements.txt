@@ -48,6 +48,7 @@ Pygments==2.4.2
 PyMySQL==0.9.3
 pyparsing==2.4.2
 pytest==5.4.2
+pytest-cov==2.12.1
 pytest-django==3.9.0
 pytz==2023.3
 requests==2.22.0

@@ -1,0 +1,16 @@
+[run]
+branch = True
+source =
+    players
+omit =
+    */migrations/*
+    */tests/*
+    */settings.py
+    */wsgi.py
+    */asgi.py
+    .venv/*
+    venv/*
+
+[report]
+show_missing = True
+skip_covered = False

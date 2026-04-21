@@ -3,6 +3,9 @@ from players.management.commands import upd_gms, upd_pls_proj, upd_pls_sbs, upd_
 import pytest
 
 
+pytestmark = [pytest.mark.integration, pytest.mark.external]
+
+
 def test_keys_response_get_schedule():
     mocked_keys = [
         "date",
