@@ -13,6 +13,7 @@ from . import upd_pls
 
 PLAYER_ENDPOINT_URL = "https://api-web.nhle.com/v1/player/{}/landing"
 STATS_REST_SKATER_URL = "https://api.nhle.com/stats/rest/en/skater/{}"
+STATS_REST_GOALIE_URL = "https://api.nhle.com/stats/rest/en/goalie/{}"
 PLAYERS_PICS_DIR = "players_pics"
 
 INCH_TO_FEET_COEFFICIENT = 12
@@ -29,23 +30,54 @@ NHL_LEAGUE_CODE = "NHL"
 SKATER_REPORT_REALTIME = "realtime"
 SKATER_REPORT_FACEOFF_WINS = "faceoffwins"
 SKATER_REPORT_TIME_ON_ICE = "timeonice"
+GOALIE_REPORT_SUMMARY = "summary"
 STATS_REST_TIMEOUT = 10
 STATS_REST_LIMIT = 250
 CAREER_ENRICHMENT_TOTALS = "totals"
 CAREER_ENRICHMENT_AVERAGES = "averages"
 CURRENT_SEASON_STATS_FIELD_MAP = {
+    "gamesPlayed": "games",
+    "goals": "goals",
+    "assists": "assists",
+    "points": "points",
+    "plusMinus": "plus_minus",
+    "pim": "penalty_min",
+    "shots": "shots",
     "hits": "hits",
     "blocked": "blocks",
     "faceoffsWon": "faceoff_wins",
+    "powerPlayPoints": "pp_points",
+    "shorthandedPoints": "sh_points",
+    "avgToi": "time_on_ice",
     "powerPlayTimeOnIce": "time_on_ice_pp",
     "shortHandedTimeOnIce": "time_on_ice_sh",
 }
 CURRENT_SEASON_AVG_FIELD_MAP = {
+    "gamesPlayed": "games",
+    "goals": "goals_avg",
+    "assists": "assists_avg",
+    "points": "points_avg",
+    "plusMinus": "plus_minus_avg",
+    "pim": "penalty_min_avg",
+    "shots": "shots_avg",
     "hits": "hits_avg",
     "blocked": "blocks_avg",
     "faceoffsWon": "faceoff_wins_avg",
+    "powerPlayPoints": "pp_points_avg",
+    "shorthandedPoints": "sh_points_avg",
+    "avgToi": "time_on_ice",
     "powerPlayTimeOnIce": "time_on_ice_pp",
     "shortHandedTimeOnIce": "time_on_ice_sh",
+}
+GOALIE_CURRENT_SEASON_STATS_FIELD_MAP = {
+    "gamesPlayed": "games",
+    "wins": "wins",
+    "losses": "losses",
+    "otLosses": "ot_losses",
+    "goalsAgainstAvg": "goals_against_av",
+    "savePctg": "saves_perc",
+    "saves": "saves",
+    "shutouts": "shotouts",
 }
 
 TEAM_ABBR_FROM_NAME = {
@@ -104,7 +136,7 @@ class Command(BaseCommand):
 
 
 def run_full_mode():
-    players = list(chain(Goalie.objects.all(), Skater.objects.all()))
+    players = get_all_players()
 
     with requests.Session() as session:
         for player in tqdm(players):
@@ -114,7 +146,114 @@ def run_full_mode():
 
 
 def run_current_mode():
-    return run_full_mode()
+    players = get_all_players()
+
+    with requests.Session() as session:
+        for player in tqdm(players):
+            if isinstance(player, Skater):
+                apply_current_mode_to_skater(player, session)
+            else:
+                apply_current_mode_to_goalie(player, session)
+
+
+def get_all_players():
+    return list(chain(Goalie.objects.all(), Skater.objects.all()))
+
+
+def apply_current_mode_to_skater(player, session=None):
+    updates = get_current_mode_updates_for_skater(player, session)
+    for field, value in updates.items():
+        setattr(player, field, value)
+
+    if updates:
+        player.save(update_fields=list(updates.keys()))
+
+
+def apply_current_mode_to_goalie(player, session=None):
+    updates = get_current_mode_updates_for_goalie(player, session)
+    for field, value in updates.items():
+        setattr(player, field, value)
+
+    if updates:
+        player.save(update_fields=list(updates.keys()))
+
+
+def get_current_mode_updates_for_skater(player, session=None):
+    sbs_stats = copy.deepcopy(player.sbs_stats or [])
+    sbs_stats_avg = copy.deepcopy(player.sbs_stats_avg or [])
+    career_stats = copy.deepcopy(player.career_stats or {})
+    career_stats_avg = copy.deepcopy(player.career_stats_avg or {})
+
+    career_enrichment = get_skater_career_enrichment(player, session)
+
+    sbs_stats = enrich_current_season_stats_from_player(
+        sbs_stats,
+        player,
+        CURRENT_SEASON_STATS_FIELD_MAP,
+        overwrite_existing=True,
+    )
+
+    if not sbs_stats_avg and sbs_stats:
+        sbs_stats_avg = get_season_by_season_average_stats(copy.deepcopy(sbs_stats))
+
+    sbs_stats_avg = enrich_current_season_stats_from_player(
+        sbs_stats_avg,
+        player,
+        CURRENT_SEASON_AVG_FIELD_MAP,
+        overwrite_existing=True,
+    )
+
+    career_stats = enrich_career_stats(career_stats, career_enrichment, CAREER_ENRICHMENT_TOTALS)
+
+    if not career_stats_avg and career_stats:
+        career_stats_avg = get_career_average_stats(copy.deepcopy(career_stats))
+
+    career_stats_avg = enrich_career_stats(
+        career_stats_avg,
+        career_enrichment,
+        CAREER_ENRICHMENT_AVERAGES,
+        overwrite_existing=True,
+    )
+
+    seasons_count = collections.Counter(item["season"] for item in sbs_stats) if sbs_stats else {}
+    multiteams_seasons = {key: value for key, value in seasons_count.items() if value > 1}
+
+    return {
+        "career_stats": career_stats,
+        "career_stats_avg": career_stats_avg,
+        "sbs_stats": sbs_stats,
+        "sbs_stats_avg": sbs_stats_avg,
+        "multiteams_seasons": multiteams_seasons,
+    }
+
+
+def get_current_mode_updates_for_goalie(player, session=None):
+    sbs_stats = copy.deepcopy(player.sbs_stats or [])
+    career_stats = copy.deepcopy(player.career_stats or {})
+
+    sbs_stats = enrich_current_season_stats_from_player(
+        sbs_stats,
+        player,
+        GOALIE_CURRENT_SEASON_STATS_FIELD_MAP,
+        overwrite_existing=True,
+    )
+
+    career_enrichment = get_goalie_career_enrichment(player, session)
+    career_stats = enrich_career_stats(
+        career_stats,
+        career_enrichment,
+        CAREER_ENRICHMENT_TOTALS,
+        overwrite_existing=True,
+    )
+
+    seasons_count = collections.Counter(item["season"] for item in sbs_stats) if sbs_stats else {}
+    multiteams_seasons = {key: value for key, value in seasons_count.items() if value > 1}
+
+    return {
+        "career_stats": career_stats,
+        "sbs_stats": sbs_stats,
+        "multiteams_seasons": multiteams_seasons,
+    }
 
 
 def import_player(data, player, session=None):
@@ -416,6 +555,37 @@ def get_skater_career_enrichment(player, session=None):
     return career_enrichment
 
 
+def get_goalie_career_enrichment(player, session=None):
+    career_enrichment = {
+        CAREER_ENRICHMENT_TOTALS: {},
+    }
+
+    summary_rows = get_goalie_stats_rest_rows(
+        GOALIE_REPORT_SUMMARY,
+        player.nhl_id,
+        session,
+        aggregate=True,
+    )
+    if not summary_rows:
+        return career_enrichment
+
+    row = summary_rows[0]
+    career_enrichment[CAREER_ENRICHMENT_TOTALS].update(
+        {
+            "gamesPlayed": row.get("gamesPlayed"),
+            "wins": row.get("wins"),
+            "losses": row.get("losses"),
+            "otLosses": row.get("otLosses"),
+            "goalsAgainstAvg": row.get("goalsAgainstAverage"),
+            "savePctg": row.get("savePct"),
+            "saves": row.get("saves"),
+            "shutouts": row.get("shutouts"),
+        }
+    )
+
+    return career_enrichment
+
+
 def get_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
     client = session or requests
     params = {
@@ -429,6 +599,29 @@ def get_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
     try:
         response = client.get(
             STATS_REST_SKATER_URL.format(report_type),
+            params=params,
+            timeout=STATS_REST_TIMEOUT,
+        )
+        response.raise_for_status()
+    except requests.RequestException:
+        return []
+
+    return response.json().get("data", [])
+
+
+def get_goalie_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
+    client = session or requests
+    params = {
+        "isAggregate": "true" if aggregate else "false",
+        "isGame": "false",
+        "limit": STATS_REST_LIMIT,
+        "start": 0,
+        "cayenneExp": f"gameTypeId={REGULAR_SEASON_CODE} and playerId={player_id}",
+    }
+
+    try:
+        response = client.get(
+            STATS_REST_GOALIE_URL.format(report_type),
             params=params,
             timeout=STATS_REST_TIMEOUT,
         )

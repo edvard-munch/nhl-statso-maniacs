@@ -261,6 +261,144 @@ def test_upd_pls_tot_routes_to_current_mode(monkeypatch):
     assert calls == ["current"]
 
 
+def test_run_current_mode_does_not_use_landing_endpoint(monkeypatch):
+    skater = upd_pls_tot.Skater(
+        nhl_id=1,
+        slug="test-player",
+        name="Test Player",
+        position_abbr="C",
+        time_on_ice="00:00",
+        time_on_ice_pp="00:00",
+        time_on_ice_sh="00:00",
+    )
+    goalie = upd_pls_tot.Goalie(
+        nhl_id=2,
+        slug="test-goalie",
+        name="Test Goalie",
+        position_abbr="G",
+    )
+    calls = []
+
+    monkeypatch.setattr(upd_pls_tot, "get_all_players", lambda: [skater, goalie])
+    monkeypatch.setattr(
+        upd_pls_tot,
+        "apply_current_mode_to_skater",
+        lambda player, session=None: calls.append(("skater", player.nhl_id)),
+    )
+    monkeypatch.setattr(
+        upd_pls_tot,
+        "apply_current_mode_to_goalie",
+        lambda player, session=None: calls.append(("goalie", player.nhl_id)),
+    )
+
+    def fail_if_called(*args, **kwargs):
+        raise AssertionError("landing endpoint should not be called in current mode")
+
+    monkeypatch.setattr(upd_pls_tot, "get_response", fail_if_called)
+
+    upd_pls_tot.run_current_mode()
+
+    assert calls == [("skater", 1), ("goalie", 2)]
+
+
+def test_get_current_mode_updates_for_skater_uses_aggregate_and_current_season_enrichment(
+    monkeypatch,
+):
+    skater = upd_pls_tot.Skater(
+        nhl_id=8477933,
+        slug="sam-reinhart",
+        name="Sam Reinhart",
+        position_abbr="C",
+        time_on_ice="19:39",
+        time_on_ice_pp="03:15",
+        time_on_ice_sh="01:51",
+        stats_season_id="20252026",
+        hits=37,
+        blocks=65,
+        faceoff_wins=723,
+        hits_avg=0.46,
+        blocks_avg=0.80,
+        faceoff_wins_avg=8.93,
+        sbs_stats=[
+            {"season": "2024-25", "gamesPlayed": 80, "hits": None},
+            {"season": "2025-26", "gamesPlayed": 81, "hits": None},
+        ],
+        sbs_stats_avg=[
+            {"season": "2024-25", "gamesPlayed": 80, "hits": None},
+            {"season": "2025-26", "gamesPlayed": 81, "hits": 99},
+        ],
+        career_stats={"gamesPlayed": 839, "hits": None},
+        career_stats_avg={"avgToi": "17:12"},
+    )
+
+    monkeypatch.setattr(
+        upd_pls_tot,
+        "get_skater_career_enrichment",
+        lambda player, session=None: {
+            upd_pls_tot.CAREER_ENRICHMENT_TOTALS: {"hits": 534},
+            upd_pls_tot.CAREER_ENRICHMENT_AVERAGES: {"powerPlayTimeOnIcePerGame": "03:15"},
+        },
+    )
+
+    updates = upd_pls_tot.get_current_mode_updates_for_skater(skater)
+
+    assert updates["career_stats"]["hits"] == 534
+    assert updates["career_stats_avg"]["powerPlayTimeOnIcePerGame"] == "03:15"
+    assert updates["sbs_stats"][0]["hits"] is None
+    assert updates["sbs_stats"][1]["hits"] == 37
+    assert updates["sbs_stats_avg"][0]["hits"] is None
+    assert updates["sbs_stats_avg"][1]["hits"] == 0.46
+
+
+def test_get_current_mode_updates_for_goalie_updates_current_season_and_career(monkeypatch):
+    goalie = upd_pls_tot.Goalie(
+        nhl_id=8475883,
+        slug="carey-price",
+        name="Carey Price",
+        position_abbr="G",
+        stats_season_id="20252026",
+        games=24,
+        wins=13,
+        losses=8,
+        ot_losses=3,
+        goals_against_av=2.95,
+        saves_perc=0.895,
+        saves=598,
+        shotouts=0,
+        sbs_stats=[
+            {"season": "2024-25", "gamesPlayed": 40, "wins": 20},
+            {"season": "2025-26", "gamesPlayed": 10, "wins": 1},
+        ],
+        career_stats={"gamesPlayed": 500, "wins": 300},
+    )
+
+    monkeypatch.setattr(
+        upd_pls_tot,
+        "get_goalie_career_enrichment",
+        lambda player, session=None: {
+            upd_pls_tot.CAREER_ENRICHMENT_TOTALS: {
+                "gamesPlayed": 552,
+                "wins": 324,
+                "losses": 149,
+                "otLosses": 58,
+                "goalsAgainstAvg": 2.588,
+                "savePctg": 0.913,
+                "saves": 14476,
+                "shutouts": 28,
+            }
+        },
+    )
+
+    updates = upd_pls_tot.get_current_mode_updates_for_goalie(goalie)
+
+    assert updates["sbs_stats"][0]["wins"] == 20
+    assert updates["sbs_stats"][1]["gamesPlayed"] == 24
+    assert updates["sbs_stats"][1]["wins"] == 13
+    assert updates["sbs_stats"][1]["otLosses"] == 3
+    assert updates["career_stats"]["gamesPlayed"] == 552
+    assert updates["career_stats"]["savePctg"] == 0.913
+
+
 # class utilsTests(SimpleTestCase):
 #     def test_time_from_sec(self):
 #         self.assertEqual(utils.time_from_sec(456546), '7609:06')
