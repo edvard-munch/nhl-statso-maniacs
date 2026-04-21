@@ -67,13 +67,19 @@ python manage.py createsuperuser
 
 ## Populate NHL Data
 
-Run update commands in this order:
+Run update commands in this order for regular updates:
 
 ```bash
 python manage.py upd_tms
 python manage.py upd_pls
-python manage.py upd_pls_tot
+python manage.py upd_pls_tot --mode=current
 python manage.py upd_gms
+```
+
+Run a full player totals rebuild only when needed:
+
+```bash
+python manage.py upd_pls_tot --mode=full
 ```
 
 Optional projection update:
@@ -81,6 +87,13 @@ Optional projection update:
 ```bash
 python manage.py upd_pls_proj
 ```
+
+## Update Cadence
+
+- `upd_tms`: run weekly to keep team metadata current.
+- `upd_pls`, `upd_gms`: run frequently (for example daily).
+- `upd_pls_tot --mode=current`: run frequently to refresh current-season and career aggregates without heavy landing calls.
+- `upd_pls_tot --mode=full`: run occasionally for historical refresh/backfill.
 
 ## Run Development Server
 
