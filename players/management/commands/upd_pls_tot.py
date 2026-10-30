@@ -390,7 +390,7 @@ def get_season_by_season_average_stats(nhl_regular_seasons_data):
 
 
 def get_average(stat, stats_tot_avg):
-    return round(stats_tot_avg[stat] / stats_tot_avg["gamesPlayed"], 2)
+    return safe_per_game(stats_tot_avg.get(stat), stats_tot_avg.get("gamesPlayed"))
 
 
 def get_position_abbreviation(position_code):
