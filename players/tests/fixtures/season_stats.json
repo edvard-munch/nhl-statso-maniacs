@@ -1,0 +1,368 @@
+{
+  "requested_season_id": "20262027",
+  "requested_season": "2026-27",
+  "cases": {
+    "old_season_only": {
+      "position_code": "D",
+      "snapshot": {
+        "stats_season_id": "20252026",
+        "games": 80,
+        "goals": 20
+      },
+      "landing_season_totals": [
+        {
+          "season": 20252026,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 80,
+          "goals": 20,
+          "assists": 30,
+          "points": 50,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00",
+          "hits": 60,
+          "blocked": 40,
+          "faceoffsWon": 0,
+          "powerPlayTimeOnIce": "02:00",
+          "shortHandedTimeOnIce": "01:00"
+        }
+      ],
+      "expected": {
+        "current_totals": null,
+        "current_averages": null
+      }
+    },
+    "current_skater": {
+      "position_code": "D",
+      "snapshot": {
+        "stats_season_id": "20262027",
+        "games": 10,
+        "goals": 20
+      },
+      "landing_season_totals": [
+        {
+          "season": 20252026,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 80,
+          "goals": 20,
+          "assists": 30,
+          "points": 50,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00",
+          "hits": 60,
+          "blocked": 40,
+          "faceoffsWon": 0,
+          "powerPlayTimeOnIce": "02:00",
+          "shortHandedTimeOnIce": "01:00"
+        },
+        {
+          "season": 20262027,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 10,
+          "goals": 2,
+          "assists": 3,
+          "points": 5,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00",
+          "hits": 8,
+          "blocked": 5,
+          "faceoffsWon": 0,
+          "powerPlayTimeOnIce": "01:30",
+          "shortHandedTimeOnIce": "00:30"
+        },
+        {
+          "season": 20262027,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 3,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 2,
+          "goals": 9,
+          "assists": 9,
+          "points": 18,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00"
+        },
+        {
+          "season": 20262027,
+          "leagueAbbrev": "AHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 2,
+          "goals": 8,
+          "assists": 8,
+          "points": 16,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00"
+        }
+      ],
+      "expected": {
+        "current_totals": {
+          "games": 10,
+          "goals": 2,
+          "assists": 3,
+          "points": 5,
+          "plus_minus": -2,
+          "penalty_min": 6,
+          "shots": 30,
+          "hits": 8,
+          "blocks": 5,
+          "faceoff_wins": 0,
+          "pp_points": 2,
+          "sh_points": 0,
+          "time_on_ice": "18:00",
+          "time_on_ice_pp": "01:30",
+          "time_on_ice_sh": "00:30"
+        },
+        "current_averages": {
+          "games": 10,
+          "goals_avg": 0.2,
+          "assists_avg": 0.3,
+          "points_avg": 0.5,
+          "plus_minus_avg": -0.2,
+          "penalty_min_avg": 0.6,
+          "shots_avg": 3.0,
+          "hits_avg": 0.8,
+          "blocks_avg": 0.5,
+          "faceoff_wins_avg": 0.0,
+          "pp_points_avg": 0.2,
+          "sh_points_avg": 0.0,
+          "time_on_ice": "18:00",
+          "time_on_ice_pp": "01:30",
+          "time_on_ice_sh": "00:30"
+        }
+      }
+    },
+    "traded_skater": {
+      "position_code": "C",
+      "snapshot": {
+        "stats_season_id": "20262027",
+        "games": 10,
+        "goals": 4,
+        "team_abbr": "BUF"
+      },
+      "landing_season_totals": [
+        {
+          "season": 20262027,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Colorado Avalanche"
+          },
+          "gamesPlayed": 4,
+          "goals": 1,
+          "assists": 2,
+          "points": 3,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00",
+          "hits": 8,
+          "blocked": 4,
+          "faceoffsWon": 12,
+          "powerPlayTimeOnIce": "02:00",
+          "shortHandedTimeOnIce": "01:00"
+        },
+        {
+          "season": 20262027,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 6,
+          "goals": 3,
+          "assists": 3,
+          "points": 6,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "20:00",
+          "hits": 6,
+          "blocked": 3,
+          "faceoffsWon": 6,
+          "powerPlayTimeOnIce": "03:00",
+          "shortHandedTimeOnIce": "00:30"
+        }
+      ],
+      "expected": {
+        "current_totals": {
+          "games": 10,
+          "goals": 4,
+          "assists": 5,
+          "points": 9,
+          "hits": 14,
+          "blocks": 7,
+          "faceoff_wins": 18,
+          "time_on_ice": "19:12",
+          "time_on_ice_pp": "02:36",
+          "time_on_ice_sh": "00:42"
+        },
+        "current_averages": {
+          "goals_avg": 0.4,
+          "assists_avg": 0.5,
+          "points_avg": 0.9,
+          "hits_avg": 1.4,
+          "blocks_avg": 0.7,
+          "faceoff_wins_avg": 1.8
+        },
+        "team_totals": {
+          "COL": {
+            "games": 4,
+            "goals": 1,
+            "points": 3,
+            "hits": 8
+          },
+          "BUF": {
+            "games": 6,
+            "goals": 3,
+            "points": 6,
+            "hits": 6
+          }
+        }
+      }
+    },
+    "current_goalie": {
+      "position_code": "G",
+      "snapshot": {
+        "stats_season_id": "20252026",
+        "games": 50,
+        "wins": 30
+      },
+      "landing_season_totals": [
+        {
+          "season": 20262027,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 4,
+          "wins": 2,
+          "losses": 1,
+          "otLosses": 1,
+          "goalsAgainstAvg": 2.5,
+          "savePctg": 0.9,
+          "shotsAgainst": 100,
+          "goalsAgainst": 10,
+          "shutouts": 0
+        }
+      ],
+      "expected": {
+        "current_totals": {
+          "games": 4,
+          "wins": 2,
+          "losses": 1,
+          "ot_losses": 1,
+          "goals_against_av": 2.5,
+          "saves_perc": 0.9,
+          "saves": 90,
+          "shotouts": 0
+        }
+      }
+    },
+    "missing_enrichment": {
+      "position_code": "D",
+      "snapshot": {
+        "stats_season_id": "20262027",
+        "games": 5,
+        "hits": 60,
+        "blocks": 40,
+        "faceoff_wins": 100,
+        "time_on_ice_pp": "02:00",
+        "time_on_ice_sh": "01:00"
+      },
+      "landing_season_totals": [
+        {
+          "season": 20262027,
+          "leagueAbbrev": "NHL",
+          "gameTypeId": 2,
+          "teamName": {
+            "default": "Buffalo Sabres"
+          },
+          "gamesPlayed": 5,
+          "goals": 0,
+          "assists": 2,
+          "points": 2,
+          "plusMinus": -2,
+          "pim": 6,
+          "shots": 30,
+          "powerPlayPoints": 2,
+          "shorthandedPoints": 0,
+          "avgToi": "18:00",
+          "blocked": null
+        }
+      ],
+      "stats_rest_responses": {
+        "realtime": {
+          "data": []
+        },
+        "faceoffwins": {
+          "data": []
+        },
+        "timeonice": {
+          "data": []
+        }
+      },
+      "expected": {
+        "current_totals": {
+          "games": 5,
+          "goals": 0,
+          "assists": 2,
+          "points": 2,
+          "hits": null,
+          "blocks": null,
+          "faceoff_wins": null,
+          "time_on_ice_pp": null,
+          "time_on_ice_sh": null
+        },
+        "current_averages": {
+          "goals_avg": 0.0,
+          "assists_avg": 0.4,
+          "points_avg": 0.4,
+          "hits_avg": null,
+          "blocks_avg": null,
+          "faceoff_wins_avg": null
+        }
+      }
+    }
+  }
+}
