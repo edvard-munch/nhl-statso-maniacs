@@ -68,8 +68,9 @@ non-finite or boolean statistics are treated as unavailable, not coerced.
 The reader cannot repair previously contaminated enrichment values or identify
 which fields were copied from an old snapshot. The loaders now replace refreshed
 seasons with report-derived rows; untouched historical rows may still need a full
-refresh. See [loader behavior](season-statistics-loaders.md). The helper does not implement database
-sorting, filtering or pagination; those belong to the later page integration.
+refresh. See [loader behavior](season-statistics-loaders.md). The pure reader does
+not access the database. The [Players table integration](players-season-table.md)
+now projects its results for filtering, sorting and pagination.
 
 Run the reader tests using the existing Python 3.7 virtual environment:
 

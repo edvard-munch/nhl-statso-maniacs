@@ -70,7 +70,8 @@ key describes a different concept and must not substitute for that split.
 
 - The shared reader tests now verify combined traded-player totals, missing
   seasons, and missing-enrichment values against these expectations. Page
-  integration is still pending; current pages do not use the reader yet.
+  integration is complete for the [Players table](players-season-table.md);
+  team pages and saved-player tables remain separate work.
 - Loaders now create missing season rows and replace refreshed seasons directly
   from reports, including team-scoped contributions and all counting averages.
   Their synthetic source responses are in `season_reports.json`, with separate

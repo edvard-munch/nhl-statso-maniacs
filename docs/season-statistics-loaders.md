@@ -65,8 +65,9 @@ to refresh the historical seasons returned by the NHL reports.
 The legacy season parser/enrichment helpers remain available for their existing
 callers and tests; these commands no longer use snapshot-to-SBS copying or
 season-only enrichment. No model or migration changes are part of this step.
-Existing pages still use their current data sources until their integration
-commits.
+The Players table now uses the shared reader; see
+[its season-selection and filtering behavior](players-season-table.md). Other
+page integrations remain separate commits.
 
 ## Regression checks
 

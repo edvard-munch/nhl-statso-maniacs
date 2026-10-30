@@ -4,6 +4,35 @@
 // http://127.0.0.1:8000/ajax_players/tot/page=1/size=25/col/fcol/rookie_filter=/teams_filter=CAR
 
 let statType = 'tot';
+let activePlayersTable = 'skaters_table';
+
+function withSelectedSeason(url) {
+  const season = $('#players-season').attr('data-season');
+  if (!season) return url;
+  return url + (url.includes('?') ? '&' : '?') + 'season=' + encodeURIComponent(season);
+}
+
+function updateEmptyMessage(tableId, data) {
+  const message = $('#' + (tableId === 'skaters_table' ? 'skaters-empty' : 'goalies-empty'));
+  message.text(data.empty_message).data('empty', data.total === 0);
+  message.prop('hidden', tableId !== activePlayersTable || data.total !== 0);
+}
+
+function activatePlayersTable(tableId) {
+  activePlayersTable = tableId;
+  $('#skaters-empty').prop('hidden', tableId !== 'skaters_table' || !$('#skaters-empty').data('empty'));
+  $('#goalies-empty').prop('hidden', tableId !== 'goalies_table' || !$('#goalies-empty').data('empty'));
+}
+
+function updatePlayersFilters(data, suffix) {
+  for (const key of ['teams', 'nations', 'positions']) {
+    $('#' + key).html(data['all_' + key].replace(/_checkboxradio_skt/g, '_checkboxradio_' + suffix));
+  }
+  $('.checkbox_button').checkboxradio({ icon: false });
+  set_to_widest($('#teams'));
+  set_to_widest($('#nations'));
+  set_to_widest($('#positions'));
+}
 $(".js_rookie_filter_gls").hide();
 $('.js_reset_goalies').hide();
 $("#js_external_filter_goalies").hide();
@@ -72,6 +101,7 @@ function adjustUrl(url, table) {
 };
 
 function togglePager(filteredRows, pager, table, select) {
+  table.toggle(filteredRows > 0);
   if (filteredRows <= 25) {
     pager.hide();
     if (filteredRows < 1) {
@@ -142,7 +172,7 @@ $("#skaters_table")
     size: 25,
     output: '{page} / {totalPages}',
     savePages: false,
-    ajaxUrl: 'http://127.0.0.1:8000/ajax_players?/page={page+1}/size={size}/{sort:col}/{filter:fcol}',
+    ajaxUrl: '/ajax_players?/page={page+1}/size={size}/{sort:col}/{filter:fcol}',
     customAjaxUrl: function(table, url) {
       let addUrl = '';
 
@@ -199,11 +229,13 @@ $("#skaters_table")
             url += '/checkbox_filter=/'
          };
 
-         return url;
+         return withSelectedSeason(url);
     },
 
     ajaxObject: {
         success: function(data) {
+        updateEmptyMessage('skaters_table', data);
+        if (activePlayersTable !== 'skaters_table') return;
         $(data['fav_alert_div']).prependTo('body');
         // console.log(data['age_range'])
         // console.log(data['weight_range'])
@@ -217,15 +249,7 @@ $("#skaters_table")
         // it needs to be ran when you updated your filter, hence sending AJAX request
         // SOMEHOW catch which slider have been actually slided, use mousehover, keyup or something
 
-        $('#teams').html(data['all_teams']); //IT'S probably rewrites changed class for goalies team filters
-        $('#nations').html(data['all_nations']);
-        $('#positions').html(data['all_positions']);
-
-        $(".checkbox_button").checkboxradio( { icon:false } );
-
-        set_to_widest($('#teams'));
-        set_to_widest($('#nations'));
-        set_to_widest($('#positions'));
+        updatePlayersFilters(data, 'skt');
 
         sliderFilter(data['initial_age_range'], data['age_range'], "#age", "#age-range")
         sliderFilter(data['initial_weight_range'], data['weight_range'], "#weight", "#weight-range")
@@ -286,7 +310,7 @@ $("#goalies_table")
   output: '{page} / {totalPages}',
   savePages: false,
   fixedHeight: false,
-  ajaxUrl: 'http://127.0.0.1:8000/ajax_players/gls/page={page+1}/size={size}/{sort:col}/{filter:fcol}',
+  ajaxUrl: '/ajax_players/gls/page={page+1}/size={size}/{sort:col}/{filter:fcol}',
   customAjaxUrl: function(table, url) {
     url = adjustUrl(url, $("#goalies_table"));
 
@@ -296,16 +320,19 @@ $("#goalies_table")
           url += '/rookie_filter=';
   };
      if ($("#goalies_table").data('team_checkboxradio')) {
-      url += '/checkbox_filter=' + $("#goalies_table").data('team_checkboxradio') + '/'; 
+      url += '/checkbox_filter=' + JSON.stringify($("#goalies_table").data('team_checkboxradio')) + '/';
    } else {
       url += '/checkbox_filter=/'
    };
 
-   return url
+   return withSelectedSeason(url);
    },
 
   ajaxObject: {
       success: function(data) {
+        updateEmptyMessage('goalies_table', data);
+        if (activePlayersTable !== 'goalies_table') return;
+        updatePlayersFilters(data, 'gls');
         $(data['fav_alert_div']).prependTo('body');
 
         sliderFilter(data['initial_age_range'], data['age_range'], "#age", "#age-range")
@@ -371,7 +398,9 @@ $('body').on('change', '.team_checkboxradio_skt', {'table': $("#skaters_table"),
 $('body').on('change', '.nation_checkboxradio_skt', {'table': $("#skaters_table"), 'array': nations, 'key': 'nations'}, checkbox);
 $('body').on('change', '.position_checkboxradio_skt', {'table': $("#skaters_table"), 'array': positions, 'key': 'positions'}, checkbox);
 
-$('body').on('change', '.team_checkboxradio_gls', {'table': $("#goalies_table"), 'array': teams, 'column': 'team_checkboxradio'}, checkbox);
+$('body').on('change', '.team_checkboxradio_gls', {'table': $("#goalies_table"), 'array': teams, 'key': 'teams'}, checkbox);
+$('body').on('change', '.nation_checkboxradio_gls', {'table': $("#goalies_table"), 'array': nations, 'key': 'nations'}, checkbox);
+$('body').on('change', '.position_checkboxradio_gls', {'table': $("#goalies_table"), 'array': positions, 'key': 'positions'}, checkbox);
 
 function checkbox(event){
   if (event.target.checked) {
@@ -401,6 +430,9 @@ $('body').on('click', '.js_reset_skaters', {'table': '#skaters_table', 'filter':
 
 
 $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.js_rookie_filter_gls'}, resetRookieFilter);
+$('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.team_checkboxradio_gls', array: teams, key: 'teams'}, resetCheckboxFilter);
+$('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.nation_checkboxradio_gls', array: nations, key: 'nations'}, resetCheckboxFilter);
+$('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.position_checkboxradio_gls', array: positions, key: 'positions'}, resetCheckboxFilter);
 // $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.team_checkboxradio_gls', array: 'teams'}, resetCheckboxFilter);
 // $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.nation_checkboxradio_skt', array: 'nations'}, resetCheckboxFilter);
 // $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.position_checkboxradio_skt', array: 'positions'}, resetCheckboxFilter);
@@ -410,6 +442,7 @@ $('body').on('click', '.js_reset_goalies', {table: '#goalies_table', filter: '.j
 // and there is 2 calls when you add a reset skaters button, strangely for BOTH tables
 // THE REASON IS HTML REWRITING TEAMS FROM AJAX callback function
 $('body').on('click', '#js_gls_stats', function(){
+  activatePlayersTable('goalies_table');
   // $('.js_reset_skaters').click(); // gls classes switches back to skt AS a RESULT of resetting skaters table
   $('.search_skaters').toggleClass("search_skaters search_goalies");
 
@@ -433,6 +466,7 @@ $('body').on('click', '#js_gls_stats', function(){
 });
 
 $('body').on('click', '#js_skaters_stats', function(){
+  activatePlayersTable('skaters_table');
   statType = 'tot';
   $('.js_reset_goalies').click();
   $('.search_goalies').toggleClass('search_goalies search_skaters');
@@ -476,7 +510,16 @@ $('body').on('close.bs.alert', '#pls-fav-alert', function(event) {
 // or parse the values in django
 function sliderFilter(min_max, values, label, sliderObject, optional_obj=false) {
 
+  if (min_max[0] == null || min_max[1] == null || values[0] == null || values[1] == null) {
+    $(label).val('');
+    if ($(sliderObject).hasClass('ui-slider')) {
+      $(sliderObject).slider('disable');
+    }
+    return;
+  }
+
   $(sliderObject).slider({
+    disabled: false,
     range: true,
     min: min_max[0],
     max: min_max[1],

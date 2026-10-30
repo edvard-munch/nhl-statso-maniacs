@@ -3,11 +3,11 @@ import os
 from itertools import chain
 
 from django.core import serializers
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 
-from . import utils
+from . import player_table, utils
 from .forms import NoteForm, PositionsForm
 from .models import Game, Gameday, Goalie, Note, Position, Skater, Team
 
@@ -112,10 +112,20 @@ def auth_callback(request):
 
 
 def players(request):
+    seasons = player_table.available_seasons()
+    try:
+        season = player_table.selected_season(request.GET.get("season"), seasons)
+    except ValueError as error:
+        return HttpResponseBadRequest(str(error), content_type="text/plain")
+    if season and season not in seasons:
+        seasons = sorted(seasons + [season], reverse=True)
     context = {
         "title": "Players",
         "options": utils.PAGE_SIZE_OPTIONS,
         "table_page_size": utils.PAGE_SIZE_2,
+        "season_id": season or "",
+        "season_label": player_table.season_label(season),
+        "season_options": [(value, player_table.season_label(value)) for value in seasons],
     }
 
     return render(request, "players/players.html", context)
@@ -221,6 +231,23 @@ def get_latest_loaded_season_id():
 def ajax_players(
     request, stat_type, page, size, sort_col, filt_col, rookie_filt, checkbox_filt, fav_filt=None
 ):
+    if not (request.user.is_authenticated and fav_filt):
+        try:
+            season = player_table.selected_season(request.GET.get("season"))
+            data = player_table.build_table(
+                request,
+                season,
+                stat_type,
+                page,
+                size,
+                sort_col,
+                filt_col,
+                rookie_filt,
+                checkbox_filt,
+            )
+        except (ValueError, TypeError) as error:
+            return JsonResponse({"error": str(error)}, status=400)
+        return JsonResponse(data)
     page = utils.parse_url_param(page)
     user = request.user
     favorites = False

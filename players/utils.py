@@ -351,10 +351,10 @@ def process_json(request, columns, domain, json, total_rows, start):
                     tip = "Undrafted"
                     player["fields"][column] = make_tooltip(value, tip)
 
-            if column == COLUMNS_GOALIES[3]:
+            if column == COLUMNS_GOALIES[3] and player["fields"][column] is not None:
                 player["fields"][column] = "%.2f" % player["fields"][column]
 
-            if column == COLUMNS_GOALIES[4]:
+            if column == COLUMNS_GOALIES[4] and player["fields"][column] is not None:
                 player["fields"][column] = "%.3f" % player["fields"][column]
 
             if player["fields"][column] is None:

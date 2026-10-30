@@ -13,6 +13,19 @@
 
 {% block content %}
 
+<h1>Players</h1>
+<form method="get">
+  <label for="players-season">Season</label>
+  <select id="players-season" name="season" data-season="{{ season_id }}">
+    {% for value, label in season_options %}
+      <option value="{{ value }}"{% if value == season_id %} selected{% endif %}>{{ label }}</option>
+    {% empty %}
+      <option value="">No seasons loaded</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Show season</button>
+</form>
+
 {% include 'players/players_filters.html' %}
 
 <div class="button-table-container">
@@ -36,6 +49,7 @@
   <!-- AJAX -->
 </tbody>
 </table>
+<p id="skaters-empty" role="status" hidden></p>
 
 <!-- GOALIES -->
 <table id="goalies_table" class="tablesorter sortable">
@@ -52,6 +66,7 @@
   <!-- AJAX -->
 </tbody>
 </table>
+<p id="goalies-empty" role="status" hidden></p>
 </div>
 
 {% endblock content %}
