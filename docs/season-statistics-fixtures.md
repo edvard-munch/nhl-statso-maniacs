@@ -14,7 +14,9 @@ python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_seas
 
 These tests use the existing season parser, average calculator, and mocked
 stats/rest responses. They require neither a database connection nor network
-access. They do not exercise page queries or introduce a season-statistics reader.
+access. They do not exercise page queries. The shared reader has a separate suite
+in `players/tests/unit/other/tests_season_stats_reader.py`, using the same fixtures;
+see [its contract](season-statistics-reader.md).
 
 ## Scenarios and expected table behavior
 
@@ -66,17 +68,17 @@ key describes a different concept and must not substitute for that split.
 
 ## Known limitations reserved for subsequent commits
 
-- A shared season reader and page integration do not exist yet. Expected combined
-  traded-player totals, missing-season display, and snapshot independence are
-  acceptance data for those changes, not claims that the current pages pass them.
+- The shared reader tests now verify combined traded-player totals, missing
+  seasons, and missing-enrichment values against these expectations. Page
+  integration is still pending; current pages do not use the reader yet.
 - Current-mode updates cannot create missing season rows and copy ordinary player
   columns into the existing current-season row. Stale snapshot values can still
   reach SBS. The missing-enrichment test exercises the historical report path,
   which avoids that copying.
 - Enrichment is indexed by season rather than season and team. Multiple team
   responses can overwrite each other or enrich multiple splits with the same
-  values. The traded fixture tests preservation of landing splits; it does not
-  certify enrichment or overall aggregation.
+  values. The parser and reader tests verify preservation and combination of
+  supplied splits; they do not certify the upstream enrichment.
 - `get_season_by_season_average_stats` converts core counts only. Other counting
   averages require enrichment or a future complete conversion step.
 - Existing full-suite collection, request-mock and database-isolation problems
