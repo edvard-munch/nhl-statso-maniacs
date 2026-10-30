@@ -3,12 +3,13 @@
     <td></td>
     <td>
       <div id="favorite_section">
-        {% if goalie in favorites %}
+        {% if goalie.is_favorite %}
           <a class="js-fav-del" href="{% url 'player_favorite' goalie.slug goalie.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
         {% else %}
           <a class="js-fav-add" href="{% url 'player_favorite' goalie.slug goalie.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
         {% endif %}
       </div>
+    </td>
     <td>#{{ goalie.pl_number }}</td>
     <td class="name"><a class="name" href="{% url 'player_detail' goalie.slug goalie.nhl_id %}">{{ goalie.name }}</td>
     <td>{{ goalie.position_abbr }}</td>
@@ -29,13 +30,13 @@
       <span class="css-tooltip cell-tooltip ">Undrafted</span>
     </td>
     {% endif %}
-    <td>{{ goalie.games }}</td>
-    <td>{{ goalie.wins }}</td>
-    <td>{{ goalie.losses }}</td>
-    <td>{{ goalie.ot_losses }}</td>
-    <td>{{ goalie.goals_against_av|floatformat:2 }}</td>
-    <td>{{ goalie.saves_perc|floatformat:3 }}</td>
-    <td>{{ goalie.saves }}</td>
-    <td>{{ goalie.shotouts }}</td>
-{% endfor %}
+    <td>{{ goalie.games|default_if_none:"—" }}</td>
+    <td>{{ goalie.wins|default_if_none:"—" }}</td>
+    <td>{{ goalie.losses|default_if_none:"—" }}</td>
+    <td>{{ goalie.ot_losses|default_if_none:"—" }}</td>
+    <td>{{ goalie.goals_against_av|floatformat:2|default:"—" }}</td>
+    <td>{{ goalie.saves_perc|floatformat:3|default:"—" }}</td>
+    <td>{{ goalie.saves|default_if_none:"—" }}</td>
+    <td>{{ goalie.shotouts|default_if_none:"—" }}</td>
   </tr>
+{% endfor %}

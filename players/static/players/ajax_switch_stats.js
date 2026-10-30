@@ -1,166 +1,82 @@
-// DEFS
 $(function () {
-$('body').on('click', '#js_switch_to_avg_defencemen', function() {
-  var btn = $(this);
-  url = btn.attr('href').replace('default', 'd')
-  $.ajax({
-    type: 'GET',
-    url: url,
-    success: function(data) {
-      $("#tab2 tbody").html(data.stats);
-      $("#tab2").trigger("update");
-      $('#js_switch_to_avg_defencemen').html('See total stats')
-      $('#js_switch_to_avg_defencemen').attr('id', 'js_switch_to_tot_defencemen')
-    }
-    });
-    return false;
+  const root = $('#team-season-tables');
+  const defence = $('#js_defencemen_sect');
+  const forwards = $('#js_forwards_sect');
+  const error = $('#team-stats-error');
+  let busy = false;
+
+  function statsUrl(mode, position) {
+    const url = root.attr('data-stats-url').replace(
+      '/__mode__/__position__/', '/' + mode + '/' + position + '/'
+    );
+    const season = root.attr('data-season');
+    return season ? url + '?season=' + encodeURIComponent(season) : url;
+  }
+
+  function setBusy(value) {
+    busy = value;
+    root.find('[data-team-stats], [data-team-layout]').attr('aria-disabled', String(value));
+    if (value) error.prop('hidden', true);
+  }
+
+  function showError() {
+    error.text('Could not load team statistics. Please try again.').prop('hidden', false);
+  }
+
+  function render(section, data) {
+    section.attr('data-mode', data.stat_type).attr('data-position', data.position_filter);
+    section.find('tbody').html(data.stats);
+    section.find('table').trigger('update');
+    const nextMode = data.stat_type === 'tot' ? 'avg' : 'tot';
+    section.find('[data-team-stats]')
+      .text(nextMode === 'avg' ? 'See average stats' : 'See total stats')
+      .attr('href', statsUrl(nextMode, data.position_filter));
+    section.find('[data-team-empty]').text(data.empty_message).prop('hidden', data.total > 0);
+    section.find('[data-team-layout]').attr(
+      'href', statsUrl(data.stat_type, data.position_filter === 't' ? 'd' : 't')
+    );
+  }
+
+  root.on('click', '[data-team-stats]', function (event) {
+    event.preventDefault();
+    if (busy || !root.attr('data-season')) return;
+    const section = $(this).closest('[data-team-skater-section]');
+    const mode = section.attr('data-mode') === 'tot' ? 'avg' : 'tot';
+    setBusy(true);
+    $.getJSON(statsUrl(mode, section.attr('data-position')))
+      .done(function (data) { render(section, data); })
+      .fail(showError)
+      .always(function () { setBusy(false); });
   });
 
-$('body').on('click', '#js_switch_to_tot_defencemen', function() {
-  var btn = $(this);
-  url = btn.attr('href').replace('avg', 'tot').replace('default', 'd')
-  $.ajax({
-    type: 'GET',
-    url: url,
-    success: function(data) {
-      $("#tab2 tbody").html(data.stats);
-      $("#tab2").trigger("update");
-      $('#js_switch_to_tot_defencemen').html('See average stats')
-      $('#js_switch_to_tot_defencemen').attr('id', 'js_switch_to_avg_defencemen')
+  root.on('click', '[data-team-layout]', function (event) {
+    event.preventDefault();
+    if (busy || !root.attr('data-season')) return;
+    const button = $(this);
+    const mode = defence.attr('data-mode');
+    setBusy(true);
+    if (defence.attr('data-position') !== 't') {
+      $.getJSON(statsUrl(mode, 't'))
+        .done(function (data) {
+          render(defence, data);
+          forwards.hide();
+          defence.find('h5').text('Skaters');
+          button.text('Back to split mode');
+        })
+        .fail(showError)
+        .always(function () { setBusy(false); });
+    } else {
+      // Publish both split bodies together; a failed request keeps joined mode.
+      $.when($.getJSON(statsUrl(mode, 'd')), $.getJSON(statsUrl(mode, 'f')))
+        .done(function (defenceResult, forwardsResult) {
+          render(defence, defenceResult[0]);
+          render(forwards, forwardsResult[0]);
+          forwards.show();
+          defence.find('h5').text('Defencemen');
+          button.text('D + F in one table');
+        })
+        .fail(showError)
+        .always(function () { setBusy(false); });
     }
-    });
-    return false;
   });
-});
-
-// FORWARDS
-$(function () {
-$('body').on('click', '#js_switch_to_avg_forwards', function() {
-  var btn = $(this);
-  url = btn.attr('href').replace('default', 'f')
-  $.ajax({
-    type: 'GET',
-    url: url,
-    success: function(data) {
-      $("#tab3 tbody").html(data.stats);
-      $("#tab3").trigger("update");
-      $('#js_switch_to_avg_forwards').html('See total stats')
-      $('#js_switch_to_avg_forwards').attr('id', 'js_switch_to_tot_forwards')
-    }
-    });
-    return false;
-  });
-
-$('body').on('click', '#js_switch_to_tot_forwards', function() {
-  var btn = $(this);
-  url = btn.attr('href').replace('avg', 'tot').replace('default', 'f')
-  $.ajax({
-    type: 'GET',
-    url: url,
-    success: function(data) {
-      $("#tab3 tbody").html(data.stats);
-      $("#tab3").trigger("update");
-      $('#js_switch_to_tot_forwards').html('See average stats')
-      $('#js_switch_to_tot_forwards').attr('id', 'js_switch_to_avg_forwards')
-    }
-    });
-    return false;
-  });
-});
-
-
-// TOGETHER
-$(function () {
-$('body').on('click', '#js_switch_to_join', function() {
-  var btn = $(this);
-  url = btn.attr('href')
-
-  html_cont = 'See total stats'
-
-  if($('#js_switch_to_avg_defencemen').length > 0) {
-      url = url.replace('avg', 'tot');
-      html_cont = 'See average stats'
-  };
-
-  url = url.replace('default', 't')
-
-  $.ajax({
-    type: 'GET',
-    url: url,
-    success: function(data) {
-      $("#tab2 tbody").html(data.stats);
-      $("#tab2").trigger("update");
-      $("#js_forwards_sect").hide();
-      $("div#js_defencemen_sect h5").html('Skaters');
-      $('#js_switch_to_join').html('Back to split mode')
-      $('#js_switch_to_join').attr('id', 'js_switch_to_split')
-
-      $('#js_switch_to_avg_defencemen').html('See average stats')
-      $('#js_switch_to_tot_defencemen').html('See total stats')
-      $('#js_switch_to_avg_defencemen').attr('id', 'js_switch_to_avg_joined')
-      $('#js_switch_to_tot_defencemen').attr('id', 'js_switch_to_tot_joined')
-    }
-    });
-    return false;
-  });
-
-  $('body').on('click', '#js_switch_to_split', function() {
-    var btn = $(this);
-    url = btn.attr('href')
-    console.log(url);
-    if($('#js_switch_to_avg_joined').length > 0) {
-        url = url.replace('avg', 'tot');
-    };
-    console.log(url);
-    url = url.replace('default', 'd')
-    console.log(url);
-    $.ajax({
-      type: 'GET',
-      url: url,
-      success: function(data) {
-        $("#tab2 tbody").html(data.stats);
-        $("#tab2").trigger("update");
-        $("#js_forwards_sect").show();
-        $("div#js_defencemen_sect h5").html('Defencemen');
-        $('#js_switch_to_split').html('D + F in one table')
-        $('#js_switch_to_split').attr('id', 'js_switch_to_join')
-        $('#js_switch_to_avg_joined').attr('id', 'js_switch_to_avg_defencemen')
-        $('#js_switch_to_tot_joined').attr('id', 'js_switch_to_tot_defencemen')
-      }
-      });
-      return false;
-    });
-
-  $('body').on('click', '#js_switch_to_tot_joined', function() {
-    var btn = $(this);
-    url = btn.attr('href').replace('avg', 'tot').replace('default', 't')
-    $.ajax({
-      type: 'GET',
-      url: url,
-      success: function(data) {
-        $("#tab2 tbody").html(data.stats);
-        $("#tab2").trigger("update");
-        $('#js_switch_to_tot_joined').html('See average stats')
-        $('#js_switch_to_tot_joined').attr('id', 'js_switch_to_avg_joined')
-      }
-      });
-      return false;
-    });
-
-  $('body').on('click', '#js_switch_to_avg_joined', function() {
-    var btn = $(this);
-    url = btn.attr('href').replace('default', 't')
-    $.ajax({
-      type: 'GET',
-      url: url,
-      success: function(data) {
-        $("#tab2 tbody").html(data.stats);
-        $("#tab2").trigger("update");
-        $('#js_switch_to_avg_joined').html('See total stats')
-        $('#js_switch_to_avg_joined').attr('id', 'js_switch_to_tot_joined')
-      }
-      });
-      return false;
-    });
-
 });

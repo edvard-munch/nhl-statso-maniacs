@@ -114,10 +114,12 @@ python manage.py runserver
 
 Open: `http://127.0.0.1:8000/`
 
-The Players page has a season selector and reads that season's SBS statistics,
-including sorting and filtering. Its default is the latest season loaded into
-SBS; players with only older data are excluded from a newer selection. See
-[Players table behavior and tests](docs/players-season-table.md).
+The Players and team detail pages have season selectors. Their default is the
+latest season loaded into SBS; players with only older data are excluded from a
+newer selection. Players tables show overall season statistics, while team tables
+show each player's contribution to that team. See
+[Players table behavior and tests](docs/players-season-table.md) and
+[team table behavior and tests](docs/team-season-tables.md).
 
 ## Tests
 

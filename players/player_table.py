@@ -108,6 +108,18 @@ def selected_season(value, seasons=None):
     return seasons[0] if seasons else None
 
 
+def season_context(value):
+    seasons = available_seasons()
+    season = selected_season(value, seasons)
+    if season and season not in seasons:
+        seasons = sorted(seasons + [season], reverse=True)
+    return {
+        "season_id": season or "",
+        "season_label": season_label(season),
+        "season_options": [(item, season_label(item)) for item in seasons],
+    }
+
+
 @dataclass
 class PlayerRow:
     player: object

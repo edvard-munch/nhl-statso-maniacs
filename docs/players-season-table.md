@@ -33,8 +33,8 @@ The Team column and team filters use participation in the selected season,
 rather than the player's current roster foreign key. A single-team season shows
 that abbreviation; multiple known teams show `TOT` with the team names in its
 tooltip. A team filter includes a traded player who played for that team, while
-their row still displays overall season totals. Team-specific contributions are
-reserved for the later team-page integration.
+their row still displays overall season totals. The
+[team detail tables](team-season-tables.md) show team-specific contributions.
 
 Statistical filters and sorting operate on the same projected values as the
 display, before pagination and rank numbering. Numeric filters support equality,
@@ -63,8 +63,8 @@ CPU and memory work still grow with the candidate set and its stored season
 history; dedicated season tables remain a possible later improvement if that
 becomes a performance constraint.
 
-Team pages, favorites/comparison tables and player-detail season selection remain
-separate integration work. In particular, the authenticated favorites variation
+Favorites/comparison tables and player-detail season selection remain separate
+integration work. In particular, the authenticated favorites variation
 of the shared AJAX endpoint keeps its existing data source in this commit.
 
 Run the focused PostgreSQL tests using real migrations:

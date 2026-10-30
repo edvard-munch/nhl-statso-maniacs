@@ -3,7 +3,7 @@
   <td></td>
   <td>
     <div id="favorite_section">
-      {% if player in favorites %}
+      {% if player.is_favorite %}
         <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
       {% else %}
         <a class="js-fav-add" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
@@ -31,20 +31,20 @@
     <span class="css-tooltip cell-tooltip ">Undrafted</span>
   </td>
   {% endif %}
-  <td>{{ player.games }}</td>
-  <td>{{ player.goals }}</td>
-  <td>{{ player.assists }}</td>
-  <td>{{ player.points }}</td>
-  <td>{{ player.plus_minus }}</td>
-  <td>{{ player.penalty_min }}</td>
-  <td>{{ player.shots }}</td>
-  <td>{{ player.hits }}</td>
-  <td>{{ player.blocks }}</td>
-  <td>{{ player.faceoff_wins }}</td>
-  <td>{{ player.pp_points }}</td>
-  <td>{{ player.sh_points }}</td>
-  <td>{{ player.time_on_ice }}</td>
-  <td>{{ player.time_on_ice_pp }}</td>
-  <td>{{ player.time_on_ice_sh }}</td>
+  <td>{{ player.games|default_if_none:"—" }}</td>
+  <td>{{ player.goals|default_if_none:"—" }}</td>
+  <td>{{ player.assists|default_if_none:"—" }}</td>
+  <td>{{ player.points|default_if_none:"—" }}</td>
+  <td>{{ player.plus_minus|default_if_none:"—" }}</td>
+  <td>{{ player.penalty_min|default_if_none:"—" }}</td>
+  <td>{{ player.shots|default_if_none:"—" }}</td>
+  <td>{{ player.hits|default_if_none:"—" }}</td>
+  <td>{{ player.blocks|default_if_none:"—" }}</td>
+  <td>{{ player.faceoff_wins|default_if_none:"—" }}</td>
+  <td>{{ player.pp_points|default_if_none:"—" }}</td>
+  <td>{{ player.sh_points|default_if_none:"—" }}</td>
+  <td>{{ player.time_on_ice|default_if_none:"—" }}</td>
+  <td>{{ player.time_on_ice_pp|default_if_none:"—" }}</td>
+  <td>{{ player.time_on_ice_sh|default_if_none:"—" }}</td>
   </tr>
 {% endfor %}

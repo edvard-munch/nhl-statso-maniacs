@@ -445,49 +445,6 @@ def get_cell_value(game, column, *args):
     return value
 
 
-def get_team_detail_context(team, user):
-    stat_type = "avg"
-    pos_filt = "default"
-    sort_order = ["-points", "games", "-goals"]
-
-    context = {
-        "goalies": team.goalies.all().order_by("-wins", "games"),
-        "skaters": [
-            {
-                "type": DEF,
-                "list": filter_position(team.skaters.all(), [POSITIONS[1]], sort_order),
-                "table_id": TABLE_IDS[0],
-            },
-            {
-                "type": FRW,
-                "list": filter_position(team.skaters.all(), POSITIONS[2:], sort_order),
-                "table_id": TABLE_IDS[1],
-            },
-        ],
-        "team": team,
-        "tbody_skaters": "players/partial_skaters_team_detail.html",
-        "tbody_goalies": "players/partial_goalies_team_detail.html",
-        "stat_type": stat_type,
-        "pos_filt": pos_filt,
-    }
-
-    if user.is_authenticated:
-        if measurements_format_is_euro(user):
-            players = chain(
-                context["goalies"], context["skaters"][0]["list"], context["skaters"][1]["list"]
-            )
-
-            for player in players:
-                player = adjust_measurements(player)
-
-        fav_goalies = team.goalies.all().filter(favoriting__username=user)
-        fav_skaters = team.skaters.all().filter(favoriting__username=user)
-        fav_players = list(chain(fav_goalies, fav_skaters))
-        context["favorites"] = fav_players
-
-    return context
-
-
 def clear_comparison_list(request, player_type, user):
     data = {}
     field = getattr(user, f"comparable_{player_type}")

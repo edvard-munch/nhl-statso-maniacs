@@ -20,6 +20,18 @@
 </div>
 
 <h3>{{ team.name }}</h3><br>
+<form method="get">
+  <label for="team-season">Season</label>
+  <select id="team-season" name="season">
+    {% for value, label in season_options %}
+      <option value="{{ value }}"{% if value == season_id %} selected{% endif %}>{{ label }}</option>
+    {% empty %}
+      <option value="">No seasons loaded</option>
+    {% endfor %}
+  </select>
+  <button type="submit">Show season</button>
+</form>
+<p>Season contributions from players who represented {{ team.abbr }}.</p>
 <b>Arena:</b> {{ team.arena_name }}, {{ team.arena_location }}<br>
 <b>Conference:</b> {{ team.conference }}<br>
 <b>Division:</b> {{ team.division }}<br>
@@ -27,9 +39,13 @@
 <p><a href="{{ team.off_site }}">Official Site</a></p>
 
 <div id="image_section">
+  {% if team.image %}
   <img src="{{ team.image.url }}" class="in-div">
+  {% endif %}
 </div>
 
+<div id="team-season-tables" data-season="{{ season_id }}" data-stats-url="{% url 'ajax_stats_switcher' team.slug team.nhl_id '__mode__' '__position__' %}">
+  <p id="team-stats-error" role="alert" hidden></p>
   <h5>Goalies</h5>
   <table id="tab1" class="tablesorter">
     <thead>
@@ -94,17 +110,18 @@
     <tbody>
       {% include tbody_goalies %}
     </tbody>
-  </table><br>
+  </table>
+  <p role="status"{% if goalies %} hidden{% endif %}>{{ goalies_empty_message }}</p><br>
 
     {% for object in skaters %}
-    <div id="js_{{ object.type|lower }}_sect">
+    <div id="js_{{ object.type|lower }}_sect" data-team-skater-section data-position="{{ object.position_filter }}" data-mode="{{ table_mode }}">
       <h5>{{ object.type }}</h5>
 
       <div class='button-table-container'>
-      <a id="js_switch_to_avg_{{ object.type|lower }}" class="tiny-button left-side-button" href="{% url 'ajax_stats_switcher' team.slug team.nhl_id stat_type pos_filt %}">See average stats</a>
+      <a data-team-stats class="tiny-button left-side-button" href="{% url 'ajax_stats_switcher' team.slug team.nhl_id next_mode object.position_filter %}{% if season_id %}?season={{ season_id }}{% endif %}">See average stats</a>
 
       {% if object.type == 'Defencemen' %}
-        <a id="js_switch_to_join" class="tiny-button right-side-button green" href="{% url 'ajax_stats_switcher' team.slug team.nhl_id stat_type pos_filt %}">D + F in one table</a>
+        <a data-team-layout class="tiny-button right-side-button green" href="{% url 'ajax_stats_switcher' team.slug team.nhl_id table_mode 't' %}{% if season_id %}?season={{ season_id }}{% endif %}">D + F in one table</a>
       {% endif %}
 
       <table id={{ object.table_id }} class="tablesorter">
@@ -192,10 +209,12 @@
             {% include tbody_skaters %}
         </tbody>
       </table>
+      <p data-team-empty role="status"{% if object.list %} hidden{% endif %}>{{ object.empty_message }}</p>
       </div>
     </div>
     <br>
       {% endfor %}
+</div>
 {% endblock content %}
 
 {% block scripts %}

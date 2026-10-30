@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 
-from . import player_table, utils
+from . import player_table, team_tables, utils
 from .forms import NoteForm, PositionsForm
 from .models import Game, Gameday, Goalie, Note, Position, Skater, Team
 
@@ -112,20 +112,15 @@ def auth_callback(request):
 
 
 def players(request):
-    seasons = player_table.available_seasons()
     try:
-        season = player_table.selected_season(request.GET.get("season"), seasons)
+        selection = player_table.season_context(request.GET.get("season"))
     except ValueError as error:
         return HttpResponseBadRequest(str(error), content_type="text/plain")
-    if season and season not in seasons:
-        seasons = sorted(seasons + [season], reverse=True)
     context = {
         "title": "Players",
         "options": utils.PAGE_SIZE_OPTIONS,
         "table_page_size": utils.PAGE_SIZE_2,
-        "season_id": season or "",
-        "season_label": player_table.season_label(season),
-        "season_options": [(value, player_table.season_label(value)) for value in seasons],
+        **selection,
     }
 
     return render(request, "players/players.html", context)
@@ -599,41 +594,38 @@ def teams(request):
 
 def team_detail(request, slug, team_id):
     team = get_object_or_404(Team, nhl_id=team_id, slug=slug)
-    user = request.user
-    context = utils.get_team_detail_context(team, user)
+    try:
+        selection = player_table.season_context(request.GET.get("season"))
+    except ValueError as error:
+        return HttpResponseBadRequest(str(error), content_type="text/plain")
+    context = team_tables.get_team_detail_context(
+        team, request.user, selection["season_id"] or None
+    )
+    context.update(selection)
     return render(request, "players/team_detail.html", context)
 
 
 def ajax_stats_switcher(request, slug, team_id, stat_type, pos_filt):
     team = get_object_or_404(Team, nhl_id=team_id, slug=slug)
-    user = request.user
-    context = utils.get_team_detail_context(team, user)
-    if stat_type == utils.STAT_TYPES[1]:
-        template = utils.TEMPLATES[6]
-    elif stat_type == utils.STAT_TYPES[2]:
-        template = utils.TEMPLATES[7]
-
-    sort_order = ["-points", "games", "-goals"]
-    d_men = utils.filter_position(team.skaters.all(), [utils.POSITIONS[1]], sort_order)
-    forwards = utils.filter_position(team.skaters.all(), utils.POSITIONS[2:], sort_order)
-    skaters = utils.filter_position(team.skaters.all(), utils.POSITIONS[1:], sort_order)
-
-    if pos_filt == utils.POSITION_FILTERS[0]:
-        filtered_skaters = {"list": d_men}
-    elif pos_filt == utils.POSITION_FILTERS[1]:
-        filtered_skaters = {"list": forwards}
-    elif pos_filt == utils.POSITION_FILTERS[2]:
-        filtered_skaters = {"list": skaters}
-
-    if utils.measurements_format_is_euro(user):
-        for player in filtered_skaters["list"]:
-            player = utils.adjust_measurements(player)
-
-    context["object"] = filtered_skaters
-    data = {}
-    data["stats"] = render_to_string(template, context=context, request=request)
-
-    return JsonResponse(data)
+    try:
+        if pos_filt not in (team_tables.DEFENCEMEN, team_tables.FORWARDS, team_tables.ALL_SKATERS):
+            raise ValueError("Invalid team position filter")
+        season = player_table.selected_season(request.GET.get("season"))
+        context = team_tables.get_team_detail_context(team, request.user, season, stat_type)
+        context["object"] = team_tables.skater_group(context, pos_filt)
+    except ValueError as error:
+        return JsonResponse({"error": str(error)}, status=400)
+    return JsonResponse(
+        {
+            "stats": render_to_string(context["tbody_skaters"], context=context, request=request),
+            "season_id": season,
+            "season_label": player_table.season_label(season),
+            "stat_type": stat_type,
+            "position_filter": pos_filt,
+            "total": len(context["object"]["list"]),
+            "empty_message": team_tables.empty_message(team, season, pos_filt),
+        }
+    )
 
 
 def ajax_comparison_stat_switcher(request, player_type, stat_type):

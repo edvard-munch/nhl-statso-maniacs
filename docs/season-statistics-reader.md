@@ -71,6 +71,8 @@ seasons with report-derived rows; untouched historical rows may still need a ful
 refresh. See [loader behavior](season-statistics-loaders.md). The pure reader does
 not access the database. The [Players table integration](players-season-table.md)
 now projects its results for filtering, sorting and pagination.
+The [team table integration](team-season-tables.md) uses the same reader with an
+explicit team abbreviation for initial rendering and AJAX switches.
 
 Run the reader tests using the existing Python 3.7 virtual environment:
 
