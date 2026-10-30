@@ -138,8 +138,8 @@ def test_empty_enrichment_reports_preserve_unknown_fields_and_genuine_zero(
     case = season_stats_data["cases"]["missing_enrichment"]
     for report, response in case["stats_rest_responses"].items():
         requests_mock.get(upd_pls_tot.STATS_REST_SKATER_URL.format(report), json=response)
-    # Exercise the historical enrichment path; current-season enrichment presently
-    # reads snapshot fields instead, which the next loader change must address.
+    # Preserve coverage of the legacy helper. The command's report-derived path
+    # is covered separately by tests_season_loading.py.
     player = SimpleNamespace(nhl_id=9000001, stats_season_id="20252026")
     rows = upd_pls_tot.get_season_by_season_stats(
         deepcopy(case["landing_season_totals"]), case["position_code"]

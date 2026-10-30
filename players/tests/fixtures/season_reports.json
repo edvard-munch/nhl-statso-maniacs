@@ -1,0 +1,342 @@
+{
+  "old_season_only": {
+    "player_type": "skater",
+    "player_id": 9000001,
+    "reports": {
+      "summary": [],
+      "realtime": [],
+      "faceoffwins": [],
+      "timeonice": []
+    },
+    "team_reports": {},
+    "bios": []
+  },
+  "current_skater": {
+    "player_type": "skater",
+    "player_id": 9000001,
+    "reports": {
+      "summary": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF",
+          "goals": 2,
+          "assists": 3,
+          "points": 5,
+          "plusMinus": -2,
+          "penaltyMinutes": 6,
+          "shots": 30,
+          "ppPoints": 2,
+          "shPoints": 0,
+          "skaterFullName": "Synthetic Skater",
+          "positionCode": "D",
+          "timeOnIcePerGame": 1080
+        }
+      ],
+      "realtime": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF",
+          "hits": 8,
+          "blockedShots": 5
+        }
+      ],
+      "faceoffwins": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF",
+          "totalFaceoffWins": 0
+        }
+      ],
+      "timeonice": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF",
+          "timeOnIcePerGame": 1080,
+          "ppTimeOnIcePerGame": 90,
+          "shTimeOnIcePerGame": 30
+        }
+      ]
+    },
+    "team_reports": {},
+    "bios": [
+      {
+        "playerId": 9000001,
+        "gamesPlayed": 10,
+        "birthDate": "2000-01-02",
+        "lastName": "Skater",
+        "birthCity": "Test City",
+        "birthCountryCode": "CAN",
+        "nationalityCode": "CAN",
+        "currentTeamAbbrev": "BUF",
+        "firstSeasonForGameType": 20252026,
+        "skaterFullName": "Synthetic Skater",
+        "positionCode": "D"
+      }
+    ]
+  },
+  "traded_skater": {
+    "player_type": "skater",
+    "player_id": 9000001,
+    "reports": {
+      "summary": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF,COL",
+          "skaterFullName": "Synthetic Skater",
+          "positionCode": "C",
+          "goals": 4,
+          "assists": 5,
+          "points": 9,
+          "plusMinus": -4,
+          "penaltyMinutes": 12,
+          "shots": 60,
+          "ppPoints": 4,
+          "shPoints": 0,
+          "timeOnIcePerGame": 1152
+        }
+      ],
+      "realtime": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF,COL",
+          "hits": 14,
+          "blockedShots": 7
+        }
+      ],
+      "faceoffwins": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF,COL",
+          "totalFaceoffWins": 18
+        }
+      ],
+      "timeonice": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 10,
+          "teamAbbrevs": "BUF,COL",
+          "timeOnIcePerGame": 1152,
+          "ppTimeOnIcePerGame": 156,
+          "shTimeOnIcePerGame": 42
+        }
+      ]
+    },
+    "team_reports": {
+      "COL": {
+        "summary": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 4,
+            "teamAbbrevs": "COL",
+            "goals": 1,
+            "assists": 2,
+            "points": 3,
+            "plusMinus": -2,
+            "penaltyMinutes": 6,
+            "shots": 30,
+            "ppPoints": 2,
+            "shPoints": 0,
+            "skaterFullName": "Synthetic Skater",
+            "positionCode": "C",
+            "timeOnIcePerGame": 1080
+          }
+        ],
+        "realtime": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 4,
+            "teamAbbrevs": "COL",
+            "hits": 8,
+            "blockedShots": 4
+          }
+        ],
+        "faceoffwins": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 4,
+            "teamAbbrevs": "COL",
+            "totalFaceoffWins": 12
+          }
+        ],
+        "timeonice": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 4,
+            "teamAbbrevs": "COL",
+            "timeOnIcePerGame": 1080,
+            "ppTimeOnIcePerGame": 120,
+            "shTimeOnIcePerGame": 60
+          }
+        ]
+      },
+      "BUF": {
+        "summary": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 6,
+            "teamAbbrevs": "BUF",
+            "goals": 3,
+            "assists": 3,
+            "points": 6,
+            "plusMinus": -2,
+            "penaltyMinutes": 6,
+            "shots": 30,
+            "ppPoints": 2,
+            "shPoints": 0,
+            "skaterFullName": "Synthetic Skater",
+            "positionCode": "C",
+            "timeOnIcePerGame": 1080
+          }
+        ],
+        "realtime": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 6,
+            "teamAbbrevs": "BUF",
+            "hits": 6,
+            "blockedShots": 3
+          }
+        ],
+        "faceoffwins": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 6,
+            "teamAbbrevs": "BUF",
+            "totalFaceoffWins": 6
+          }
+        ],
+        "timeonice": [
+          {
+            "playerId": 9000001,
+            "seasonId": 20262027,
+            "gamesPlayed": 6,
+            "teamAbbrevs": "BUF",
+            "timeOnIcePerGame": 1200,
+            "ppTimeOnIcePerGame": 180,
+            "shTimeOnIcePerGame": 30
+          }
+        ]
+      }
+    },
+    "bios": [
+      {
+        "playerId": 9000001,
+        "gamesPlayed": 10,
+        "birthDate": "2000-01-02",
+        "lastName": "Skater",
+        "birthCity": "Test City",
+        "birthCountryCode": "CAN",
+        "nationalityCode": "CAN",
+        "currentTeamAbbrev": "BUF",
+        "firstSeasonForGameType": 20252026,
+        "skaterFullName": "Synthetic Skater",
+        "positionCode": "C"
+      }
+    ]
+  },
+  "current_goalie": {
+    "player_type": "goalie",
+    "player_id": 9000001,
+    "reports": {
+      "summary": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 4,
+          "teamAbbrevs": "BUF",
+          "wins": 2,
+          "losses": 1,
+          "otLosses": 1,
+          "goalsAgainstAverage": 2.5,
+          "savePct": 0.9,
+          "shotsAgainst": 100,
+          "goalsAgainst": 10,
+          "shutouts": 0,
+          "goalieFullName": "Synthetic Goalie",
+          "saves": 90
+        }
+      ]
+    },
+    "team_reports": {},
+    "bios": [
+      {
+        "playerId": 9000001,
+        "gamesPlayed": 4,
+        "birthDate": "2000-01-02",
+        "lastName": "Goalie",
+        "birthCity": "Test City",
+        "birthCountryCode": "CAN",
+        "nationalityCode": "CAN",
+        "currentTeamAbbrev": "BUF",
+        "firstSeasonForGameType": 20252026,
+        "goalieFullName": "Synthetic Goalie"
+      }
+    ]
+  },
+  "missing_enrichment": {
+    "player_type": "skater",
+    "player_id": 9000001,
+    "reports": {
+      "summary": [
+        {
+          "playerId": 9000001,
+          "seasonId": 20262027,
+          "gamesPlayed": 5,
+          "teamAbbrevs": "BUF",
+          "goals": 0,
+          "assists": 2,
+          "points": 2,
+          "plusMinus": -2,
+          "penaltyMinutes": 6,
+          "shots": 30,
+          "ppPoints": 2,
+          "shPoints": 0,
+          "skaterFullName": "Synthetic Skater",
+          "positionCode": "D",
+          "timeOnIcePerGame": 1080
+        }
+      ],
+      "realtime": [],
+      "faceoffwins": [],
+      "timeonice": []
+    },
+    "team_reports": {},
+    "bios": [
+      {
+        "playerId": 9000001,
+        "gamesPlayed": 5,
+        "birthDate": "2000-01-02",
+        "lastName": "Skater",
+        "birthCity": "Test City",
+        "birthCountryCode": "CAN",
+        "nationalityCode": "CAN",
+        "currentTeamAbbrev": "BUF",
+        "firstSeasonForGameType": 20252026,
+        "skaterFullName": "Synthetic Skater",
+        "positionCode": "D"
+      }
+    ]
+  }
+}

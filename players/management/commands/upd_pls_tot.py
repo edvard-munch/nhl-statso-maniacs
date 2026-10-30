@@ -1,5 +1,4 @@
 import copy
-import collections
 from itertools import chain
 import urllib
 from django.core.files import File
@@ -8,7 +7,9 @@ import requests
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
-from players.models import Goalie, Skater
+from players.models import Goalie, Skater, Team
+from players import season_loading
+from players.season_stats import GOALIE, SKATER
 from . import upd_pls
 
 PLAYER_ENDPOINT_URL = "https://api-web.nhle.com/v1/player/{}/landing"
@@ -147,21 +148,31 @@ def run_full_mode():
 
 def run_current_mode():
     players = get_all_players()
+    season = upd_pls.get_season_id()
+    team_ids = dict(Team.objects.values_list("abbr", "nhl_id"))
 
     with requests.Session() as session:
+        reports = {
+            player_type: season_loading.fetch_reports(player_type, session, season)
+            for player_type in (GOALIE, SKATER)
+        }
         for player in tqdm(players):
-            if isinstance(player, Skater):
-                apply_current_mode_to_skater(player, session)
+            player_type = SKATER if isinstance(player, Skater) else GOALIE
+            fresh = season_loading.assemble_player_rows(
+                reports[player_type], player_type, player.nhl_id, team_ids, session
+            )
+            if player_type == SKATER:
+                apply_current_mode_to_skater(player, session, season, team_ids, fresh)
             else:
-                apply_current_mode_to_goalie(player, session)
+                apply_current_mode_to_goalie(player, session, season, team_ids, fresh)
 
 
 def get_all_players():
     return list(chain(Goalie.objects.all(), Skater.objects.all()))
 
 
-def apply_current_mode_to_skater(player, session=None):
-    updates = get_current_mode_updates_for_skater(player, session)
+def apply_current_mode_to_skater(player, session=None, season=None, team_ids=None, fresh=None):
+    updates = get_current_mode_updates_for_skater(player, session, season, team_ids, fresh)
     for field, value in updates.items():
         setattr(player, field, value)
 
@@ -169,8 +180,8 @@ def apply_current_mode_to_skater(player, session=None):
         player.save(update_fields=list(updates.keys()))
 
 
-def apply_current_mode_to_goalie(player, session=None):
-    updates = get_current_mode_updates_for_goalie(player, session)
+def apply_current_mode_to_goalie(player, session=None, season=None, team_ids=None, fresh=None):
+    updates = get_current_mode_updates_for_goalie(player, session, season, team_ids, fresh)
     for field, value in updates.items():
         setattr(player, field, value)
 
@@ -178,82 +189,47 @@ def apply_current_mode_to_goalie(player, session=None):
         player.save(update_fields=list(updates.keys()))
 
 
-def get_current_mode_updates_for_skater(player, session=None):
-    sbs_stats = copy.deepcopy(player.sbs_stats or [])
-    sbs_stats_avg = copy.deepcopy(player.sbs_stats_avg or [])
+def get_report_season_rows(player, player_type, session=None, season=None, team_ids=None):
+    if team_ids is None:
+        team_ids = dict(Team.objects.values_list("abbr", "nhl_id"))
+    return season_loading.fetch_player_rows(player.nhl_id, player_type, team_ids, session, season)
+
+
+def get_current_mode_updates_for_skater(
+    player, session=None, season=None, team_ids=None, fresh=None
+):
+    season = season or upd_pls.get_season_id()
+    if fresh is None:
+        fresh = get_report_season_rows(player, SKATER, session, season, team_ids)
+    updates = season_loading.season_row_updates(player, fresh, SKATER)
     career_stats = copy.deepcopy(player.career_stats or {})
     career_stats_avg = copy.deepcopy(player.career_stats_avg or {})
-
     career_enrichment = get_skater_career_enrichment(player, session)
-
-    sbs_stats = enrich_current_season_stats_from_player(
-        sbs_stats,
-        player,
-        CURRENT_SEASON_STATS_FIELD_MAP,
-        overwrite_existing=True,
-    )
-
-    if not sbs_stats_avg and sbs_stats:
-        sbs_stats_avg = get_season_by_season_average_stats(copy.deepcopy(sbs_stats))
-
-    sbs_stats_avg = enrich_current_season_stats_from_player(
-        sbs_stats_avg,
-        player,
-        CURRENT_SEASON_AVG_FIELD_MAP,
-        overwrite_existing=True,
-    )
-
     career_stats = enrich_career_stats(career_stats, career_enrichment, CAREER_ENRICHMENT_TOTALS)
-
     if not career_stats_avg and career_stats:
         career_stats_avg = get_career_average_stats(copy.deepcopy(career_stats))
-
     career_stats_avg = enrich_career_stats(
-        career_stats_avg,
-        career_enrichment,
-        CAREER_ENRICHMENT_AVERAGES,
-        overwrite_existing=True,
+        career_stats_avg, career_enrichment, CAREER_ENRICHMENT_AVERAGES, overwrite_existing=True
     )
-
-    seasons_count = collections.Counter(item["season"] for item in sbs_stats) if sbs_stats else {}
-    multiteams_seasons = {key: value for key, value in seasons_count.items() if value > 1}
-
-    return {
-        "career_stats": career_stats,
-        "career_stats_avg": career_stats_avg,
-        "sbs_stats": sbs_stats,
-        "sbs_stats_avg": sbs_stats_avg,
-        "multiteams_seasons": multiteams_seasons,
-    }
+    updates.update({"career_stats": career_stats, "career_stats_avg": career_stats_avg})
+    return updates
 
 
-def get_current_mode_updates_for_goalie(player, session=None):
-    sbs_stats = copy.deepcopy(player.sbs_stats or [])
-    career_stats = copy.deepcopy(player.career_stats or {})
-
-    sbs_stats = enrich_current_season_stats_from_player(
-        sbs_stats,
-        player,
-        GOALIE_CURRENT_SEASON_STATS_FIELD_MAP,
-        overwrite_existing=True,
-    )
-
+def get_current_mode_updates_for_goalie(
+    player, session=None, season=None, team_ids=None, fresh=None
+):
+    season = season or upd_pls.get_season_id()
+    if fresh is None:
+        fresh = get_report_season_rows(player, GOALIE, session, season, team_ids)
+    updates = season_loading.season_row_updates(player, fresh, GOALIE)
     career_enrichment = get_goalie_career_enrichment(player, session)
-    career_stats = enrich_career_stats(
-        career_stats,
+    updates["career_stats"] = enrich_career_stats(
+        copy.deepcopy(player.career_stats or {}),
         career_enrichment,
         CAREER_ENRICHMENT_TOTALS,
         overwrite_existing=True,
     )
-
-    seasons_count = collections.Counter(item["season"] for item in sbs_stats) if sbs_stats else {}
-    multiteams_seasons = {key: value for key, value in seasons_count.items() if value > 1}
-
-    return {
-        "career_stats": career_stats,
-        "sbs_stats": sbs_stats,
-        "multiteams_seasons": multiteams_seasons,
-    }
+    return updates
 
 
 def import_player(data, player, session=None):
@@ -274,56 +250,25 @@ def import_player(data, player, session=None):
     }
 
     defaults["career_stats"] = data["careerTotals"]["regularSeason"]
-    defaults["sbs_stats"] = get_season_by_season_stats(data["seasonTotals"], data["position"])
-
-    if data["position"] in list(POSITION_CODES.keys())[1:]:
-        season_enrichment = get_skater_season_enrichment(player, session)
+    player_type = GOALIE if data["position"] == "G" else SKATER
+    fresh = get_report_season_rows(player, player_type, session)
+    defaults.update(season_loading.season_row_updates(player, fresh, player_type))
+    if player_type == SKATER:
         career_enrichment = get_skater_career_enrichment(player, session)
         defaults["career_stats"] = enrich_career_stats(
-            defaults["career_stats"],
-            career_enrichment,
-            CAREER_ENRICHMENT_TOTALS,
+            defaults["career_stats"], career_enrichment, CAREER_ENRICHMENT_TOTALS
         )
-        defaults["sbs_stats"] = enrich_season_stats_from_enrichment(
-            defaults["sbs_stats"], season_enrichment, "totals"
-        )
-
-    defaults["sbs_stats"] = enrich_current_season_stats_from_player(
-        defaults["sbs_stats"], player, CURRENT_SEASON_STATS_FIELD_MAP
-    )
-
-    seasons_count = collections.Counter(item["season"] for item in defaults["sbs_stats"])
-    defaults["multiteams_seasons"] = {
-        key: value for key, value in seasons_count.items() if value > 1
-    }
-
-    if data["position"] in list(POSITION_CODES.keys())[1:]:
-        career_stats = copy.deepcopy(defaults["career_stats"])
-        sbs_stats = copy.deepcopy(defaults["sbs_stats"])
-
-        defaults["career_stats_avg"] = get_career_average_stats(career_stats)
         defaults["career_stats_avg"] = enrich_career_stats(
-            defaults["career_stats_avg"],
+            get_career_average_stats(copy.deepcopy(defaults["career_stats"])),
             career_enrichment,
             CAREER_ENRICHMENT_AVERAGES,
             overwrite_existing=True,
         )
-        defaults["sbs_stats_avg"] = get_season_by_season_average_stats(sbs_stats)
-        defaults["sbs_stats_avg"] = enrich_season_stats_from_enrichment(
-            defaults["sbs_stats_avg"], season_enrichment, "averages", overwrite_existing=True
-        )
-        defaults["sbs_stats_avg"] = enrich_current_season_stats_from_player(
-            defaults["sbs_stats_avg"],
-            player,
-            CURRENT_SEASON_AVG_FIELD_MAP,
-            overwrite_existing=True,
-        )
         Skater.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
-
     else:
-        saves = defaults["career_stats"]["shotsAgainst"] - defaults["career_stats"]["goalsAgainst"]
-        defaults["career_stats"]["saves"] = saves
-
+        totals = defaults["career_stats"]
+        if totals.get("shotsAgainst") is not None and totals.get("goalsAgainst") is not None:
+            totals["saves"] = totals["shotsAgainst"] - totals["goalsAgainst"]
         Goalie.objects.update_or_create(nhl_id=player.nhl_id, defaults=defaults)
 
 

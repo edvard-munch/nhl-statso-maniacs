@@ -76,11 +76,22 @@ python manage.py upd_pls_tot --mode=current
 python manage.py upd_gms
 ```
 
+`upd_pls` updates player metadata, ordinary statistics columns, and the current
+season's `sbs_stats` / `sbs_stats_avg` rows together. It can add a new season without
+a full historical refresh. Reports are fetched and validated before the database
+update; a failed report leaves the previous statistics intact. Players absent
+from the season's reports keep their historical data.
+
 Run a full player totals rebuild only when needed:
 
 ```bash
 python manage.py upd_pls_tot --mode=full
 ```
+
+Current mode also creates or refreshes season rows directly from NHL reports,
+without player landing calls. Full mode refreshes profile/career data from landing
+responses and season statistics from reports, including separate team contributions
+for traded players. See [season loader behavior and tests](docs/season-statistics-loaders.md).
 
 Optional projection update:
 

@@ -280,15 +280,22 @@ def test_run_current_mode_does_not_use_landing_endpoint(monkeypatch):
     calls = []
 
     monkeypatch.setattr(upd_pls_tot, "get_all_players", lambda: [skater, goalie])
+    monkeypatch.setattr(upd_pls_tot.upd_pls, "get_season_id", lambda: "20262027")
+    monkeypatch.setattr(upd_pls_tot.Team.objects, "values_list", lambda *args: [])
+    monkeypatch.setattr(upd_pls_tot.season_loading, "fetch_reports", lambda *args: {"summary": []})
     monkeypatch.setattr(
         upd_pls_tot,
         "apply_current_mode_to_skater",
-        lambda player, session=None: calls.append(("skater", player.nhl_id)),
+        lambda player, session=None, season=None, team_ids=None, fresh=None: calls.append(
+            ("skater", player.nhl_id)
+        ),
     )
     monkeypatch.setattr(
         upd_pls_tot,
         "apply_current_mode_to_goalie",
-        lambda player, session=None: calls.append(("goalie", player.nhl_id)),
+        lambda player, session=None, season=None, team_ids=None, fresh=None: calls.append(
+            ("goalie", player.nhl_id)
+        ),
     )
 
     def fail_if_called(*args, **kwargs):
@@ -340,7 +347,12 @@ def test_get_current_mode_updates_for_skater_uses_aggregate_and_current_season_e
         },
     )
 
-    updates = upd_pls_tot.get_current_mode_updates_for_skater(skater)
+    monkeypatch.setattr(
+        upd_pls_tot,
+        "get_report_season_rows",
+        lambda *args: [{"season": "2025-26", "teamAbbr": "BUF", "gamesPlayed": 81, "hits": 37}],
+    )
+    updates = upd_pls_tot.get_current_mode_updates_for_skater(skater, season="20252026")
 
     assert updates["career_stats"]["hits"] == 534
     assert updates["career_stats_avg"]["powerPlayTimeOnIcePerGame"] == "03:15"
@@ -389,7 +401,14 @@ def test_get_current_mode_updates_for_goalie_updates_current_season_and_career(m
         },
     )
 
-    updates = upd_pls_tot.get_current_mode_updates_for_goalie(goalie)
+    monkeypatch.setattr(
+        upd_pls_tot,
+        "get_report_season_rows",
+        lambda *args: [
+            {"season": "2025-26", "teamAbbr": "MTL", "gamesPlayed": 24, "wins": 13, "otLosses": 3}
+        ],
+    )
+    updates = upd_pls_tot.get_current_mode_updates_for_goalie(goalie, season="20252026")
 
     assert updates["sbs_stats"][0]["wins"] == 20
     assert updates["sbs_stats"][1]["gamesPlayed"] == 24

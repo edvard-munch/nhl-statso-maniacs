@@ -6,10 +6,14 @@ from datetime import date
 import requests
 from django.conf import settings
 from django.core.files import File
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.utils.dateparse import parse_date
 from players.models import Goalie, Skater, Team
 from tqdm import tqdm
+
+from players import season_loading
+from players.season_stats import GOALIE, SKATER
 
 from . import upd_tms
 from . import upd_pls_tot
@@ -79,62 +83,40 @@ COUNTRIES = {
 
 
 class Command(BaseCommand):
-    """ """
-
-    # FACEOFFS and TOI HAVE A DIFFERENT ORDER
     def handle(self, *args, **options):
-        """
-
-        Args:
-          *args:
-          **options:
-
-        Returns:
-
-        """
-
         UNKNOWN_COUNTRY_CODES.clear()
         season = get_season_id()
-        REQUEST_PARAMS["cayenneExp"] = f"gameTypeId=2 and seasonId={season}"
         logger.info("upd_pls using seasonId=%s", season)
+        team_ids = dict(Team.objects.values_list("abbr", "nhl_id"))
+        staged = []
+        with requests.Session() as session:
+            for player_type in (GOALIE, SKATER):
+                bios = season_loading.fetch_report(
+                    season_loading.BIOS, player_type, session, season
+                )
+                reports = season_loading.fetch_reports(player_type, session, season)
+                bio_ids = [bio["playerId"] for bio in bios]
+                summary_ids = {row["playerId"] for row in reports[season_loading.SUMMARY]}
+                if len(set(bio_ids)) != len(bio_ids) or not summary_ids.issubset(bio_ids):
+                    raise CommandError("Bios report does not cover summary players uniquely")
+                for bio in bios:
+                    fresh = season_loading.assemble_player_rows(
+                        reports, player_type, bio["playerId"], team_ids, session
+                    )
+                    if fresh:
+                        if bio["gamesPlayed"] != fresh[0]["gamesPlayed"]:
+                            raise CommandError("Bios and summary disagree on gamesPlayed")
+                        staged.append((player_type, bio, fresh))
 
-        reports_list = [
-            [REP_TYPE1, PL_TYPE1],  # 0 bios goalies
-            [REP_TYPE2, PL_TYPE1],  # 1 summary goalies
-            [REP_TYPE1, PL_TYPE2],  # 2 bios skaters
-            [REP_TYPE2, PL_TYPE2],  # 3 summary skaters
-            [REP_TYPE3, PL_TYPE2],  # 4 realtime skaters
-            [REP_TYPE4, PL_TYPE2],  # 5 timeonice skaters
-            [REP_TYPE5, PL_TYPE2],  # 6 faceoffs skaters
-        ]
-
-        for index, item in enumerate(reports_list):
-            print(f"\n Uploading from {item[1]} {item[0]} report")
-            start = START_INDEX
-            resp = get_response(item[0], item[1], start)
-
-            while not resp or resp.status_code != 200:
-                resp = get_response(item[0], item[1], start)
-
-            response = resp.json()
-            total_players = response["total"]
-            players_list = response["data"]
-
-            if total_players > PLAYERS_PER_PAGE:
-                start += PLAYERS_PER_PAGE
-                while start < total_players:
-                    resp = get_response(item[0], item[1], start)
-
-                    while not resp or resp.status_code != 200:
-                        resp = get_response(item[0], item[1], start)
-
-                    data = resp.json()["data"]
-                    start += PLAYERS_PER_PAGE
-                    players_list += data
-
-            for player in tqdm(players_list):
-                import_player(player, index, season)
-
+        # All requests and validation finish before a season marker can be published.
+        saved = []
+        with transaction.atomic():
+            for player_type, bio, fresh in tqdm(staged):
+                saved.append(import_player(bio, fresh, player_type))
+        for player in saved:
+            flag_name = f"{player.nation_abbr}.jpg"
+            if pic_missing(flag_name, player.nation_flag, FLAGS_DIR):
+                upload_flag(player, flag_name)
         if UNKNOWN_COUNTRY_CODES:
             logger.warning(
                 "Unknown country codes from NHL API in upd_pls: %s",
@@ -142,131 +124,50 @@ class Command(BaseCommand):
             )
 
 
-def import_player(player, index, season):
-    """
-
-    Args:
-      player:
-      index:
-
-    Returns:
-
-    """
-    id_ = player["playerId"]
-    if index == 0 or index == 2:
-        if player["birthStateProvinceCode"] is None:
-            player["birthStateProvinceCode"] = ""
-
-        if player["nationalityCode"] is None:
-            player["nationalityCode"] = player["birthCountryCode"]
-
-        birth_date = parse_date(player["birthDate"])
-        team_abbreviation = get_char_field_value(player, "currentTeamAbbrev")
-
-        defaults = {
-            "last_name": get_char_field_value(player, "lastName"),
-            "birth_date": birth_date,
-            "birth_city": get_char_field_value(player, "birthCity"),
-            "birth_state": get_char_field_value(player, "birthStateProvinceCode"),
-            "birth_country": get_country_name(player["birthCountryCode"]),
-            "birth_country_abbr": get_char_field_value(player, "birthCountryCode"),
-            "nation": get_country_name(player["nationalityCode"]),
-            "nation_abbr": get_char_field_value(player, "nationalityCode"),
-            "games": player["gamesPlayed"],
-            "age": calculate_age(birth_date, TODAY),
-            "nhl_debut": upd_pls_tot.format_season(str(player["firstSeasonForGameType"])),
-            "team": Team.objects.filter(abbr=team_abbreviation).first(),
-            "stats_season_id": season,
-        }
-
-        defaults_dr = {}
-        if player["draftOverall"]:
-            defaults_dr = {
-                "draft_year": player["draftYear"],
-                "draft_round": player["draftRound"],
+def get_bio_defaults(player, player_type):
+    birth_country = player.get("birthCountryCode")
+    nationality = player.get("nationalityCode") or birth_country
+    position = player.get(POS_CODE_KEY, "G" if player_type == GOALIE else "")
+    defaults = {
+        "name": get_char_field_value(
+            player, "goalieFullName" if player_type == GOALIE else "skaterFullName"
+        ),
+        "last_name": get_char_field_value(player, "lastName"),
+        "birth_date": parse_date(player["birthDate"]),
+        "birth_city": get_char_field_value(player, "birthCity"),
+        "birth_state": get_char_field_value(player, "birthStateProvinceCode"),
+        "birth_country": get_country_name(birth_country),
+        "birth_country_abbr": birth_country or "",
+        "nation": get_country_name(nationality),
+        "nation_abbr": nationality or "",
+        "age": calculate_age(parse_date(player["birthDate"]), TODAY),
+        "nhl_debut": upd_pls_tot.format_season(str(player["firstSeasonForGameType"])),
+        "team": Team.objects.filter(abbr=player.get("currentTeamAbbrev")).first(),
+        "position_abbr": upd_pls_tot.get_position_abbreviation(position),
+        "position_name": upd_pls_tot.POSITION_CODES.get(position, ""),
+    }
+    if player.get("draftOverall"):
+        defaults.update(
+            {
+                "draft_year": player.get("draftYear"),
+                "draft_round": player.get("draftRound"),
                 "draft_number": player["draftOverall"],
             }
+        )
+    return defaults
 
-        defaults = {**defaults, **defaults_dr}
 
-        if POS_CODE_KEY in player:
-            player_obj = Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
-        else:
-            player_obj = Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)[0]
-
-        flag_name = f"{player_obj.nation_abbr}.jpg"
-
-        if pic_missing(flag_name, player_obj.nation_flag, FLAGS_DIR):
-            upload_flag(player_obj, flag_name)
-
-    elif index == 1:  # goalie summary report
-        defaults = {
-            "name": get_char_field_value(player, "goalieFullName"),
-            "wins": get_num_field_value(player, "wins"),
-            "losses": get_num_field_value(player, "losses"),
-            "ot_losses": get_num_field_value(player, "otLosses"),
-            "shotouts": get_num_field_value(player, "shutouts"),
-            "goals_against_av": get_num_field_value(player, "goalsAgainstAverage"),
-            "saves_perc": get_num_field_value(player, "savePct"),
-            "saves": get_num_field_value(player, "saves"),
-            "stats_season_id": season,
-        }
-
-        Goalie.objects.update_or_create(nhl_id=id_, defaults=defaults)
-
-    elif index == 3:  # skater summary
-        defaults = {
-            "name": get_char_field_value(player, "skaterFullName"),
-            "goals": player["goals"],
-            "goals_avg": round(player["goals"] / player["gamesPlayed"], 2),
-            "assists": player["assists"],
-            "assists_avg": round(player["assists"] / player["gamesPlayed"], 2),
-            "points": player["points"],
-            "points_avg": round(player["points"] / player["gamesPlayed"], 2),
-            "plus_minus": player["plusMinus"],
-            "plus_minus_avg": round(player["plusMinus"] / player["gamesPlayed"], 2),
-            "penalty_min": player["penaltyMinutes"],
-            "penalty_min_avg": round(player["penaltyMinutes"] / player["gamesPlayed"], 2),
-            "shots": player["shots"],
-            "shots_avg": round(player["shots"] / player["gamesPlayed"], 2),
-            "pp_points": player["ppPoints"],
-            "pp_points_avg": round(player["ppPoints"] / player["gamesPlayed"], 2),
-            "sh_points": player["shPoints"],
-            "sh_points_avg": round(player["shPoints"] / player["gamesPlayed"], 2),
-            "stats_season_id": season,
-        }
-
-        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
-
-    elif index == 4:
-        defaults = {
-            "hits": player["hits"],
-            "hits_avg": round(player["hits"] / player["gamesPlayed"], 2),
-            "blocks": player["blockedShots"],
-            "blocks_avg": round(player["blockedShots"] / player["gamesPlayed"], 2),
-            "stats_season_id": season,
-        }
-
-        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
-
-    elif index == 5:
-        defaults = {
-            "time_on_ice": time_from_sec(player["timeOnIcePerGame"]),
-            "time_on_ice_pp": time_from_sec(player["ppTimeOnIcePerGame"]),
-            "time_on_ice_sh": time_from_sec(player["shTimeOnIcePerGame"]),
-            "stats_season_id": season,
-        }
-
-        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
-
-    elif index == 6:
-        defaults = {
-            "faceoff_wins": player["totalFaceoffWins"],
-            "faceoff_wins_avg": round(player["totalFaceoffWins"] / player["gamesPlayed"], 2),
-            "stats_season_id": season,
-        }
-
-        Skater.objects.update_or_create(nhl_id=id_, defaults=defaults)
+def import_player(bio, fresh, player_type):
+    model = Skater if player_type == SKATER else Goalie
+    player = model.objects.select_for_update().filter(nhl_id=bio["playerId"]).first()
+    if player is None:
+        player = model(nhl_id=bio["playerId"])
+    defaults = get_bio_defaults(bio, player_type)
+    defaults.update(season_loading.season_row_updates(player, fresh, player_type))
+    for field, value in defaults.items():
+        setattr(player, field, value)
+    player.save()
+    return player
 
 
 def get_response(rep_type, pl_type, start_from_index):

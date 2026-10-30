@@ -50,6 +50,8 @@ def test_current_mode_saves_partial_career_data_and_can_run_again(monkeypatch, c
         career_stats_avg=None,
         save=Mock(),
     )
+    monkeypatch.setattr(upd_pls_tot, "get_report_season_rows", lambda *args: [])
+    monkeypatch.setattr(upd_pls_tot.upd_pls, "get_season_id", lambda: "20262027")
     enrichment = {
         upd_pls_tot.CAREER_ENRICHMENT_TOTALS: {"hits": 10},
         upd_pls_tot.CAREER_ENRICHMENT_AVERAGES: {"hits": 2.5},
@@ -66,15 +68,7 @@ def test_current_mode_saves_partial_career_data_and_can_run_again(monkeypatch, c
     assert player.career_stats_avg["hits"] == 2.5
     assert player.career_stats_avg["goals"] == (0.5 if career_stats else None)
     assert player.career_stats_avg["assists"] is None
-    player.save.assert_called_once_with(
-        update_fields=[
-            "career_stats",
-            "career_stats_avg",
-            "sbs_stats",
-            "sbs_stats_avg",
-            "multiteams_seasons",
-        ]
-    )
+    player.save.assert_called_once_with(update_fields=["career_stats", "career_stats_avg"])
     first_updates = upd_pls_tot.get_current_mode_updates_for_skater(player)
 
     upd_pls_tot.apply_current_mode_to_skater(player)

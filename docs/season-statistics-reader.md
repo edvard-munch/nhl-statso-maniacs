@@ -66,8 +66,9 @@ non-list data, and non-dictionary rows raise `ValueError`. Null/empty stored dat
 non-finite or boolean statistics are treated as unavailable, not coerced.
 
 The reader cannot repair previously contaminated enrichment values or identify
-which fields were copied from an old snapshot. Existing loaders still need the
-planned season/team-aware updates. The helper also does not implement database
+which fields were copied from an old snapshot. The loaders now replace refreshed
+seasons with report-derived rows; untouched historical rows may still need a full
+refresh. See [loader behavior](season-statistics-loaders.md). The helper does not implement database
 sorting, filtering or pagination; those belong to the later page integration.
 
 Run the reader tests using the existing Python 3.7 virtual environment:

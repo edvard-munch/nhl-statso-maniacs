@@ -71,15 +71,13 @@ key describes a different concept and must not substitute for that split.
 - The shared reader tests now verify combined traded-player totals, missing
   seasons, and missing-enrichment values against these expectations. Page
   integration is still pending; current pages do not use the reader yet.
-- Current-mode updates cannot create missing season rows and copy ordinary player
-  columns into the existing current-season row. Stale snapshot values can still
-  reach SBS. The missing-enrichment test exercises the historical report path,
-  which avoids that copying.
-- Enrichment is indexed by season rather than season and team. Multiple team
-  responses can overwrite each other or enrich multiple splits with the same
-  values. The parser and reader tests verify preservation and combination of
-  supplied splits; they do not certify the upstream enrichment.
-- `get_season_by_season_average_stats` converts core counts only. Other counting
-  averages require enrichment or a future complete conversion step.
+- Loaders now create missing season rows and replace refreshed seasons directly
+  from reports, including team-scoped contributions and all counting averages.
+  Their synthetic source responses are in `season_reports.json`, with separate
+  unit and persistence suites. See [loader behavior](season-statistics-loaders.md).
+- The legacy helpers still have their original season-only enrichment and partial
+  average conversion behavior. The commands no longer use them to maintain SBS.
+  The original missing-enrichment parser test remains a check of that legacy
+  helper; the new loader suite verifies production report assembly.
 - Existing full-suite collection, request-mock and database-isolation problems
   are outside this fixtures commit. Use the focused test command above.
