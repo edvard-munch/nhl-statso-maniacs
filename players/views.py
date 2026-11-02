@@ -7,7 +7,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 
-from . import player_table, team_tables, utils
+from . import player_table, saved_players, team_tables, utils
 from .forms import NoteForm, PositionsForm
 from .models import Game, Gameday, Goalie, Note, Position, Skater, Team
 
@@ -130,6 +130,10 @@ def favorites(request):
     context = {}
     user = request.user
     if user.is_authenticated:
+        try:
+            context.update(player_table.season_context(request.GET.get("season")))
+        except ValueError as error:
+            return HttpResponseBadRequest(str(error), content_type="text/plain")
         fav_goalies = user.favorite_goalies.select_related("team")
         fav_skaters = user.favorite_skaters.select_related("team")
         skaters_games = utils.favorite_players_gamelog(fav_skaters)
@@ -147,17 +151,19 @@ def favorites(request):
         skaters_games_options = [option for option in options if option < len(skaters_games[:200])]
         goalies_games_options = [option for option in options if option < len(goalies_games[:200])]
 
-        context = {
-            "favorites_g": fav_goalies,
-            "favorites_s": fav_skaters,
-            "numb_of_goalies": numb_of_goalies,
-            "numb_of_skaters": numb_of_skaters,
-            "table_page_size": utils.PAGE_SIZE_2,
-            "skaters_options": skaters_options,
-            "goalies_options": goalies_options,
-            "skaters_games_options": skaters_games_options,
-            "goalies_games_options": goalies_games_options,
-        }
+        context.update(
+            {
+                "favorites_g": fav_goalies,
+                "favorites_s": fav_skaters,
+                "numb_of_goalies": numb_of_goalies,
+                "numb_of_skaters": numb_of_skaters,
+                "table_page_size": utils.PAGE_SIZE_2,
+                "skaters_options": skaters_options,
+                "goalies_options": goalies_options,
+                "skaters_games_options": skaters_games_options,
+                "goalies_games_options": goalies_games_options,
+            }
+        )
 
     return render(request, "players/favorites.html", context)
 
@@ -165,6 +171,10 @@ def favorites(request):
 def ajax_fav_players_gamelog(request, stat_type, page, size, sort_col, filt_col):
     page = utils.parse_url_param(page)
     user = request.user
+    if not user.is_authenticated:
+        return JsonResponse({"authenticated": False, "error": "Sign in required"}, status=403)
+    if stat_type not in (utils.STAT_TYPES[3], utils.STAT_TYPES[4]):
+        return JsonResponse({"error": "Invalid gamelog type"}, status=400)
     if user.is_authenticated:
         if stat_type == utils.STAT_TYPES[3]:
             fav_players = user.favorite_skaters.select_related("team")
@@ -175,7 +185,7 @@ def ajax_fav_players_gamelog(request, stat_type, page, size, sort_col, filt_col)
 
         all_games = utils.favorite_players_gamelog(fav_players)
 
-        if utils.ALL_ROWS in size:
+        if utils.ALL_ROWS in size.lower():
             size = len(all_games)
         else:
             size = utils.parse_url_param(size)
@@ -226,208 +236,26 @@ def get_latest_loaded_season_id():
 def ajax_players(
     request, stat_type, page, size, sort_col, filt_col, rookie_filt, checkbox_filt, fav_filt=None
 ):
-    if not (request.user.is_authenticated and fav_filt):
-        try:
-            season = player_table.selected_season(request.GET.get("season"))
-            data = player_table.build_table(
-                request,
-                season,
-                stat_type,
-                page,
-                size,
-                sort_col,
-                filt_col,
-                rookie_filt,
-                checkbox_filt,
-            )
-        except (ValueError, TypeError) as error:
-            return JsonResponse({"error": str(error)}, status=400)
-        return JsonResponse(data)
-    page = utils.parse_url_param(page)
-    user = request.user
-    favorites = False
-    if user.is_authenticated:
-        if fav_filt:
-            favorites = True
-    if stat_type == utils.STAT_TYPES[0]:
-        columns = utils.COLUMNS + utils.COLUMNS_GOALIES
-        if favorites:
-            players = user.favorite_goalies.select_related("team")
-        else:
-            players = Goalie.objects.select_related("team")
-    else:
-        if stat_type == utils.STAT_TYPES[1]:
-            columns = utils.COLUMNS + utils.COLUMNS_TOT + utils.COLUMNS_TOI
-        elif stat_type == utils.STAT_TYPES[2]:
-            columns = utils.COLUMNS + utils.COLUMNS_AVG + utils.COLUMNS_TOI
-        if favorites:
-            players = user.favorite_skaters.select_related("team")
-        else:
-            players = Skater.objects.select_related("team")
-
-    if not favorites:
-        current_season_id = get_latest_loaded_season_id()
-        if current_season_id:
-            players = players.filter(stats_season_id=current_season_id)
-        players = players.filter(games__gt=0)
-
-    init_age_range = utils.get_range(players, "age")
-
-    if utils.measurements_format_is_euro(user):
-        init_weight_range = utils.get_range(players, "weight_kg")
-    else:
-        init_weight_range = utils.get_range(players, "weight")
-
-    init_height_range = utils.get_range(players, "height_cm")
-
-    if utils.ALL_ROWS in size:
-        size = players.count()
-    else:
-        size = utils.parse_url_param(size)
-
-    start = size * (page - 1)
-    end = start + size
-
-    # ALL CHECKBOX OPTIONS BEFORE STANDARDFILTERING
-    positions_before_position_filt = utils.filter_checkbox_opts(
-        players, ("position_abbr", "position_name")
-    )
-    teams_before_team_filt = utils.filter_checkbox_opts(players, ("team__abbr", "team__name"))
-    nations_before_nation_filt = utils.filter_checkbox_opts(players, ("nation",))
-
-    filtering = utils.filter_columns(filt_col)
-    if filtering:
-        players = utils.apply_filters(request, players, filtering, columns)[0]
-        adjust_range = utils.apply_filters(request, players, filtering, columns)[1]
-        if adjust_range:
-            pass
-            # adjust range call
-
-    # if utils.rookie_filter(rookie_filt):
-    #     players = players.filter(rookie=True)
-
-    # ALL CHECKBOX OPTIONS JUST AFTER STANDARD FILTERING
-    all_positions = utils.filter_checkbox_opts(players, ("position_abbr", "position_name"))
-    all_teams = utils.filter_checkbox_opts(players, ("team__abbr", "team__name"))
-    all_nations = utils.filter_checkbox_opts(players, ("nation",))
-
-    filtered_teams = utils.checkbox_filter(checkbox_filt, "teams")
-    if filtered_teams:
-        players = players.filter(team__abbr__in=filtered_teams)  # .prefetch_related()
-
-    filtered_positions = utils.checkbox_filter(checkbox_filt, "positions")
-    if filtered_positions:
-        players = players.filter(position_abbr__in=filtered_positions)  # .prefetch_related()
-
-    filtered_nations = utils.checkbox_filter(checkbox_filt, "nations")
-    if filtered_nations:
-        players = players.filter(nation__in=filtered_nations)  # .prefetch_related()
-
-    sorting = utils.sorting_columns(sort_col)
-    one_page_slice = utils.sort_table(request, stat_type, sorting, players, columns)[start:end]
-
-    players_json = json.loads(
-        serializers.serialize("json", one_page_slice, use_natural_foreign_keys=True)
-    )
-    domain = request.get_host()
-    total_rows = players.count()
-    data = utils.process_json(request, columns, domain, players_json, total_rows, start)
-
-    data["initial_age_range"] = init_age_range
-    data["initial_weight_range"] = init_weight_range
-    data["initial_height_range"] = init_height_range
-
-    # data['pager'] = total_rows < utils.PAGE_SIZE_2
-
-    # IF FILTERING CONTAINS RANGES - GET what range is used (check in ARRAY with all range fields)
-    # and pass it to range_applied
-
-    data["fav_alert_div"] = utils.get_fav_alert_div()
-
-    # CHECK AND OPTIMIZE ALL OF THE IF BRANCHES HERE
-
-    # GET HTML for checkbox OPTIONS after standard filtering have been applied or not
-    data["all_teams"] = utils.checkbox(all_teams, "team_checkboxradio_skt", tip=True)
-    data["all_nations"] = utils.checkbox(all_nations, "nation_checkboxradio_skt", tip=False)
-    data["all_positions"] = utils.checkbox(all_positions, "position_checkboxradio_skt", tip=True)
-
-    # All below is for getting HTML for checkbox OPTIONS if  STANDARD of CHECKBOX filtering have been applied
-
-    # remove or make not active teams that doesn't have players for current filter set besides checkbox filters
-    if filtering:
-        data["all_teams"] = utils.checkbox(all_teams, "team_checkboxradio_skt", tip=True)
-        data["all_nations"] = utils.checkbox(all_nations, "nation_checkboxradio_skt", tip=False)
-        data["all_positions"] = utils.checkbox(
-            all_positions, "position_checkboxradio_skt", tip=True
+    collection = player_table.FAVORITES if fav_filt else None
+    if collection and not request.user.is_authenticated:
+        return JsonResponse({"authenticated": False, "error": "Sign in required"}, status=403)
+    try:
+        season = player_table.selected_season(request.GET.get("season"))
+        data = player_table.build_table(
+            request,
+            season,
+            stat_type,
+            page,
+            size,
+            sort_col,
+            filt_col,
+            rookie_filt,
+            checkbox_filt,
+            collection,
         )
-
-    # IF CHECKED
-    if utils.checkbox_filter(checkbox_filt, "teams"):
-        data["all_teams"] = utils.checkbox(
-            all_teams,
-            "team_checkboxradio_skt",
-            checked=utils.checkbox_filter(checkbox_filt, "teams"),
-            tip=True,
-        )
-        # remove or make not active teams that doesn't have players for current filter set besides checkbox filters
-        if filtering:
-            # make a special players list without filtering by team and make a teams list from it
-            # it works fine before check any team, then it leaves only currrently checked team
-            # because there really a filtering and when you also check a team, it's obviously leaves only this team as an option
-            data["all_teams"] = utils.checkbox(
-                teams_before_team_filt,
-                "team_checkboxradio_skt",
-                checked=utils.checkbox_filter(checkbox_filt, "teams"),
-                tip=True,
-            )
-
-    if utils.checkbox_filter(checkbox_filt, "positions"):
-        data["all_positions"] = utils.checkbox(
-            all_positions,
-            "position_checkboxradio_skt",
-            checked=utils.checkbox_filter(checkbox_filt, "positions"),
-            tip=True,
-        )
-        if filtering:
-            data["all_positions"] = utils.checkbox(
-                positions_before_position_filt,
-                "position_checkboxradio_skt",
-                checked=utils.checkbox_filter(checkbox_filt, "positions"),
-                tip=True,
-            )
-
-    if utils.checkbox_filter(checkbox_filt, "nations"):
-        data["all_nations"] = utils.checkbox(
-            all_nations,
-            "nation_checkboxradio_skt",
-            checked=utils.checkbox_filter(checkbox_filt, "nations"),
-            tip=False,
-        )
-        if filtering:
-            data["all_nations"] = utils.checkbox(
-                nations_before_nation_filt,
-                "nation_checkboxradio_skt",
-                checked=utils.checkbox_filter(checkbox_filt, "nations"),
-                tip=False,
-            )
-
-    uniques_height_cm = utils.get_uniques(players, "height_cm")
-    uniques_height_cm = utils.sort_list(uniques_height_cm)
-    uniques_height = utils.get_uniques(players, "height")
-    uniques_height = utils.sort_height_list(uniques_height)
-    height_map_dict = dict(zip(uniques_height_cm, uniques_height))
-
-    if utils.measurements_format_is_euro(user):
-        data["weight_range"] = utils.get_range(players, "weight_kg")
-        data["height_values"] = uniques_height_cm
-    else:
-        data["weight_range"] = utils.get_range(players, "weight")
-        data["height_values"] = height_map_dict
-
-    data["height_range"] = utils.get_range(players, "height_cm")
-    data["age_range"] = utils.get_range(players, "age")
-
-    return JsonResponse(data, safe=False)
+    except (ValueError, TypeError) as error:
+        return JsonResponse({"error": str(error)}, status=400)
+    return JsonResponse(data)
 
 
 def search(request):
@@ -629,45 +457,51 @@ def ajax_stats_switcher(request, slug, team_id, stat_type, pos_filt):
 
 
 def ajax_comparison_stat_switcher(request, player_type, stat_type):
-    user = request.user
-    if user.is_authenticated:
-        comp_gls = user.comparable_goalies.select_related("team")
-        comp_skt = user.comparable_skaters.select_related("team")
-
-        context = {
-            "comp_gls": comp_gls,
-            "comp_skt": comp_skt,
-            "favorites_g": comp_gls.filter(favoriting__username=user),
-            "favorites_s": comp_skt.filter(favoriting__username=user),
+    if not request.user.is_authenticated:
+        return JsonResponse({"authenticated": False, "error": "Sign in required"}, status=403)
+    try:
+        if (
+            player_type not in saved_players.ALLOWED_MODES
+            or stat_type not in saved_players.ALLOWED_MODES[player_type]
+        ):
+            raise ValueError("Invalid comparison statistics mode")
+        season, skater_mode, goalie_mode = saved_players.selection(request)
+        if player_type == saved_players.SKATERS:
+            skater_mode = stat_type
+        else:
+            goalie_mode = stat_type
+        context = saved_players.comparison_context(request.user, season, skater_mode, goalie_mode)
+    except ValueError as error:
+        return JsonResponse({"error": str(error)}, status=400)
+    rows = context["skater_rows" if player_type == saved_players.SKATERS else "goalie_rows"]
+    base = "players/partial_{}_comparison_base.html".format(player_type)
+    return JsonResponse(
+        {
+            "stats": render_to_string(
+                "players/partial_comparison_statistics.html",
+                {"comparison_rows": rows},
+                request=request,
+            ),
+            "table": render_to_string(base, context, request=request),
+            "season_id": season,
+            "stat_type": stat_type,
+            "player_type": player_type,
         }
-
-        if player_type == "skaters":
-            if stat_type == "season_avg":
-                template = utils.TEMPLATES[0]
-            elif stat_type == "season_tot":
-                template = utils.TEMPLATES[1]
-            elif stat_type == "career_avg":
-                template = utils.TEMPLATES[2]
-            elif stat_type == "career_tot":
-                template = utils.TEMPLATES[3]
-        elif player_type == "goalies":
-            if stat_type == "career_tot":
-                template = utils.TEMPLATES[4]
-            if stat_type == "season_tot":
-                template = utils.TEMPLATES[5]
-
-        data = {}
-        data["stats"] = render_to_string(template, context=context, request=request)
-
-        return JsonResponse(data)
+    )
 
 
 def comparison(request):
     context = {}
-    user = request.user
-    if user.is_authenticated:
-        context = utils.get_comparison_context(user)
-
+    if request.user.is_authenticated:
+        try:
+            selection = player_table.season_context(request.GET.get("season"))
+            season, skater_mode, goalie_mode = saved_players.selection(request)
+            context = saved_players.comparison_context(
+                request.user, season, skater_mode, goalie_mode
+            )
+            context.update(selection)
+        except ValueError as error:
+            return HttpResponseBadRequest(str(error), content_type="text/plain")
     return render(request, "players/comparison.html", context)
 
 
@@ -675,9 +509,13 @@ def player_compare(request, slug, nhl_id):
     data = {}
     user = request.user
     if user.is_authenticated:
+        try:
+            season, skater_mode, goalie_mode = saved_players.selection(request)
+        except ValueError as error:
+            return JsonResponse({"error": str(error)}, status=400)
         data["authenticated"] = True
         player = utils.get_player(nhl_id, slug)
-        if player.position_abbr == utils.POSITIONS[0]:
+        if isinstance(player, Goalie):
             quota = user.comparable_goalies.count()
         else:
             quota = user.comparable_skaters.count()
@@ -686,17 +524,6 @@ def player_compare(request, slug, nhl_id):
             player.comparing.remove(user)
             data["message"] = f"{player.name} successfully removed from the comparison"
             utils.pop_key(data, "comp_quota_reached")
-            context = utils.get_comparison_context(user)
-
-            data["goalies_button"] = f"GOALIES ({context['numb_of_goalies']})"
-            data["skaters_button"] = f"SKATERS ({context['numb_of_skaters']})"
-
-            data["compare_skaters"] = render_to_string(
-                "players/partial_skaters_comparison_base.html", context, request=request
-            )
-            data["compare_goalies"] = render_to_string(
-                "players/partial_goalies_comparison_base.html", context, request=request
-            )
         else:
             if quota < utils.COMPARISON_QUOTA:
                 player.comparing.add(user)
@@ -706,6 +533,8 @@ def player_compare(request, slug, nhl_id):
             else:
                 data["message"] = f"Comparison quota reached ({utils.COMPARISON_QUOTA} players)"
                 data["comp_quota_reached"] = 1
+        context = saved_players.comparison_context(user, season, skater_mode, goalie_mode)
+        data.update(saved_players.comparison_payload(context, request))
     else:
         data["authenticated"] = False
         redir = request.META.get("HTTP_REFERER")
@@ -715,11 +544,17 @@ def player_compare(request, slug, nhl_id):
 
 
 def reset_comparison(request, player_type):
-    user = request.user
-    if user.is_authenticated:
-        data = utils.clear_comparison_list(request, player_type, user)
-
-    return JsonResponse(data)
+    if not request.user.is_authenticated:
+        return JsonResponse({"authenticated": False, "error": "Sign in required"}, status=403)
+    try:
+        if player_type not in saved_players.ALLOWED_MODES:
+            raise ValueError("Invalid comparison player type")
+        season, skater_mode, goalie_mode = saved_players.selection(request)
+    except ValueError as error:
+        return JsonResponse({"error": str(error)}, status=400)
+    getattr(request.user, "comparable_" + player_type).clear()
+    context = saved_players.comparison_context(request.user, season, skater_mode, goalie_mode)
+    return JsonResponse(saved_players.comparison_payload(context, request))
 
 
 def player_favorite(request, slug, nhl_id):

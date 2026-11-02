@@ -7,7 +7,6 @@ import re
 import os
 import functools
 from itertools import chain, zip_longest
-from django.template.loader import render_to_string
 from django.db.models import Max, Min
 
 from . import models
@@ -443,44 +442,6 @@ def get_cell_value(game, column, *args):
     if value is None:
         value = "—"
     return value
-
-
-def clear_comparison_list(request, player_type, user):
-    data = {}
-    field = getattr(user, f"comparable_{player_type}")
-    field.clear()
-    context = get_comparison_context(user)
-    data[f"{player_type}_button"] = f"{player_type.upper()} ({context[f'numb_of_{player_type}']})"
-    template = f"players/partial_{player_type}_comparison_base.html"
-    data[f"compare_{player_type}"] = render_to_string(template, context, request=request)
-    return data
-
-
-def get_comparison_context(user):
-    stat_type = "season_avg"
-    player_type = "skaters"
-    comp_gls = user.comparable_goalies.select_related("team")
-    comp_skt = user.comparable_skaters.select_related("team")
-    numb_of_goalies = comp_gls.count()
-    numb_of_skaters = comp_skt.count()
-
-    if measurements_format_is_euro(user):
-        for player in chain(comp_gls, comp_skt):
-            player = adjust_measurements(player)
-
-    context = {
-        "comp_gls": comp_gls,
-        "comp_skt": comp_skt,
-        "favorites_g": comp_gls.filter(favoriting__username=user),
-        "favorites_s": comp_skt.filter(favoriting__username=user),
-        "stat_type": stat_type,
-        "player_type": player_type,
-        "numb_of_goalies": numb_of_goalies,
-        "numb_of_skaters": numb_of_skaters,
-        "empty": (numb_of_goalies + numb_of_skaters == 0),
-    }
-
-    return context
 
 
 def get_fav_alert_div():

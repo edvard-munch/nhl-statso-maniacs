@@ -121,6 +121,11 @@ show each player's contribution to that team. See
 [Players table behavior and tests](docs/players-season-table.md) and
 [team table behavior and tests](docs/team-season-tables.md).
 
+Favorites and comparison also have season selectors. Saved players without data
+for that season remain visible with dashes; career comparison modes are independent
+of the season, and Favorites gamelog covers all stored seasons. See the
+[saved-list behavior and complete update workflow](docs/saved-player-season-tables.md).
+
 ## Tests
 
 ```bash

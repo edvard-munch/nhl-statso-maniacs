@@ -63,8 +63,9 @@ CPU and memory work still grow with the candidate set and its stored season
 history; dedicated season tables remain a possible later improvement if that
 becomes a performance constraint.
 
-Favorites/comparison tables and player-detail season selection remain separate
-integration work. In particular, the authenticated favorites variation
+Favorites/comparison now use the same reader; see [saved-list behavior and the
+update workflow](saved-player-season-tables.md). Player-detail season selection
+remains separate integration work. In particular, the authenticated favorites variation
 of the shared AJAX endpoint keeps its existing data source in this commit.
 
 Run the focused PostgreSQL tests using real migrations:

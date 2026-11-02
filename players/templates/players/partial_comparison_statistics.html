@@ -1,0 +1,4 @@
+{% for metric in comparison_rows %}
+<tr class="comparison-stat-row"><th scope="row">{{ metric.label }}</th>
+{% for value in metric.values %}<td>{{ value|default_if_none:"—" }}</td>{% endfor %}</tr>
+{% endfor %}

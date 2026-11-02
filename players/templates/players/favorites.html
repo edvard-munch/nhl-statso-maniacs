@@ -12,6 +12,8 @@
 {% block content %}
 <h3>Favorites</h3><br>
 {% if user.is_authenticated %}
+{% include 'players/partial_saved_season_selector.html' %}
+<p>Gamelog includes all stored seasons.</p>
 {% if not favorites_g and not favorites_s %}
 <h3>You have no favorite players yet!</h3><br>
 <a class="sign_button gray-orange" href="{% url 'players' %}">Browse for some great players here</a>
@@ -29,7 +31,7 @@
 <!-- SKATERS LAST GAMES -->
 {% if favorites_s %}
 <div id="js_skaters_block">
-  <a id="js_switch_to_skaters_gamelog" class="tiny-button left-side-button tiny-comparison-button current-tab" href="#">Gamelog</a>
+  <a id="js_switch_to_skaters_gamelog" class="tiny-button left-side-button tiny-comparison-button current-tab" href="#">Gamelog (all seasons)</a>
   <a id="js_switch_to_skaters_season_tot" class="tiny-button left-side-button tiny-comparison-button" href="#">Season total stats</a>
   <a id="js_switch_to_skaters_season_avg" class="tiny-button left-side-button tiny-comparison-button" href="#">Season average stats</a>
   <br><br>
@@ -51,6 +53,7 @@
         <!-- AJAX -->
     </tbody>
   </table>
+<p id="js_skaters_log_table-status" role="status" hidden></p>
 
 <!-- SKATERS TOTALS       -->
 <input class="js_external_filter_skaters_totals select left-side-button" type="select" data-column="2" placeholder="Input skater's name">
@@ -60,23 +63,22 @@
   </thead>
 
   <!-- PAGER -->
-  {% if numb_of_skaters > table_page_size %}
   <tfoot>
       {% include 'players/partial_pager.html' with id='skaters_totals_options' pager_class='pager-skt-tot' colspan='27' options=skaters_options %}
   </tfoot>
-  {% endif %}
 
 <tbody>
     <!-- AJAX -->
 </tbody>
 </table>
+<p id="js_skaters_total_table-status" role="status" hidden></p>
 
 {% endif %}
 
 <!-- GOALIES LAST GAMES -->
 {% if favorites_g %}
 <div id="js_goalies_block">
-  <a id="js_switch_to_goalies_gamelog" class="tiny-button left-side-button tiny-comparison-button current-tab" href="#">Gamelog</a>
+  <a id="js_switch_to_goalies_gamelog" class="tiny-button left-side-button tiny-comparison-button current-tab" href="#">Gamelog (all seasons)</a>
   <a id="js_switch_to_goalies_season_tot" class="tiny-button left-side-button tiny-comparison-button" href="#">Season total stats</a>
   <br><br>
   <input class="js_external_filter_goalies_log select left-side-button" type="select" data-column="0" placeholder="Input goalie's name">
@@ -96,6 +98,7 @@
     <!-- AJAX -->
   </tbody>
 </table>
+<p id="js_goalies_log_table-status" role="status" hidden></p>
 
 <!-- GOALIES TOTALS      -->
 <input class="js_external_filter_goalies_totals select left-side-button" type="select" data-column="2" placeholder="Input goalie's name">
@@ -104,17 +107,16 @@
     {% include 'players/partial_goalies_header.html' %}
   </thead>
 
-{% if numb_of_goalies > table_page_size %}
   <tfoot>
     <!-- PAGER -->
       {% include 'players/partial_pager.html' with id='goalies_totals_options' pager_class='pager-gls-tot' colspan='20' options=goalies_options %}
   </tfoot>
-  {% endif %}
 
 <tbody>
   <!-- AJAX -->
 </tbody>
 </table>
+<p id="js_goalies_total_table-status" role="status" hidden></p>
 {% endif %}
 </div>
 

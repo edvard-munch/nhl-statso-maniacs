@@ -372,7 +372,7 @@ def test_query_count_does_not_grow_with_player_count(table_players):
     assert query_count() == before
 
 
-def test_favorites_endpoint_keeps_its_existing_source_until_its_integration(client, table_players):
+def test_favorites_endpoint_uses_selected_season(client, table_players):
     user = User.objects.create_user(username="saved-table-user")
     user.favorite_skaters.add(table_players["low"])
     client.force_login(user)
@@ -380,7 +380,7 @@ def test_favorites_endpoint_keeps_its_existing_source_until_its_integration(clie
     response = ajax(client, favorites="favorites_filter=true")
 
     assert response.status_code == 200
-    assert response.json()["rows"][0][13] == 999
+    assert response.json()["rows"][0][13] == 2
 
 
 def test_main_table_favorite_stars_use_current_user_membership(client, table_players):

@@ -1,20 +1,20 @@
 <tr>
   <th scope="row">Pic</th>
   {% for player in comp_gls %}
-  <td><img class="rounded-circle account-img" src="{{ player.image.url }}"></td>
+  <td><img class="rounded-circle account-img" src="{% if player.image %}{{ player.image.url }}{% endif %}"></td>
   {% endfor %}
 </tr>
 <tr>
   <th scope="row">Name</th>
   {% for player in comp_gls %}
-  <td><a href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
+  <td><a href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</a></td>
   {% endfor %}
 </tr>
 <tr>
   <th scope="row">Comparison</th>
   {% for player in comp_gls %}
   <td>
-    <a class="button nano-button js-compare-del_goalie" href="{% url 'player_compare' player.slug player.nhl_id %}" title="Remove from comparison">DEL</a>
+    <a class="button nano-button js-compare-del_goalie" href="{% url 'player_compare' player.slug player.nhl_id %}" data-comparison-remove title="Remove from comparison">DEL</a>
   </td>
   {% endfor %}
 </tr>
@@ -23,7 +23,7 @@
   {% for player in comp_gls %}
   <td>
     <div id="favorite_section">
-      {% if player in favorites_g %}
+      {% if player.is_favorite %}
       <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
       {% else %}
       <a class="js-fav-add" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
@@ -81,4 +81,4 @@
   {% endfor %}
 </tr>
 
-{% include 'players/partial_goalies_comparison_season_tot.html' %}
+{% include 'players/partial_comparison_statistics.html' with comparison_rows=goalie_rows %}

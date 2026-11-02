@@ -1,0 +1,10 @@
+<form method="get">
+  <label for="saved-players-season">Season</label>
+  <select id="saved-players-season" name="season" data-season="{{ season_id }}">
+    {% for value, label in season_options %}
+    <option value="{{ value }}"{% if value == season_id %} selected{% endif %}>{{ label }}</option>
+    {% empty %}<option value="">No seasons loaded</option>{% endfor %}
+  </select>
+  <button type="submit">Show season</button>
+</form>
+<p>Season statistics use the selected season. Saved players without statistics remain listed with dashes.</p>

@@ -68,5 +68,6 @@ favorite stars, read-only behavior and query growth. It also checks the rendered
 table cells and goalie row structure. JavaScript syntax is checked with
 `node --check players/static/players/ajax_switch_stats.js`.
 
-Favorites/comparison tables and player-detail season selection remain separate
-integration work.
+Favorites/comparison now use the shared reader; see [saved-list behavior and the
+update workflow](saved-player-season-tables.md). Player-detail season selection
+remains separate integration work.
