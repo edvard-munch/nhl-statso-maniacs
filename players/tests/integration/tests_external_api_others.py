@@ -1,4 +1,4 @@
-from players.management.commands import upd_gms, upd_pls_proj, upd_pls_sbs, upd_pls_tot, upd_tms
+from players.management.commands import upd_gms, upd_pls_proj, upd_pls_tot, upd_tms
 
 import pytest
 
@@ -93,15 +93,7 @@ def test_keys_response_gamedata(report_type, mocked_keys):
     assert mocked_keys == real_keys
 
 
-@pytest.mark.parametrize(
-    "function_name",
-    [
-        upd_pls_tot.player_ind_stats,
-        upd_pls_sbs.player_ind_stats,
-        upd_pls_proj.player_ind_stats,
-    ],
-)
-def test_keys_response_player_endpoint(function_name):
+def test_keys_response_projection_player_endpoint():
     # it could be not working if player with the given id is not
     # played in the season yet
     mocked_keys = [
@@ -130,10 +122,21 @@ def test_keys_response_player_endpoint(function_name):
         "stats",
     ]
     nhl_id = 8478402
-    response = function_name(nhl_id).json()
+    response = upd_pls_proj.player_ind_stats(nhl_id).json()
     real_keys = list(response["people"][0].keys())
 
     assert mocked_keys == real_keys
+
+
+def test_response_totals_player_landing_endpoint():
+    nhl_id = 8478402
+    response = upd_pls_tot.get_response(nhl_id)
+    response.raise_for_status()
+    data = response.json()
+
+    assert data["playerId"] == nhl_id
+    assert {"firstName", "position", "careerTotals", "seasonTotals"} <= data.keys()
+    assert "regularSeason" in data["careerTotals"]
 
 
 def test_keys_response_teams():

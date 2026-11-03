@@ -48,10 +48,13 @@ following `f0d5729` (saved lists). Detailed contracts live in
   to be added.
 - The application's database was not modified by these validation runs. A complete
   successful local update after the latest fix has not been reported in the chat.
-- **Full-suite collection still fails**, reproduced on this review with
-  `python -m pytest -c players/tests/pytest.ini players/tests --collect-only -q`.
-  `tests_external_api_others.py` imports removed `upd_pls_sbs`. Marker exclusion
-  happens after import/collection, so `-m "not external"` does not prevent this.
+- **Collection is repaired:** the default selection collects 320 tests and
+  deselects 12 external tests; explicit external selection collects those 12.
+  Both selections also collect with HTTP requests and database connections
+  explicitly blocked. Removed-command imports and the obsolete totals helper
+  reference were replaced. Marker exclusion still happens after module imports.
+  These are collection results, not full-suite passing test results; legacy
+  database isolation must be repaired before the complete suite runs.
 - The complete coverage baseline is **not established**. The 35% gate was an
   agreed starting threshold, not a measured result or a reason to exclude code.
 - The current Make targets select `players/tests`; tests added under `users`
@@ -61,9 +64,10 @@ following `f0d5729` (saved lists). Detailed contracts live in
 
 Suggested focused commits, in order:
 
-1. **Repair collection and separate optional live checks.** Remove or replace the
-   obsolete import according to the current commands. Keep live modules safe to
-   collect without contacting the network. Do not merely skip failed imports.
+1. **Completed: repair collection and separate optional live checks.** Removed
+   the obsolete SBS command import and replaced the obsolete totals helper with
+   a landing-response check. Both selections collect without HTTP/database access.
+   Remaining legacy live API contracts still need the deferred maintenance below.
 2. **Replace legacy database-dependent tests with isolated fixtures.** Remove the
    `django_db_setup` bypass in `unit/tests_readonly_db/conftest.py`; use Django's
    normal test database and explicit teams, players, games and users. Replace
@@ -207,7 +211,7 @@ with relational season rows; neither is required for the current fix or upgrade.
 
 ## Immediate commit queue
 
-1. Fix test collection without importing removed commands.
+1. Completed: fix test collection without importing removed commands.
 2. Replace database bypass and existing-record tests with isolated fixtures.
 3. Repair season-sensitive mocks and document a reproducible test environment.
 4. Record full-suite coverage and wire the verified suite into CI.
@@ -215,4 +219,4 @@ with relational season rows; neither is required for the current fix or upgrade.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
-The next implementation task is item 1, followed by item 2 before any full run.
+The next implementation task is item 2, before any full run.
