@@ -2,6 +2,9 @@
 
 NHL web app for tracking player stats, game data, favorites, and player comparisons.
 
+The [modernization roadmap](docs/modernization-roadmap.md) records completed work,
+remaining test gaps, and the planned Python/Django upgrade sequence.
+
 ## Stack
 
 - Python 3.7.17
