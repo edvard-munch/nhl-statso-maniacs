@@ -9,9 +9,10 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: prepare the Django 3.2 compatibility checkpoint.** The staged upgrade is
-now active: Django 2.2.28 passes the existing suite on Python 3.7.17. Continue with
-compatible dependencies and the intervening deprecations before moving Python.
+**Next: validate the Python 3.10 bridge separately.** The Django 3.2.25 checkpoint
+passes the suite on Python 3.7.17, with compatible extensions, core JSONField
+models and a rehearsed data-preserving migration. Continue with interpreter and
+dependency compatibility before moving to Django 4.2.
 The Dependabot blocker remains until the interpreter transition. Remaining
 team/totals/user regression batches remain in the queue and can protect affected
 behavior during the upgrade. Do not wait for 100% coverage.
@@ -228,7 +229,7 @@ endpoint. See the [5.2 release notes](https://docs.djangoproject.com/en/5.2/rele
 | Checkpoint | Proposed interpreter strategy | Main work |
 | --- | --- | --- |
 | Django 2.2.28 — complete locally | Python 3.7.17 | Patch baseline, 408 passing tests, unchanged migration state and working-venv dependency update; see upgrade checkpoints. |
-| Django 3.2 | Keep 3.7 for the framework change, then test 3.10 separately | Upgrade compatible dependencies; remove deprecations; prepare JSONField/schema changes. Python 3.10 is only a bridge. |
+| Django 3.2.25 — complete locally | Python 3.7.17; test 3.10 next | Compatible extensions, preserved AutoField keys, core JSONField migration and synthetic data-preservation rehearsal. Python 3.10 is only a bridge. |
 | Django 4.2 | Keep 3.10 for the framework change, then test 3.12 separately | Replace removed APIs, resolve migration/JSONField/storage/time-zone issues and dependency constraints. |
 | Django 5.2 | Use the validated Python 3.12 environment | Complete removals/deprecations, verify deployment and record the supported final dependency set. |
 
@@ -278,5 +279,5 @@ Use small focused commits with messages explaining both what changed and why.
 Item 6 remains in progress: core game persistence and identity contracts are
 complete; team saves, remaining totals enrichment and user-owned/browser checks
 remain queued. The staged upgrade has started with the validated 2.2.28 patch
-checkpoint. The next focused upgrade batch is Django 3.2 compatibility, followed
-by a separate Python bridge. Keep each change reviewable and validate every step.
+checkpoint and the Django 3.2.25 compatibility step. The next focused batch is
+the Python 3.10 bridge. Keep each change reviewable and validate every step.

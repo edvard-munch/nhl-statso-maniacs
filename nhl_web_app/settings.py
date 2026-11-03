@@ -161,6 +161,9 @@ TIME_ZONE = "Europe/Moscow"
 
 INTERNAL_IPS = ["127.0.0.1"]
 
+# Preserve existing integer primary keys across framework upgrades.
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
+
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
 
 LOG_DIRECTORY = os.path.join(BASE_DIR, "logs")

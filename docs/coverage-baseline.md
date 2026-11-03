@@ -132,3 +132,15 @@ and model/migration drift checks pass for both Django 2.2.6 and 2.2.28; the isol
 schema migrated under 2.2.6 requires no new migrations after the patch. See
 [upgrade checkpoints](django-upgrade-checkpoints.md). The Python 3.7 dependency-
 graph blocker remains until the later interpreter step.
+
+## Upgrade checkpoint: Django 3.2.25
+
+The framework compatibility step keeps Python 3.7.17 and passes **409 tests**,
+with 12 external checks deselected and **82.58% combined coverage** through the
+full push-stage hook. The extra regression exercises the core JSONField migration,
+JSON containment queries and saved memberships. The small coverage change reflects
+the changed source denominator; the gate and exclusions are unchanged. The isolated
+old-to-new migration rehearsal preserves synthetic player and user data; see
+[upgrade checkpoints](django-upgrade-checkpoints.md). The working venv is updated,
+but the application database still needs `manage.py migrate`. Dependabot's Python
+3.7 blocker remains for the separate interpreter transition.

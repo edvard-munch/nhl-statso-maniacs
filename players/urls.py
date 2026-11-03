@@ -1,6 +1,5 @@
 from django.conf import settings
-from django.conf.urls import include, url
-from django.urls import path
+from django.urls import include, path, re_path
 
 from . import views
 
@@ -59,7 +58,7 @@ urlpatterns = [
         name="ajax_comparison_stat_switcher",
     ),
     # url(r'^silk/', include('silk.urls', namespace='silk')),
-    url(r"^ajax_calls/search/", views.autocomplete),
+    re_path(r"^ajax_calls/search/", views.autocomplete),
     path("auth_callback/", views.auth_callback, name="auth_callback"),
 ]
 

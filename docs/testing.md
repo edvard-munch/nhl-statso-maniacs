@@ -1,7 +1,7 @@
 # Running deterministic tests
 
 Run commands from the repository root. The current baseline is Python 3.7.17,
-Django 2.2.28 and PostgreSQL. This is the first temporary framework-upgrade
+Django 3.2.25 and PostgreSQL. This is the current temporary framework-upgrade
 checkpoint; Python remains 3.7.17. Further Django/Python and uv changes follow
 separately, as recorded in the roadmap.
 
@@ -28,9 +28,10 @@ python -m pip install -r requirements.txt
 python -m pip check
 ```
 
-The requirements remain the existing pinned legacy set. A fresh Python 3.7.17
-venv installed every requirement and passed `pip check`, Ruff and all 336 offline
-tests with the 35% coverage gate. The bootstrap file pins packaging tools;
+The requirements pin the Django 3.2.25 checkpoint and compatible extensions.
+The target Python 3.7.17 environment passes `pip check`, Ruff and all 409 offline
+tests with the 35% coverage gate (82.58% combined coverage). The bootstrap file
+pins packaging tools;
 Celery 4.3's old metadata needs pip before 24.1. This validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.
 

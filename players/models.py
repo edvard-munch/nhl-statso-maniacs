@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.text import slugify
 from players.storage import OverwriteStorage
@@ -84,13 +84,13 @@ class Player(models.Model):
     rookie = models.BooleanField(default=False)
     captain = models.BooleanField(default=False)
     alt_captain = models.BooleanField(default=False)
-    sbs_stats = JSONField(null=True)
-    career_stats = JSONField(null=True)
-    gamelog_stats = JSONField(default=dict, blank=True)
+    sbs_stats = models.JSONField(null=True)
+    career_stats = models.JSONField(null=True)
+    gamelog_stats = models.JSONField(default=dict, blank=True)
     games = models.IntegerField()
-    multiteams_seasons = JSONField(null=True)
+    multiteams_seasons = models.JSONField(null=True)
     seasons_count = models.IntegerField(null=True)
-    proj_stats = JSONField(null=True)
+    proj_stats = models.JSONField(null=True)
     stats_season_id = models.CharField(max_length=16, blank=True, null=True)
     note = GenericRelation("Note")
 
@@ -163,9 +163,9 @@ class Skater(Player):
     time_on_ice = models.CharField(max_length=128)
     time_on_ice_pp = models.CharField(max_length=128)
     time_on_ice_sh = models.CharField(max_length=128)
-    fw_stats = JSONField(default=dict, blank=True)
-    sbs_stats_avg = JSONField(default=dict, blank=True)
-    career_stats_avg = JSONField(default=dict, blank=True)
+    fw_stats = models.JSONField(default=dict, blank=True)
+    sbs_stats_avg = models.JSONField(default=dict, blank=True)
+    career_stats_avg = models.JSONField(default=dict, blank=True)
 
 
 class Goalie(Player):
