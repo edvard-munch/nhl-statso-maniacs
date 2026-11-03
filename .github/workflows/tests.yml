@@ -80,7 +80,7 @@ jobs:
       - uses: actions/upload-artifact@v6
         if: always() && hashFiles('coverage.xml') != ''
         with:
-          name: coverage-python310
+          name: coverage-python312
           path: coverage.xml
           if-no-files-found: warn
           retention-days: 14

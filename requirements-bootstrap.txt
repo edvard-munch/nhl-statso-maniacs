@@ -1,5 +1,4 @@
-# Packaging tools retained for the validated Python 3.10 bridge.
-# Modernizing this bootstrap set is separate from the interpreter transition.
+# Packaging tools for Python 3.12 (older setuptools used removed import APIs).
 pip==24.0
-setuptools==67.8.0
+setuptools==75.8.0
 wheel==0.42.0

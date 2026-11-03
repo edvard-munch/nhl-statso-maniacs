@@ -1,6 +1,6 @@
 # Running deterministic tests
 
-Run commands from the repository root. The current baseline is Python 3.10.22,
+Run commands from the repository root. The current baseline is Python 3.12.16,
 Django 4.2.30 and PostgreSQL. This is the current temporary framework-upgrade
 checkpoint with a validated Python bridge. Further Django/Python and uv changes follow
 separately, as recorded in the roadmap.
@@ -21,7 +21,7 @@ python -m pip check
 For an environment that does not yet exist:
 
 ```bash
-python3.10 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements-bootstrap.txt
 python -m pip install -r requirements.txt
@@ -29,9 +29,10 @@ python -m pip check
 ```
 
 The requirements pin the Django 4.2.30 checkpoint and compatible extensions.
-The target Python 3.10.22 environment passes `pip check`, Ruff and all 423 offline
-tests with the 35% coverage gate (82.79% combined coverage). The bootstrap file
-retains the verified packaging-tool pins. This validates the current install
+The target Python 3.12.16 environment passes `pip check`, Ruff and all 425 offline
+tests with the 35% coverage gate (82.51% combined coverage). The bootstrap file
+pins packaging tools, including setuptools compatible with Python 3.12. This
+validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.
 
 Configure the project's `.env` as described in the README. Django loads the normal
@@ -216,7 +217,7 @@ and temporary credential file; no application database or real commit/push was u
 
 The workflow in `.github/workflows/tests.yml` runs on pushes, pull requests and
 manual dispatch. It installs the bootstrap tools and requirements on Python
-3.10.22 / Ubuntu 22.04, checks dependencies and lint/JavaScript syntax, then runs
+3.12.16 / Ubuntu 22.04, checks dependencies and lint/JavaScript syntax, then runs
 `make test-ci` with a PostgreSQL 16 service and real test migrations. Its disposable
 database credentials come from the workflow, without application secrets or `.env`.
 It uploads the XML coverage report, including when tests fail if data was produced.

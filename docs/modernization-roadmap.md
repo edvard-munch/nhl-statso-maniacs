@@ -9,9 +9,9 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: validate the Python 3.12 bridge.** Django 4.2.30 now passes 423 offline
-tests on Python 3.10.22. The framework checkpoint includes auth/form and development
-toolbar regressions, CSRF-protected POST logout and a data-preservation rehearsal.
+**Next: prepare the Django 5.2 checkpoint.** Django 4.2.30 now passes 425 offline
+tests on Python 3.12.16. The runtime bridge updates Python-sensitive dependencies
+and verifies profile uploads, existing loaders/views and synthetic data preservation.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
 must be rerun to confirm the former Python 3.7 blocker is cleared. Remaining
 team/totals/user regression batches remain in the queue and can protect affected
@@ -215,7 +215,7 @@ uv trial can justify moving it earlier. Keep tool migration and framework upgrad
 in separate commits, preserving a working setup until the replacement is proven.
 
 The separate Dependabot dependency-graph run rejected Python 3.7.17
-(`tool_version_not_supported`). The validated Python 3.10.22 bridge now updates
+(`tool_version_not_supported`). The validated Python 3.12.16 bridge now updates
 the runtime and CI honestly; verify the hosted graph again after pushing.
 
 ## 5. Upgrade Django and Python in controlled stages
@@ -230,15 +230,15 @@ endpoint. See the [5.2 release notes](https://docs.djangoproject.com/en/5.2/rele
 | --- | --- | --- |
 | Django 2.2.28 — complete locally | Python 3.7.17 | Patch baseline, 408 passing tests, unchanged migration state and working-venv dependency update; see upgrade checkpoints. |
 | Django 3.2.25 — complete locally | Python 3.10.22 bridge validated | Compatible extensions, core JSONField migration, then Python/Celery/test-tool transition: 414 passing tests and synthetic data-preservation rehearsals. |
-| Django 4.2.30 — complete locally | Python 3.10.22; validate 3.12 next | 423 passing tests, unchanged migration state, preserved data, compatible toolbar and POST logout. |
+| Django 4.2.30 — complete locally | Python 3.12.16 bridge validated | Framework step, then interpreter/dependency transition: 425 passing tests, unchanged migration state, preserved data and profile-upload regressions. |
 | Django 5.2 | Use the validated Python 3.12 environment | Complete removals/deprecations, verify deployment and record the supported final dependency set. |
 
 The bridge choices follow the official compatibility ranges in the
 [3.2](https://docs.djangoproject.com/en/3.2/releases/3.2/),
 [4.2](https://docs.djangoproject.com/en/4.2/releases/4.2/) and
-[5.2](https://docs.djangoproject.com/en/5.2/releases/5.2/) notes. They are proposals,
-not tested project configurations. Keep interpreter changes separate from Django
-changes wherever possible.
+[5.2](https://docs.djangoproject.com/en/5.2/releases/5.2/) notes. Both interpreter
+bridges are now validated locally; the Django 5.2 configuration remains to be
+tested. Keep interpreter changes separate from Django changes wherever possible.
 
 At every checkpoint:
 
@@ -280,5 +280,5 @@ Item 6 remains in progress: core game persistence and identity contracts are
 complete; team saves, remaining totals enrichment and user-owned/browser checks
 remain queued. The staged upgrade has started with the validated 2.2.28 patch
 checkpoint and the Django 3.2.25 compatibility step. The next focused batch is
-the Python 3.12 bridge, retaining Django 4.2 for that change. Keep each change
+the Django 5.2 checkpoint, retaining Python 3.12 for that change. Keep each change
 reviewable and validate every step.

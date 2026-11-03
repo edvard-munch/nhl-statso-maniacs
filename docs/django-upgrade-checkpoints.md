@@ -1,7 +1,7 @@
 # Django/Python upgrade checkpoints
 
 The upgrade is proceeding in small, reviewable steps. The current validated stack
-is Python 3.10.22 / Django 4.2.30. Earlier checkpoints below retain their historical
+is Python 3.12.16 / Django 4.2.30. Earlier checkpoints below retain their historical
 results. Keep the interpreter pin accurate as the runtime changes.
 
 ## Checkpoint 1: Django 2.2.6 to 2.2.28
@@ -250,10 +250,97 @@ application requirements, then run `pip check`, `manage.py check` and
 environments that skipped earlier checkpoints must apply their pending migrations.
 Use the dedicated test configuration for local hooks.
 
+## Checkpoint 5: Python 3.10.22 to 3.12.16
+
+Status: implemented and validated locally, retaining Django 4.2.30. The
+[Python 3.12.16 security release](https://www.python.org/downloads/release/python-31216/)
+is pinned in `.python-version`; Ruff targets `py312`. CI reads the same pin and
+exports `coverage-python312`. The
+[GitHub interpreter manifest](https://github.com/actions/python-versions/blob/main/versions-manifest.json)
+includes an Ubuntu 22.04 x64 build. The local interpreter was built from the
+official source archive after verifying its published SHA-256 checksum.
+
+### Dependency changes
+
+The target was installed in isolated environments before recreating the working
+venv. The old venv was preserved separately. The bootstrap keeps pip/wheel fixed
+and updates setuptools to 75.8.0 for Python 3.12's removed import APIs.
+
+| Component | Target | Reason |
+| --- | --- | --- |
+| ASGI adapter | asgiref 3.8.1 | Python 3.12-compatible Django runtime dependency. |
+| Task stack | Celery 5.4.0, Kombu 5.3.7, AMQP 5.2.0, Billiard 4.2.1, Vine 5.1.0 | Python 3.12-compatible task execution and multiprocessing dependencies. |
+| Task database backend | django-celery-results 2.5.1 | Match the newer runtime/task stack; existing backend regressions still pass. |
+| Date/time dependencies | python-dateutil 2.9.0.post0, tzdata 2026.6 | Pin Celery's newly introduced dependencies; avoid a floating dateutil major version. |
+| Native libraries | gevent 24.11.1, greenlet 3.1.1, Pillow 10.4.0, zope.event 5.0, zope.interface 7.2 | Python 3.12-compatible native builds/wheels. |
+| HTTP stack | Requests 2.32.4, urllib3 2.5.0, six 1.17.0, certifi 2025.6.15, idna 3.10, charset-normalizer 3.4.2 | Replace removed import machinery in the old HTTP dependencies and keep their versions coherent. |
+| Test tooling | coverage 7.6.12, pytest-django 4.8.0, py 1.11.0 | Python 3.12 tracing/collection support; the old `py` package failed with `AttributeError: __spec__`. |
+
+The old urllib3 also failed with `ModuleNotFoundError: urllib3.packages.six.moves`
+on Python 3.12. Both observed import failures were fixed before running the suite.
+Other legacy dependencies remain for later review; this is not a full dependency
+refresh or a new lockfile. Pre-commit retains its existing version and interface.
+See [Celery 5.4's notes](https://docs.celeryq.dev/en/stable/history/whatsnew-5.4.html)
+and the [gevent release history](https://docs.gevent.org/changelog.html).
+
+### Validation
+
+- The final requirements install successfully on Python 3.12.16 and pass `pip check`.
+- System checks and model/migration drift checks pass; the migration plan is empty.
+- A disposable UTF-8 PostgreSQL 16 database created/seeded under the preceding
+  Python 3.10 checkpoint retains all 13 player JSON fields, primary keys, team
+  links, saved memberships, user/profile identity and password verification,
+  and task-result payloads/metadata/timestamps after the transition.
+- **425 offline tests pass**, including through the managed push hook, with 12
+  external tests deselected and **82.51% combined coverage**. Two new profile
+  regressions verify valid PNG upload and
+  account edits, and rejection of invalid image bytes without persisting edits.
+  File writes stay within pytest's temporary media directory.
+- Separate smoke checks exercise gevent jobs, a greenlet switch and Billiard's
+  child-process pool. Existing Celery tests exercise eager task order/failure
+  and database results without a broker. Hosted broker/worker deployment still
+  requires its own check.
+- A clean temporary checkout passes static checks, the complete coverage suite,
+  development-server command loading and coverage XML export. Local validation
+  does not establish that hosted CI passed.
+
+The gate remains 35%, and measurement scope/exclusions are unchanged. The small
+percentage change from 82.79% reflects the new interpreter/tracer's branch
+denominator; it is not evidence of lost behavior coverage. Do not compare these
+cross-interpreter percentages as identical measurements.
+
+Remaining warnings concern pytz's deprecated UTC timestamp helper, old debug
+`print(form)` calls in the profile view, and the intentional GET-logout rejection
+test. Resolve the relevant form/dependency deprecations during the Django 5.2
+step; no warning filters were added.
+
+### Recreate another environment
+
+Deactivate and move the old venv outside the checkout first. With pyenv available,
+run from the project root:
+
+```bash
+pyenv install -s 3.12.16
+python --version  # must report 3.12.16 from .python-version
+python -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements-bootstrap.txt
+python -m pip install -r requirements.txt -r requirements-hooks.txt
+python -m pip check
+make hooks
+python manage.py check
+python manage.py migrate --plan
+```
+
+Restart application/Celery processes with the new venv. From the preceding
+checkpoint there are no migrations; environments missing earlier checkpoints
+still need their pending migrations applied. Run the local hook checks with the
+dedicated test credentials. The application database was not accessed or migrated
+during implementation.
+
 ## Next checkpoints
 
-1. Validate the Python 3.12 bridge while retaining Django 4.2 for that change.
-2. Continue to Django 5.2.
+1. Move to Django 5.2 while retaining Python 3.12.
    Older framework/interpreter versions remain temporary checkpoints.
 
 Follow the [roadmap](modernization-roadmap.md) and Django's
@@ -265,7 +352,7 @@ batches can accompany the upgrade when they protect affected behavior.
 ## Dependabot status
 
 The earlier hosted graph rejected Python 3.7.17. The bridge now uses a tested
-Python 3.10.22 interpreter, and test CI reads `.python-version` directly. This
+Python 3.12.16 interpreter, and test CI reads `.python-version` directly. This
 addresses that run's version restriction in the repository; it does not prove
 the hosted service succeeds. Push and inspect both the offline-test workflow and
 the separate dependency graph. No security feature was disabled and no version

@@ -57,7 +57,7 @@ make test-cov
 make test-ci
 ```
 
-The GitHub Actions workflow now uses Ubuntu 22.04, Python 3.10.22 and an isolated
+The GitHub Actions workflow now uses Ubuntu 22.04, Python 3.12.16 and an isolated
 PostgreSQL 16 service exposed on localhost:5432. It installs the verified
 `requirements-bootstrap.txt` tools, installs `requirements.txt`, runs `pip check`,
 Ruff and syntax checks for the four season-table JavaScript controllers, and runs
@@ -65,7 +65,7 @@ Ruff and syntax checks for the four season-table JavaScript controllers, and run
 commands run and live API tests remain excluded. The workflow uses read-only
 repository permissions, no application secrets and no deployment steps.
 
-After tests, CI exports `coverage.xml` and uploads it as `coverage-python310` for
+After tests, CI exports `coverage.xml` and uploads it as `coverage-python312` for
 14 days. Generated XML and coverage data are ignored by Git. Workflow syntax and
 expressions passed actionlint 1.7.7 validation; the dependency install, static checks,
 coverage command and XML export were validated locally. The first hosted test
@@ -173,3 +173,19 @@ The old-to-new synthetic database rehearsal preserves player/user/task-result
 values and shows no new migrations. See
 [upgrade checkpoints](django-upgrade-checkpoints.md). Hosted CI must still be
 checked after pushing.
+
+## Upgrade checkpoint: Python 3.12.16
+
+The interpreter bridge retains Django 4.2.30 and passes **425 offline tests**,
+with 12 external checks deselected and **82.51% combined coverage**. This includes
+profile upload/invalid-image regressions for the Pillow change. Python-sensitive
+dependencies, including coverage 7.6.12, are pinned in `requirements.txt`.
+
+The 35% gate, measured packages and exclusions are unchanged. Python 3.12 and the
+new tracer report a different branch denominator (956 instead of 1,131), so the
+percentage is not directly comparable with the preceding 82.79% measurement.
+The source statement totals and missed-statement counts remain 2,914 and 434.
+The clean-checkout CI reproduction exports XML successfully, and the synthetic
+database rehearsal shows no new migrations or changed player/user/task data.
+See [upgrade checkpoints](django-upgrade-checkpoints.md). Hosted CI and the
+dependency graph still require verification after pushing.

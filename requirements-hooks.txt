@@ -1,2 +1,2 @@
-# Retain the existing hook interface during the Python 3.10 transition.
+# Retain the existing hook interface during the Python 3.12 transition.
 pre-commit==2.21.0

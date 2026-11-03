@@ -1,13 +1,16 @@
 """Form rendering and session/CSRF behavior across the Django upgrade."""
 
 from html.parser import HTMLParser
+from io import BytesIO
 from types import ModuleType
 import sys
 
 import pytest
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.urls import include, path, reverse
+from PIL import Image
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.django_db]
@@ -100,6 +103,55 @@ def test_profile_renders_bootstrap_forms_for_a_signed_in_user(client, account):
         {"username", "email", "image", "measurements_format"} <= form["inputs"].keys()
         for form in forms
     )
+
+
+def test_profile_upload_saves_a_valid_image_and_account_edits(client, account, settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    image = BytesIO()
+    Image.new("RGB", (2, 3), (10, 20, 30)).save(image, format="PNG")
+    upload = SimpleUploadedFile("avatar.png", image.getvalue(), content_type="image/png")
+    client.force_login(account)
+
+    response = client.post(
+        reverse("profile"),
+        {
+            "username": account.username,
+            "email": "updated@example.invalid",
+            "measurements_format": "Europe",
+            "image": upload,
+        },
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("profile")
+    account.refresh_from_db()
+    assert account.email == "updated@example.invalid"
+    assert account.profile.measurements_format == "Europe"
+    with Image.open(account.profile.image.path) as saved:
+        assert saved.size == (2, 3)
+        assert saved.getpixel((0, 0)) == (10, 20, 30)
+
+
+def test_invalid_profile_image_keeps_existing_account_values(client, account, settings, tmp_path):
+    settings.MEDIA_ROOT = str(tmp_path)
+    client.force_login(account)
+    response = client.post(
+        reverse("profile"),
+        {
+            "username": account.username,
+            "email": "rejected@example.invalid",
+            "measurements_format": "Europe",
+            "image": SimpleUploadedFile("avatar.png", b"not an image", content_type="image/png"),
+        },
+    )
+
+    assert response.status_code == 200
+    assert "image" in response.context["p_form"].errors
+    account.refresh_from_db()
+    assert account.email == "user@example.invalid"
+    assert account.profile.measurements_format == "USA"
+    assert account.profile.image.name == "default.jpg"
+    assert not list(tmp_path.iterdir())
 
 
 def test_logout_requires_post_and_csrf_then_returns_to_the_same_page(account):

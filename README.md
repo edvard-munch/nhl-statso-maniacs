@@ -7,7 +7,7 @@ remaining test gaps, and the planned Python/Django upgrade sequence.
 
 ## Stack
 
-- Python 3.10.22
+- Python 3.12.16
 - Django 4.2.30
 - PostgreSQL
 
@@ -19,15 +19,15 @@ Django 4.2.30 is the current temporary upgrade checkpoint. See
 From the project root:
 
 ```bash
-python3.10 -m venv venv
+python3.12 -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements-bootstrap.txt
 pip install -r requirements.txt
 ```
 
-If you use pyenv, this repo includes `.python-version` pinned to `3.10.22`.
-When moving from Python 3.7, recreate the venv and apply the dependency migrations;
-follow the [Python bridge instructions](docs/django-upgrade-checkpoints.md#checkpoint-3-python-3717-to-31022).
+If you use pyenv, this repo includes `.python-version` pinned to `3.12.16`.
+When changing Python versions, recreate the venv; follow the
+[Python bridge instructions](docs/django-upgrade-checkpoints.md#checkpoint-5-python-31022-to-31216).
 
 ## Code Quality
 
@@ -144,7 +144,7 @@ of the season, and Favorites gamelog covers all stored seasons. See the
 
 ## Tests
 
-Use the active Python 3.10 environment and a PostgreSQL role dedicated to tests.
+Use the active Python 3.12 environment and a PostgreSQL role dedicated to tests.
 See [test environment setup](docs/testing.md) before the first database test run.
 
 ```bash
