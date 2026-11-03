@@ -163,6 +163,9 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
 
+LOG_DIRECTORY = os.path.join(BASE_DIR, "logs")
+os.makedirs(LOG_DIRECTORY, exist_ok=True)
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": True,
@@ -177,7 +180,7 @@ LOGGING = {
         "file": {
             "level": "INFO",
             "class": "logging.FileHandler",
-            "filename": os.path.join(BASE_DIR, "logs", "nhl_web_app.log"),
+            "filename": os.path.join(LOG_DIRECTORY, "nhl_web_app.log"),
             "formatter": "verbose",
         },
     },

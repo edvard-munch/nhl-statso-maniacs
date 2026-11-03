@@ -94,7 +94,10 @@ following `f0d5729` (saved lists). Detailed contracts live in
   not a transitive lockfile.
 - CI now runs the offline gate on Python 3.7.17 / Ubuntu 22.04 with a PostgreSQL 16
   service, static checks and XML coverage upload. actionlint validation passed;
-  the first GitHub-hosted run is pending until the workflow is pushed.
+  the first hosted test run on `b55ab9d` failed during logging setup because the
+  fresh checkout had no `logs/` directory. Settings now create it. A clean-checkout
+  reproduction passes 408 tests at 82.59% and exports XML; the repaired hosted run
+  is pending after push. See [failure details](coverage-baseline.md).
 - The current Make targets select `players/tests`; tests added under `users`
   must be included deliberately in the normal run and CI.
 
@@ -128,8 +131,8 @@ Suggested focused commits, in order:
 6. **Implemented: CI for the same offline suite.** A PostgreSQL service and real
    test migrations support `make test-ci`; lint, JavaScript syntax and XML upload
    are included. Workflow validation and a local fresh-environment reproduction
-   passed. Confirm the first hosted run after push. Optional live tests remain out
-   of the default job.
+   passed. The first hosted startup failure is repaired locally; confirm the
+   corrected run after push. Optional live tests remain out of the default job.
 
 Done when a fresh test database and documented environment can run the default
 suite repeatedly, with no application-data dependency, and coverage is measured.
@@ -205,6 +208,10 @@ then update Make targets, CI and documentation together. A successful isolated
 uv trial can justify moving it earlier. Keep tool migration and framework upgrades
 in separate commits, preserving a working setup until the replacement is proven.
 
+The separate Dependabot dependency-graph run currently rejects Python 3.7.17
+(`tool_version_not_supported`). Address this at the interpreter transition; do
+not change `.python-version` just to report a newer runtime than the app uses.
+
 ## 5. Upgrade Django and Python in controlled stages
 
 Retain the agreed checkpoints **2.2 → 3.2 → 4.2 → 5.2**. Read release notes and
@@ -257,7 +264,7 @@ with relational season rows; neither is required for the current fix or upgrade.
 1. Completed: fix test collection without importing removed commands.
 2. Completed: replace database bypass and existing-record tests with isolated fixtures.
 3. Completed: repair season-sensitive mocks and document the test environment.
-4. Completed locally; hosted run pending: record coverage and add CI. Local commit/
+4. Completed locally; hosted startup fix awaiting validation: record coverage and add CI. Local commit/
    push test hooks are implemented; follow the per-clone setup in the test guide.
 5. Completed: harden game JSON fetching and verify failed-day rollback/replay.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.

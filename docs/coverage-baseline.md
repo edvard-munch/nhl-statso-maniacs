@@ -68,9 +68,10 @@ repository permissions, no application secrets and no deployment steps.
 After tests, CI exports `coverage.xml` and uploads it as `coverage-python37` for
 14 days. Generated XML and coverage data are ignored by Git. Workflow syntax and
 expressions passed actionlint 1.7.7 validation; the dependency install, static checks,
-coverage command and XML export were validated locally. The first GitHub-hosted
-run remains pending until pushed; local validation does not establish a remote
-CI run passed.
+coverage command and XML export were validated locally. The first hosted test
+run on `b55ab9d` failed during logging setup because `logs/` was missing. The
+follow-up below repairs fresh-checkout startup; a hosted run of that fix is still
+pending. Local validation does not establish a remote CI run passed.
 
 References: [GitHub's PostgreSQL service guidance](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers)
 and [setup-python](https://github.com/actions/setup-python/tree/v6).
@@ -99,3 +100,26 @@ deselected and **82.59% combined coverage**. New regressions prevent shared jers
 numbers from mixing opponents' special-team points or TOI. Ambiguous unscoped HTML
 rows are skipped with warnings; missing counting fields keep existing defaults.
 The coverage gate remains 35%.
+
+## Hosted startup failure and clean-checkout reproduction
+
+[Hosted run 41619757606](https://github.com/edvard-munch/nhl-statso-maniacs/actions/runs/41619757606)
+failed before test collection: the file logging handler could not open
+`logs/nhl_web_app.log`. The local workspace already contained `logs/`, which hid
+this missing-directory dependency in earlier local validation.
+
+Settings now create the log directory before configuring the handler. A regression
+starts Django twice in a fresh temporary project location, with HTTP/database
+access blocked, and verifies both startup messages reach the new log file. The
+complete suite also passes from a clean temporary checkout containing no runtime
+logs, `.env`, or venv: **408 passed, 12 external tests deselected, 82.59% combined
+coverage**, using the fresh Python environment and disposable PostgreSQL. XML
+export succeeds. Workflow conditions skip export/upload when input files are
+absent, and upload-artifact v6 uses Node 24. The repaired hosted workflow must be
+validated after the fix is pushed.
+
+A separate [Dependabot graph run](https://github.com/edvard-munch/nhl-statso-maniacs/actions/runs/41619761779)
+failed with `tool_version_not_supported`: its service rejects the repository's
+Python 3.7.17 pin and lists Python 3.10+ in that run. This is independent of the
+test workflow. Keep the honest interpreter pin and resolve that limitation during
+the planned Python transition; no repository automation settings were changed.

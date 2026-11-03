@@ -70,10 +70,10 @@ jobs:
         # pytest-django creates test_nhl_ci using real migrations.
         run: make test-ci
       - name: Export coverage report
-        if: always() && steps.tests.outcome != 'skipped'
+        if: always() && hashFiles('.coverage') != ''
         run: python -m coverage xml -o coverage.xml
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - uses: actions/upload-artifact@v6
+        if: always() && hashFiles('coverage.xml') != ''
         with:
           name: coverage-python37
           path: coverage.xml

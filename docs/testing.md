@@ -219,4 +219,9 @@ manual dispatch. It installs the bootstrap tools and requirements on Python
 `make test-ci` with a PostgreSQL 16 service and real test migrations. Its disposable
 database credentials come from the workflow, without application secrets or `.env`.
 It uploads the XML coverage report, including when tests fail if data was produced.
-The first GitHub-hosted execution is pending until this workflow is pushed.
+The hosted run on `b55ab9d` failed before tests because a clean checkout lacked
+`logs/`. Settings now create that directory before configuring file logging;
+a new regression reproduces startup with no existing runtime directories. A clean
+temporary checkout passed 408 tests and the 82.59% gate and exported XML locally.
+Coverage export/upload run only when their input files exist. The fixed workflow
+still needs a new hosted run after push.
