@@ -165,19 +165,17 @@ def test_parse_special_teams_points_from_play_by_play_goal_events():
     }
 
 
-def test_convert_special_teams_points_to_report_stats_uses_sweater_mapping():
+def test_special_teams_points_keep_player_ids_and_exclude_unknown_players():
     player_points = {
         100: {"powerPlayPoints": 2, "shPoints": 0},
         101: {"powerPlayPoints": 0, "shPoints": 1},
         999: {"powerPlayPoints": 1, "shPoints": 0},
     }
-    player_id_to_sweater = {100: 13, 101: 16}
+    known_player_ids = {100, 101}
 
-    assert upd_gms.convert_special_teams_points_to_report_stats(
-        player_points, player_id_to_sweater
-    ) == {
-        13: {"powerPlayPoints": 2, "shPoints": 0},
-        16: {"powerPlayPoints": 0, "shPoints": 1},
+    assert upd_gms.filter_special_teams_points(player_points, known_player_ids) == {
+        100: {"powerPlayPoints": 2, "shPoints": 0},
+        101: {"powerPlayPoints": 0, "shPoints": 1},
     }
 
 

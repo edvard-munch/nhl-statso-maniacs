@@ -9,8 +9,9 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: check game-report identity collisions and remaining loader/user contracts.**
-Game JSON handling, roster/gamelog persistence and command replays are covered.
+**Next: cover real team saves and remaining totals/user contracts.**
+Game JSON handling, roster/gamelog persistence, command replays and report identity
+collisions are covered.
 The complete suite passes, coverage is measured, and CI is configured. Add remaining
 high-risk behavior tests before the staged upgrade; do not wait for 100% coverage.
 Check the GitHub Actions result after pushing.
@@ -62,6 +63,12 @@ following `f0d5729` (saved lists). Detailed contracts live in
   live rosters were treated as final, and day completion flags could remain stale
   after an incomplete refresh. `upd_gms` combined coverage is now 93%; report
   identity edge cases and malformed inputs still need contracts.
+- The report-identity follow-up passes **407 tests**, with 12 external tests
+  deselected and **82.59% combined coverage**. Three initially failing collision
+  contracts now keep opponents' special-team points and TOI separate. Unscoped
+  ambiguous HTML fields are skipped with warnings and retain existing defaults;
+  recovering those counts through team/name-aware HTML parsing remains optional
+  follow-up work. Existing game data is not automatically backfilled.
 - The repaired split fetch was validated read-only against the live API: combined
   6 games / 117 saves, NJD 4 / 75, WPG 2 / 42. This was not a full loader run.
 - Favorites JavaScript had syntax and lightweight controller smoke checks;
@@ -139,7 +146,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | --- | --- | --- |
 | Completed | `upd_gms` response handling | Shared checked JSON requests, bounded retries, game/date/endpoint errors and per-day transaction rollback. Unavailable future-game JSON remains a controlled failure; a deferral policy is separate. See [game loading](game-loading.md). |
 | First | Loader orchestration | Audit remaining `upd_pls.import_player` branches, report pagination/coverage, failure-before-publication, absent players, season detection and current/full totals precedence. Much is covered already; use coverage to find real gaps. |
-| Core complete; edge cases next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Check opposing players with the same sweater number, removed participants and malformed roster groups next. |
+| Core complete; edge cases next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Opposing-player sweater collisions now have ID/team-scoped enrichment contracts. Removed participants and malformed roster groups remain follow-up cases. |
 | Next | Team persistence | Complement mocked `upd_tms` ORM calls with real isolated saves and repeat runs. |
 | Next | User-facing views | Player detail/career tables, search/filtering, games/detail/date navigation, 404s and empty/invalid inputs. Reuse existing season-table tests. |
 | Next | Auth and user-owned actions | Login/registration/profile, favorite/comparison add/remove/limits/privacy, notes/positions and measurements. Audit existing saved-list coverage before adding cases. |
@@ -148,8 +155,8 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 
 The reported `upd_gms` JSON failure now has controlled request handling and
 rollback tests; live endpoint availability is not established by mocked checks.
-Future-game deferral and roster/report identity edge cases still need explicit
-contracts. Player-detail season selection is also a separate product change;
+Future-game deferral, removed participants and malformed roster groups still need
+explicit contracts; shared-sweater identity is now covered. Player-detail season selection is also a separate product change;
 characterize its current behavior before extending the selector there.
 
 Done when the important loader failure paths and user workflows have regression
@@ -257,6 +264,6 @@ with relational season rows; neither is required for the current fix or upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
 Item 6 is in progress: core game roster/gamelog persistence and command replays
-are complete. Next inspect report identity when opponents share a sweater number,
-then remaining totals/team persistence and user-owned actions/browser checks.
+and report-identity collisions are complete. Next add actual team-save/repeat-run
+contracts, then remaining totals enrichment and user-owned actions/browser checks.
 Keep each batch focused before the staged upgrade.

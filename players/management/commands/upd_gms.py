@@ -457,11 +457,8 @@ def hydrate_player_stats_from_reports(player_data, report_player_stats):
     if not report_player_stats:
         return
 
-    sweater_number = player_data.get("sweaterNumber")
-    report_stats = report_player_stats.get(sweater_number)
-
-    if not report_stats:
-        report_stats = report_player_stats.get(str(sweater_number))
+    player_id = normalize_report_identifier(player_data.get("playerId"))
+    report_stats = report_player_stats.get(player_id)
 
     if not report_stats:
         return
@@ -597,62 +594,99 @@ def fetch_report_html(report_url, session=None):
 
 
 def get_game_report_player_stats(game_id, game_data=None, session=None):
+    """Resolve report rows to player IDs before combining any statistics."""
     links = get_game_report_links(game_id, session)
     report_stats = {}
-
-    event_html = fetch_report_html(links.get("eventSummary"), session)
-    merge_player_report_stats(report_stats, parse_event_summary_report(event_html))
-
-    faceoff_html = fetch_report_html(links.get("faceoffSummary"), session)
-    merge_player_report_stats(report_stats, parse_faceoff_summary_report(faceoff_html))
-
-    toi_away_html = fetch_report_html(links.get("toiAway"), session)
-    merge_player_report_stats(report_stats, parse_toi_report(toi_away_html))
-
-    toi_home_html = fetch_report_html(links.get("toiHome"), session)
-    merge_player_report_stats(report_stats, parse_toi_report(toi_home_html))
-
+    all_players = map_report_sweaters_to_players(game_data)
+    for key, parser in (
+        ("eventSummary", parse_event_summary_report),
+        ("faceoffSummary", parse_faceoff_summary_report),
+    ):
+        html = fetch_report_html(links.get(key), session)
+        merge_player_report_stats(
+            report_stats,
+            resolve_report_players(
+                parser(html), all_players, "{} for game {}".format(key, game_id)
+            ),
+        )
+    for key, side in (("toiAway", "awayTeam"), ("toiHome", "homeTeam")):
+        html = fetch_report_html(links.get(key), session)
+        scoped_players = map_report_sweaters_to_players(game_data, side)
+        merge_player_report_stats(
+            report_stats,
+            resolve_report_players(
+                parse_toi_report(html), scoped_players, "{} for game {}".format(key, game_id)
+            ),
+        )
     play_by_play_data = get_game_data(game_id, URL_PLAY_BY_PLAY, session)
-    player_special_teams_points = parse_special_teams_points(play_by_play_data)
-    player_id_to_sweater = map_player_ids_to_sweaters(game_data)
+    known_ids = {
+        normalize_report_identifier(player.get("playerId"))
+        for player in report_roster_players(game_data)
+    } - {None}
     merge_player_report_stats(
         report_stats,
-        convert_special_teams_points_to_report_stats(
-            player_special_teams_points, player_id_to_sweater
-        ),
+        filter_special_teams_points(parse_special_teams_points(play_by_play_data), known_ids),
     )
-
     return report_stats
 
 
 def merge_player_report_stats(base_stats, stats_to_merge):
-    for sweater_number, report_stats in stats_to_merge.items():
-        base_stats.setdefault(sweater_number, {})
-        base_stats[sweater_number].update(report_stats)
+    for player_id, report_stats in stats_to_merge.items():
+        base_stats.setdefault(player_id, {})
+        base_stats[player_id].update(report_stats)
 
 
-def map_player_ids_to_sweaters(game_data):
-    player_map = {}
-    rosters_api = (game_data or {}).get("playerByGameStats")
-    if not isinstance(rosters_api, dict):
-        return player_map
+def normalize_report_identifier(value):
+    if isinstance(value, bool) or not isinstance(value, (int, str)):
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
 
-    for side in ["awayTeam", "homeTeam"]:
-        side_data = rosters_api.get(side, {})
-        if not isinstance(side_data, dict):
+
+def report_roster_players(game_data, side=None):
+    data = game_data or {}
+    rosters = data.get("playerByGameStats")
+    if not rosters:
+        boxscore = data.get("boxscore") or {}
+        rosters = boxscore.get("playerByGameStats") if isinstance(boxscore, dict) else None
+    if not isinstance(rosters, dict):
+        return
+    for team_side in (side,) if side else ("awayTeam", "homeTeam"):
+        groups = rosters.get(team_side)
+        if not isinstance(groups, dict):
             continue
-
-        for group_players in side_data.values():
-            if not isinstance(group_players, list):
+        for group, players in groups.items():
+            if not isinstance(players, list):
                 continue
+            for player in players:
+                if not isinstance(player, dict):
+                    continue
+                if group == "goalies" and player.get("toi", ZERO_TOI) == ZERO_TOI:
+                    continue
+                yield player
 
-            for player_data in group_players:
-                player_id = player_data.get("playerId")
-                sweater_number = player_data.get("sweaterNumber")
-                if player_id is not None and sweater_number is not None:
-                    player_map[player_id] = sweater_number
 
-    return player_map
+def map_report_sweaters_to_players(game_data, side=None):
+    players = {}
+    for player in report_roster_players(game_data, side):
+        player_id = normalize_report_identifier(player.get("playerId"))
+        sweater = normalize_report_identifier(player.get("sweaterNumber"))
+        if player_id is not None and sweater is not None:
+            players.setdefault(sweater, set()).add(player_id)
+    return players
+
+
+def resolve_report_players(stats_by_sweater, roster, label):
+    resolved = {}
+    for sweater, stats in stats_by_sweater.items():
+        candidates = roster.get(normalize_report_identifier(sweater), set())
+        if len(candidates) == 1:
+            resolved[next(iter(candidates))] = stats
+        elif candidates:
+            logger.warning("Ignoring %s stats for ambiguous sweater %s", label, sweater)
+    return resolved
 
 
 def parse_special_teams_points(play_by_play_data):
@@ -721,19 +755,15 @@ def parse_situation_skaters(situation_code):
     return int(code[1]), int(code[2])
 
 
-def convert_special_teams_points_to_report_stats(player_points, player_id_to_sweater):
-    report_stats = {}
-    for player_id, points in player_points.items():
-        sweater_number = player_id_to_sweater.get(player_id)
-        if sweater_number is None:
-            continue
-
-        report_stats[sweater_number] = {
+def filter_special_teams_points(player_points, known_ids):
+    return {
+        normalize_report_identifier(player_id): {
             POWER_PLAY_POINTS_KEY: points.get(POWER_PLAY_POINTS_KEY),
             SHORTHANDED_POINTS_KEY: points.get(SHORTHANDED_POINTS_KEY),
         }
-
-    return report_stats
+        for player_id, points in player_points.items()
+        if normalize_report_identifier(player_id) in known_ids
+    }
 
 
 def parse_event_summary_report(report_html):

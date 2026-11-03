@@ -66,15 +66,40 @@ awarded as individual shutouts by the existing rule.
 
 Missing database players leave the game/day unfinished and produce a warning;
 loading the missing player and replaying can complete that roster. Follow-up
-contracts should still cover opposing players with the same sweater number,
-removed participants/gamelog cleanup, and malformed roster groups.
+contracts should still cover removed participants/gamelog cleanup and malformed
+roster groups. Opposing-player sweater collisions are covered below.
+
+## Report player identity
+
+Enrichment is combined and applied by NHL player ID. Play-by-play special-team
+points retain their player IDs throughout; unknown/non-playing player IDs are
+excluded. Integer/string identifiers are normalized consistently. A missing player
+ID cannot fall back to a sweater number.
+
+TOI reports are resolved against their explicit away/home roster, so two opponents
+wearing the same number receive their own team's TOI. Bench goalies with zero TOI
+are excluded from report identity resolution.
+
+Event/faceoff HTML parsers still return unscoped jersey rows. Those rows are used
+only when exactly one known played-roster player has that jersey across the game.
+An ambiguous jersey is skipped with a warning identifying the report and game.
+Existing boxscore values take precedence. Unassigned HTML fields retain the
+existing fallback/default behavior, including zero defaults for missing counting
+statistics; this does not recover ambiguous faceoff counts. Team/name-aware HTML
+parsing can improve that separately without guessing another player's values.
+
+Regression tests verify both opponents' saved special-team points and TOI, a
+non-scoring opponent, boxscore precedence, repeat loads, nested roster layouts,
+and unknown/missing identities. Existing gamelogs are corrected only when their
+games are reloaded; this change does not automatically backfill historical games.
 
 ## Regression checks
 
 ```bash
 python -m pytest -c players/tests/pytest.ini \
   players/tests/unit/other/tests_upd_gms_requests.py \
-  players/tests/unit/other/tests_upd_gms_reports.py
+  players/tests/unit/other/tests_upd_gms_reports.py \
+  players/tests/unit/other/tests_upd_gms_identity.py
 ```
 
 Using the [isolated PostgreSQL test setup](testing.md), also run:
@@ -82,7 +107,8 @@ Using the [isolated PostgreSQL test setup](testing.md), also run:
 ```bash
 python -m pytest -c players/tests/pytest.ini \
   players/tests/integration/tests_upd_gms_failures_db.py \
-  players/tests/integration/tests_upd_gms_rosters_db.py
+  players/tests/integration/tests_upd_gms_rosters_db.py \
+  players/tests/integration/tests_upd_gms_report_identity_db.py
 ```
 
 Request tests cover recovered and exhausted retries, fail-fast client errors,
@@ -94,3 +120,8 @@ All HTTP inputs are mocked; real migrations and an isolated test database are us
 Latest full hook validation: **397 passed, 12 external tests deselected, 82.53%
 combined coverage**. The roster/persistence module contributes 18 regression
 cases; it initially exposed live-game and stale-day completion bugs, both repaired.
+
+Report-identity follow-up: **407 passed, 12 external tests deselected, 82.59%
+combined coverage** through the full offline coverage hook. The original three
+collision cases failed before the fix and pass after it. No live NHL requests or
+application database were used.

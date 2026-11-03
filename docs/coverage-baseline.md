@@ -91,3 +91,11 @@ roster relations, enrichment precedence, historical gamelogs, saved memberships,
 missing/bench/shared goalies, command replay and rollback after player writes.
 The tests also exposed and repaired premature live-game completion and stale
 finished-day flags. The threshold remains unchanged at 35%.
+
+## Follow-up: report identity
+
+The player-ID/team-scoping fix passes **407 tests**, with 12 external checks
+deselected and **82.59% combined coverage**. New regressions prevent shared jersey
+numbers from mixing opponents' special-team points or TOI. Ambiguous unscoped HTML
+rows are skipped with warnings; missing counting fields keep existing defaults.
+The coverage gate remains 35%.
