@@ -8,10 +8,10 @@ remaining test gaps, and the planned Python/Django upgrade sequence.
 ## Stack
 
 - Python 3.10.22
-- Django 3.2.25
+- Django 4.2.30
 - PostgreSQL
 
-Django 3.2.25 is the current temporary upgrade checkpoint. See
+Django 4.2.30 is the current temporary upgrade checkpoint. See
 [upgrade progress and validation](docs/django-upgrade-checkpoints.md).
 
 ## Local Setup

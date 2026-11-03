@@ -298,6 +298,13 @@ td.name:hover {
   text-transform: uppercase;
 }
 
+.nav-logout {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
 .link--page {
   display: block;
   color: #cecece;

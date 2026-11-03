@@ -1,0 +1,150 @@
+"""Form rendering and session/CSRF behavior across the Django upgrade."""
+
+from html.parser import HTMLParser
+from types import ModuleType
+import sys
+
+import pytest
+from django.contrib.auth.models import User
+from django.test import Client
+from django.urls import include, path, reverse
+
+
+pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+
+
+class Forms(HTMLParser):
+    def __init__(self, html):
+        super().__init__()
+        self.forms = []
+        self.current = None
+        self.feed(html)
+
+    def handle_starttag(self, tag, attributes):
+        attrs = dict(attributes)
+        if tag == "form":
+            assert self.current is None, "Nested forms break browser submissions"
+            self.current = dict(attrs, inputs={})
+            self.forms.append(self.current)
+        elif tag in {"input", "select"} and self.current is not None and "name" in attrs:
+            self.current["inputs"][attrs["name"]] = attrs.get("value", "")
+
+    def handle_endtag(self, tag):
+        if tag == "form":
+            self.current = None
+
+
+@pytest.fixture
+def account():
+    return User.objects.create_user(
+        username="upgrade-user", password="synthetic-password-123", email="user@example.invalid"
+    )
+
+
+@pytest.mark.parametrize(
+    "route, expected_inputs",
+    [
+        ("login", {"username", "password"}),
+        ("register", {"username", "email", "password1", "password2"}),
+        ("password_reset", {"email"}),
+    ],
+)
+def test_public_auth_forms_render_with_csrf(client, route, expected_inputs):
+    response = client.get(reverse(route))
+    assert response.status_code == 200
+    forms = Forms(response.content.decode()).forms
+    assert any(expected_inputs <= form["inputs"].keys() for form in forms)
+    assert response.cookies["csrftoken"].value
+
+
+def test_registration_creates_a_user_and_profile(client):
+    response = client.post(
+        reverse("register"),
+        {
+            "username": "new-upgrade-user",
+            "email": "new@example.invalid",
+            "password1": "synthetic-password-123",
+            "password2": "synthetic-password-123",
+        },
+    )
+    assert response.status_code == 302
+    assert response.url == reverse("login")
+    user = User.objects.get(username="new-upgrade-user")
+    assert user.check_password("synthetic-password-123")
+    assert user.profile.measurements_format == "USA"
+
+
+def test_same_origin_https_login_accepts_csrf_and_preserves_next(account):
+    client = Client(enforce_csrf_checks=True)
+    response = client.get(reverse("login"), secure=True)
+    token = response.cookies["csrftoken"].value
+    destination = reverse("players") + "?season=20262027"
+    response = client.post(
+        reverse("login"),
+        {"username": account.username, "password": "synthetic-password-123", "next": destination},
+        secure=True,
+        HTTP_ORIGIN="https://testserver",
+        HTTP_X_CSRFTOKEN=token,
+    )
+    assert response.status_code == 302
+    assert response.url == destination
+    assert int(client.session["_auth_user_id"]) == account.pk
+
+
+def test_profile_renders_bootstrap_forms_for_a_signed_in_user(client, account):
+    client.force_login(account)
+    response = client.get(reverse("profile"))
+    assert response.status_code == 200
+    forms = Forms(response.content.decode()).forms
+    assert any(
+        {"username", "email", "image", "measurements_format"} <= form["inputs"].keys()
+        for form in forms
+    )
+
+
+def test_logout_requires_post_and_csrf_then_returns_to_the_same_page(account):
+    client = Client(enforce_csrf_checks=True)
+    client.force_login(account)
+    response = client.get(reverse("about"))
+    logout_form = next(
+        form
+        for form in Forms(response.content.decode()).forms
+        if form.get("action") == reverse("logout")
+    )
+    assert logout_form["method"].lower() == "post"
+    assert logout_form["inputs"]["next"] == reverse("about")
+
+    assert client.get(reverse("logout")).status_code == 405
+    assert client.post(reverse("logout")).status_code == 403
+    assert "_auth_user_id" in client.session
+
+    response = client.post(reverse("logout"), logout_form["inputs"])
+    assert response.status_code == 302
+    assert response.url == reverse("about")
+    assert "_auth_user_id" not in client.session
+
+
+def test_logout_does_not_redirect_to_an_external_site(client, account):
+    client.force_login(account)
+    response = client.post(reverse("logout"), {"next": "https://example.invalid/"})
+    assert response.status_code == 200
+    assert "_auth_user_id" not in client.session
+    assert b"logged out" in response.content.lower()
+
+
+def test_development_home_renders_with_the_debug_toolbar(client, settings, monkeypatch):
+    settings.DEBUG = True
+    settings.DEBUG_TOOLBAR_CONFIG = {"IS_RUNNING_TESTS": False}
+    # URL modules are cached; provide the development route normally added at startup.
+    urls = ModuleType("upgrade_debug_urls")
+    urls.urlpatterns = [
+        path("", include("nhl_web_app.urls")),
+        path("__debug__/", include("debug_toolbar.urls")),
+    ]
+    monkeypatch.setitem(sys.modules, urls.__name__, urls)
+    settings.ROOT_URLCONF = urls.__name__
+
+    response = client.get(reverse("home"), REMOTE_ADDR="127.0.0.1")
+
+    assert response.status_code == 200
+    assert b'id="djDebug"' in response.content

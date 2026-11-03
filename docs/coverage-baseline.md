@@ -159,3 +159,17 @@ rehearsal preserves supported task-result values and player/user data; upstream
 Celery-result migrations remove the old `hidden` flag. See
 [upgrade checkpoints](django-upgrade-checkpoints.md). The hosted dependency graph
 must be rerun after pushing to confirm the original version error is resolved.
+
+## Upgrade checkpoint: Django 4.2.30
+
+The framework step retains Python 3.10.22 and passes **423 offline tests**, with
+12 external checks deselected and **82.79% combined coverage**. Nine new regressions
+cover auth-form rendering, user/profile creation, HTTPS login/CSRF, POST logout
+with safe redirects and development-toolbar rendering. The measured scope remains
+`players`; user-app tests do not expand that coverage denominator. The initial
+35% gate and exclusions are unchanged.
+
+The old-to-new synthetic database rehearsal preserves player/user/task-result
+values and shows no new migrations. See
+[upgrade checkpoints](django-upgrade-checkpoints.md). Hosted CI must still be
+checked after pushing.

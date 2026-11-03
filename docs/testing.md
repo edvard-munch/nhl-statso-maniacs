@@ -1,7 +1,7 @@
 # Running deterministic tests
 
 Run commands from the repository root. The current baseline is Python 3.10.22,
-Django 3.2.25 and PostgreSQL. This is the current temporary framework-upgrade
+Django 4.2.30 and PostgreSQL. This is the current temporary framework-upgrade
 checkpoint with a validated Python bridge. Further Django/Python and uv changes follow
 separately, as recorded in the roadmap.
 
@@ -28,8 +28,8 @@ python -m pip install -r requirements.txt
 python -m pip check
 ```
 
-The requirements pin the Django 3.2.25 checkpoint and compatible extensions.
-The target Python 3.10.22 environment passes `pip check`, Ruff and all 414 offline
+The requirements pin the Django 4.2.30 checkpoint and compatible extensions.
+The target Python 3.10.22 environment passes `pip check`, Ruff and all 423 offline
 tests with the 35% coverage gate (82.79% combined coverage). The bootstrap file
 retains the verified packaging-tool pins. This validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.

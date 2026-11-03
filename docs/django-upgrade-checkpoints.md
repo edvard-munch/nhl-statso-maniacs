@@ -1,7 +1,7 @@
 # Django/Python upgrade checkpoints
 
 The upgrade is proceeding in small, reviewable steps. The current validated stack
-is Python 3.10.22 / Django 3.2.25. Earlier checkpoints below retain their historical
+is Python 3.10.22 / Django 4.2.30. Earlier checkpoints below retain their historical
 results. Keep the interpreter pin accurate as the runtime changes.
 
 ## Checkpoint 1: Django 2.2.6 to 2.2.28
@@ -188,10 +188,72 @@ Back up the application database, stop old Celery workers, inspect
 restarting the app/workers with the new venv. Use dedicated test credentials for
 `make hooks-run-push`. The local implementation only migrated disposable databases.
 
+## Checkpoint 4: Django 3.2.25 to 4.2.30
+
+Status: implemented and validated locally, retaining Python 3.10.22. Django 4.2
+is another temporary checkpoint; the supported endpoint remains Django 5.2.
+The [4.2.30 release notes](https://docs.djangoproject.com/en/4.2/releases/4.2.30/)
+record the selected patch. The intervening
+[4.0](https://docs.djangoproject.com/en/4.2/releases/4.0/),
+[4.1](https://docs.djangoproject.com/en/4.2/releases/4.1/) and
+[4.2](https://docs.djangoproject.com/en/4.2/releases/4.2/) notes were reviewed.
+
+The framework pin moves to 4.2.30 and debug-toolbar to 4.4.6, which supports
+Django 4.2's storage and form APIs. Other requirements and the interpreter pin
+are unchanged. The existing crispy-forms Bootstrap 4 rendering passes the new
+form tests, so a template-pack migration is deferred. Existing PostgreSQL JSON
+fields and integer primary keys retain their definitions. Historical migration
+imports remain intact.
+
+### Compatibility changes and regressions
+
+The navigation now submits logout through a CSRF-protected POST form, with the
+existing return-page destination. The endpoint rejects GET with HTTP 405, keeps
+the session intact on invalid CSRF, and refuses external redirect destinations.
+This removes the app's reliance on GET logout, deprecated in Django 4.1 and removed
+in Django 5.0. The navbar's search form was properly closed before the new logout
+form. The button retains the existing navigation styling.
+
+The explicit `USE_L10N=True` setting is removed: localization remains enabled by
+default in 4.2 and is always enabled in Django 5. No deprecated-pytz compatibility
+flag was enabled; Django uses its default zoneinfo implementation, while the two
+explicit Pacific-date helpers retain their existing pytz behavior.
+
+Nine new offline regressions check public auth-form rendering, registration and
+profile creation, same-origin HTTPS login with real CSRF validation, profile form
+rendering, POST logout/CSRF/session/redirect behavior, and development-home rendering
+with the toolbar enabled. The development-server command also loads successfully.
+
+### Validation
+
+A disposable UTF-8 PostgreSQL 16 database was built and seeded under the committed
+Django 3.2.25 code, then inspected under the target code. There are **no new
+migration operations** for this checkpoint. System checks and model/migration drift
+checks pass. Before/after snapshots preserve all 13 player JSON fields, primary
+keys, team links, favorites, comparisons, user/profile identity and password
+verification, plus task-result values and timestamps. The working venv is updated;
+the application database was not accessed or migrated.
+
+The full suite passes **423 offline tests**, with 12 external checks deselected
+and **82.79% combined coverage**. The 35% gate and coverage exclusions are unchanged.
+`pip check`, Ruff and formatting checks pass. Hosted results must still be inspected
+after pushing.
+
+Remaining test warnings are the Celery/Kombu entry-point deprecations and Django's
+GET-logout warning from the intentional test proving GET is rejected. No warning
+filter was added. The application navigation uses POST. Celery/dependency updates
+remain part of the next Python bridge.
+
+For another environment, activate its Python 3.10 venv, install the bootstrap and
+application requirements, then run `pip check`, `manage.py check` and
+`manage.py migrate --plan`. From the preceding checkpoint the plan is empty;
+environments that skipped earlier checkpoints must apply their pending migrations.
+Use the dedicated test configuration for local hooks.
+
 ## Next checkpoints
 
-1. Move to Django 4.2 while retaining Python 3.10 for that framework change.
-2. Continue through the planned Python 3.12 bridge and Django 5.2.
+1. Validate the Python 3.12 bridge while retaining Django 4.2 for that change.
+2. Continue to Django 5.2.
    Older framework/interpreter versions remain temporary checkpoints.
 
 Follow the [roadmap](modernization-roadmap.md) and Django's
