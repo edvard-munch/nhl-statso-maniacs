@@ -203,3 +203,23 @@ across the three upstream task-result migrations. A clean checkout passes the
 coverage suite and XML export. See [upgrade checkpoints](django-upgrade-checkpoints.md)
 for deployment instructions and the follow-up on the documented but not yet
 published 5.2.19 package. Hosted CI still needs verification after pushing.
+
+## Follow-up: team-loader persistence
+
+Nine new `upd_tms` integration cases bring the managed push-hook run to **445
+passed**, with 12 external tests deselected and **83.20% combined coverage**.
+`upd_tms` reaches 100% line/branch coverage. This is a focused regression checkpoint,
+not proof that all possible team-report failures are handled.
+
+The tests use real PostgreSQL saves and temporary media, with mocked schedule
+responses and logo downloads. They protect creation/replay without duplicate teams
+or repeated downloads, stable IDs/slugs/player/game links, preservation of historical
+and unreported fields, attaching cached logos, replacing deleted logos, failure
+before any team writes, and recovery after optional HTTP/URL logo failures.
+Existing helper unit tests remain in place; the ORM is not mocked in this batch.
+
+Application code, dependencies, coverage scope/exclusions and the 35% gate are
+unchanged. The application database and live NHL endpoints were not accessed.
+Malformed reports, non-connection HTTP failures and cross-team atomicity remain
+separate loader-hardening decisions. Django 5.2.19 is still a pending patch task:
+its PyPI metadata/download returned unavailable when rechecked for this batch.
