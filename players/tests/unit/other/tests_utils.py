@@ -1,5 +1,3 @@
-from django.core.management import call_command
-
 from players import utils
 from players.models import Goalie, Skater
 from django.contrib.auth.models import User
@@ -15,57 +13,63 @@ import re
 from datetime import datetime
 
 
-@pytest.fixture(scope="session")
-def django_db_setup(django_db_setup, django_db_blocker):
-    with django_db_blocker.unblock():
-        call_command("loaddata", "team_objects.json")
-        call_command("loaddata", "skater_objects.json")
-        call_command("loaddata", "goalie_objects.json")
-        call_command("loaddata", "user_objects.json")
+@pytest.fixture
+def utility_players(db):
+    for model, dimensions in (
+        (Skater, [(178, 165, 22), (196, 213, 30)]),
+        (Goalie, [(183, 180, 23), (198, 240, 34)]),
+    ):
+        for index, (height, weight, age) in enumerate(dimensions):
+            model.objects.create(
+                nhl_id=900100 + index,
+                name="Utility {} {}".format(model.__name__, index),
+                birth_date="2000-01-01",
+                games=0,
+                height_cm=height,
+                weight=weight,
+                age=age,
+                height="6' 0\"",
+                weight_kg=82,
+            )
 
 
-@pytest.mark.django_db()
+@pytest.mark.integration
+@pytest.mark.django_db
 @pytest.mark.parametrize(
-    "queryset, field, result",
+    "model, field, result",
     [
-        [Skater.objects.all(), "height_cm", (178, 196)],
-        [Skater.objects.all(), "weight", (165, 213)],
-        [Skater.objects.all(), "age", (22, 30)],
-        [Goalie.objects.all(), "height_cm", (183, 198)],
-        [Goalie.objects.all(), "weight", (180, 240)],
-        [Goalie.objects.all(), "age", (23, 34)],
+        (Skater, "height_cm", (178, 196)),
+        (Skater, "weight", (165, 213)),
+        (Skater, "age", (22, 30)),
+        (Goalie, "height_cm", (183, 198)),
+        (Goalie, "weight", (180, 240)),
+        (Goalie, "age", (23, 34)),
     ],
 )
-def test_get_range(queryset, field, result):
-    assert utils.get_range(queryset, field) == result
+def test_get_range(model, field, result, utility_players):
+    assert utils.get_range(model.objects.all(), field) == result
 
 
-@pytest.mark.django_db()
-@pytest.mark.parametrize(
-    "players",
-    [
-        Skater.objects.all(),
-        Goalie.objects.all(),
-    ],
-)
-def test_adjust_measurements(players):
-    player = players.first()
-    player_adjusted = utils.adjust_measurements(player)
-
-    assert player.weight_kg == player_adjusted.weight
-
-    assert player.weight_kg == player_adjusted.weight
+@pytest.mark.integration
+@pytest.mark.django_db
+@pytest.mark.parametrize("model", [Skater, Goalie])
+def test_adjust_measurements(model, utility_players):
+    player = model.objects.order_by("pk").first()
+    expected = (player.height_cm, player.weight_kg)
+    adjusted = utils.adjust_measurements(player)
+    assert (adjusted.height, adjusted.weight) == expected
+    player.refresh_from_db()
+    assert player.height == "6' 0\""
+    assert player.weight != player.weight_kg
 
 
-@pytest.mark.django_db()
+@pytest.mark.integration
+@pytest.mark.django_db
 def test_measurements_format_is_euro():
-    user = User.objects.first()
+    user = User.objects.create_user(username="utility-user")
     user.profile.measurements_format = "Europe"
-
     assert utils.measurements_format_is_euro(user)
-
     user.profile.measurements_format = "USA"
-
     assert not utils.measurements_format_is_euro(user)
 
 

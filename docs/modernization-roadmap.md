@@ -39,8 +39,12 @@ following `f0d5729` (saved lists). Detailed contracts live in
 
 ## Evidence and limits
 
-- The last focused run passed **239 tests** against a disposable PostgreSQL
-  cluster, with real migrations. Ruff checks passed for the split fix.
+- The latest isolated regression run passed **330 tests** against a disposable
+  PostgreSQL cluster with real migrations. The complete default suite then ran:
+  **330 passed, 2 failed, 12 external tests deselected**. Both failures are in
+  `unit/other/tests_requests_mock.py`: old mocks expect the 2019-20 season and
+  outdated URL formatting. Those are the next queue item. Coverage is not measured
+  by this run. Ruff checks passed for the isolation changes.
 - The repaired split fetch was validated read-only against the live API: combined
   6 games / 117 saves, NJD 4 / 75, WPG 2 / 42. This was not a full loader run.
 - Favorites JavaScript had syntax and lightweight controller smoke checks;
@@ -48,13 +52,17 @@ following `f0d5729` (saved lists). Detailed contracts live in
   to be added.
 - The application's database was not modified by these validation runs. A complete
   successful local update after the latest fix has not been reported in the chat.
-- **Collection is repaired:** the default selection collects 320 tests and
-  deselects 12 external tests; explicit external selection collects those 12.
-  Both selections also collect with HTTP requests and database connections
-  explicitly blocked. Removed-command imports and the obsolete totals helper
-  reference were replaced. Marker exclusion still happens after module imports.
-  These are collection results, not full-suite passing test results; legacy
-  database isolation must be repaired before the complete suite runs.
+- **Collection and database isolation are repaired.** The original collection
+  repair selected 320 default tests; after replacing and expanding the legacy
+  tests, the default suite selects 332 tests and deselects 12 external tests.
+  Removed-command imports and obsolete helper references are gone. HTTP requests
+  and database connections were explicitly blocked for the earlier collection
+  checks; normal execution now uses pytest-django's migrated test database.
+- Legacy view/lookup tests now create per-test synthetic users, teams, players,
+  games, sides and saved lists. Live HTTP is blocked in that test directory.
+  Utility tests no longer load database dumps at session scope. The legacy
+  `tests_readonly_db` folder name remains for compatibility; its database tests
+  are marked integration tests.
 - The complete coverage baseline is **not established**. The 35% gate was an
   agreed starting threshold, not a measured result or a reason to exclude code.
 - The current Make targets select `players/tests`; tests added under `users`
@@ -68,11 +76,13 @@ Suggested focused commits, in order:
    the obsolete SBS command import and replaced the obsolete totals helper with
    a landing-response check. Both selections collect without HTTP/database access.
    Remaining legacy live API contracts still need the deferred maintenance below.
-2. **Replace legacy database-dependent tests with isolated fixtures.** Remove the
-   `django_db_setup` bypass in `unit/tests_readonly_db/conftest.py`; use Django's
-   normal test database and explicit teams, players, games and users. Replace
-   assertions tied to a developer's existing records. Review outdated endpoint
-   expectations, including anonymous private-endpoint responses.
+2. **Completed: replace legacy database-dependent tests with isolated fixtures.**
+   Removed the `django_db_setup` bypass and database-unblocking fixture. Replaced
+   local-account login and existing NHL records with per-test synthetic fixtures,
+   explicit authentication and relationship assertions. Anonymous private endpoints
+   now assert their actual 403 contract; anonymous player actions assert no writes.
+   Replaced session-wide utility database dumps with function-scoped records and
+   fixed the measurements test to check both height and weight.
 3. **Repair stale request mocks.** Inject/freeze the season and mock API boundaries
    rather than relying on the old hardcoded 2019-20 season or making accidental
    network calls. Keep the default suite offline.
@@ -90,10 +100,11 @@ Suggested focused commits, in order:
    migration setup, normal tests, the coverage gate and relevant static checks.
    Optional external checks belong in a separate explicit job.
 
-Done when a fresh test database and documented environment can collect and run
-the default suite repeatedly, with no application-data dependency, and coverage
-is measured. Avoid starting an unrestricted full run against the current settings
-until the legacy database bypass is removed.
+Done when a fresh test database and documented environment can run the default
+suite repeatedly, with no application-data dependency, and coverage is measured.
+The legacy database bypass is now removed; the full run has been verified against
+an explicitly isolated PostgreSQL configuration. Continue to use an isolated test
+database and real migrations; never point tests at application data.
 
 ## 2. Close the highest-risk regression gaps
 
@@ -212,11 +223,12 @@ with relational season rows; neither is required for the current fix or upgrade.
 ## Immediate commit queue
 
 1. Completed: fix test collection without importing removed commands.
-2. Replace database bypass and existing-record tests with isolated fixtures.
+2. Completed: replace database bypass and existing-record tests with isolated fixtures.
 3. Repair season-sensitive mocks and document a reproducible test environment.
 4. Record full-suite coverage and wire the verified suite into CI.
 5. Harden game JSON fetching with regression tests for the reported failure.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
-The next implementation task is item 2, before any full run.
+The next implementation task is item 3: repair the two stale request mocks and
+document the reproducible test environment before measuring full-suite coverage.
