@@ -1,7 +1,7 @@
 # Django/Python upgrade checkpoints
 
 The upgrade is proceeding in small, reviewable steps. The current validated stack
-is Python 3.12.16 / Django 4.2.30. Earlier checkpoints below retain their historical
+is Python 3.12.16 / Django 5.2.18. Earlier checkpoints below retain their historical
 results. Keep the interpreter pin accurate as the runtime changes.
 
 ## Checkpoint 1: Django 2.2.6 to 2.2.28
@@ -338,13 +338,114 @@ still need their pending migrations applied. Run the local hook checks with the
 dedicated test credentials. The application database was not accessed or migrated
 during implementation.
 
-## Next checkpoints
+## Checkpoint 6: Django 4.2.30 to 5.2.18 LTS
 
-1. Move to Django 5.2 while retaining Python 3.12.
-   Older framework/interpreter versions remain temporary checkpoints.
+Status: implemented and validated locally on Python 3.12.16, reaching the planned
+LTS endpoint. Review the intervening
+[5.0](https://docs.djangoproject.com/en/5.2/releases/5.0/),
+[5.1](https://docs.djangoproject.com/en/5.2/releases/5.1/) and
+[5.2](https://docs.djangoproject.com/en/5.2/releases/5.2/) notes before deployment.
+Django 5.2 requires PostgreSQL 14+; these checks used PostgreSQL 16.
+
+The selected available package is **5.2.18**. The official
+[5.2.19 release notes](https://docs.djangoproject.com/en/5.2/releases/5.2.19/)
+are dated November 3, 2026, but that package returned no matching distribution
+on both the configured index and public PyPI during implementation (the version's
+public JSON endpoint returned 404). Recheck and apply that security patch once
+published; the repository does not pin an unavailable package.
+
+### Compatibility changes
+
+- Pin crispy-forms 2.4 and its separate crispy-bootstrap4 2025.6 template pack;
+  register `crispy_bootstrap4` while retaining `CRISPY_TEMPLATE_PACK="bootstrap4"`.
+  Auth/profile and player forms retain their Bootstrap 4 templates.
+- Update django-celery-results to 2.6.0, debug-toolbar to 5.2.0, django-storages
+  to 1.14.6, pytest-django to 4.11.1 and sqlparse to 0.5.3. Python and the rest
+  of the dependency set stay fixed for this framework step.
+- Remove `django-pdb` from requirements, apps and middleware. Its initialization
+  skips `MiddlewareMixin` setup, causing `AttributeError: async_mode` on every
+  development request under Django 5.2. The development-home regression exposed
+  this. Use Python's `breakpoint()` or pytest's `--pdb` instead of the removed
+  `runserver --pdb` integration.
+- Remove profile-view debug `print(form)` calls, which invoked the deprecated
+  default form-rendering templates and printed submitted account details.
+- Replace the two explicit pytz Pacific clocks with standard-library `ZoneInfo`.
+  Regressions preserve the UI/game-loader date at winter and summer midnight
+  boundaries; no deprecated-pytz setting is enabled. The pytz requirement remains
+  for existing dependencies, rather than performing an unrelated dependency purge.
+- Remove stray literal `>` characters from note/position form URLs, newly flagged
+  by Django's URL checks. Forms already reverse those named routes, so their
+  actions update automatically; route/read-only behavior is checked for both
+  skaters and goalies. Correct endpoints end in `player_note/` and
+  `player_positions/` without the old encoded bracket.
+
+### Migrations and validation
+
+A disposable UTF-8 PostgreSQL 16 database was created/seeded with the preceding
+committed Django 4.2.30 code, then migrated under the target. There are no new
+application/auth migrations. django-celery-results adds:
+
+| Migration | Effect |
+| --- | --- |
+| 0012 | Nullable task `date_started` field. |
+| 0013 | Index on `periodic_task_name`. |
+| 0014 | Remove model status choices while preserving the status column and saved values. |
+
+All three apply successfully; afterward the migration plan is empty. Snapshots
+match for all 13 player JSON fields, IDs, team links, favorites/comparisons,
+user/profile identity and password verification, and existing task-result fields
+and timestamps. System checks report no issues, model/migration checks detect
+no drift, and `pip check` passes. Historical migrations and integer PK settings
+remain unchanged. The application database was not accessed or migrated.
+
+**436 offline tests pass**, including through the managed push hook, with 12
+external checks deselected, **82.56% combined
+coverage**, and no warnings in the target run. Eleven new cases cover the full
+password-reset email/token/new-login flow using in-memory mail, unknown-email
+handling, Pacific date boundaries for UI and game loading, and repeated image
+storage without duplicate filenames. Existing tests cover Bootstrap form rendering,
+CSRF/POST logout, profile uploads, JSON migrations, loaders, tables, saved players
+and Celery's database backend. The 35% gate and coverage exclusions are unchanged.
+These are HTTP-client tests, not browser/JavaScript end-to-end tests.
+
+A clean checkout without runtime files passes static checks, the full coverage
+suite, development-server command loading and coverage XML export. The working
+venv is updated and the obsolete debug package uninstalled. Hosted CI and the
+dependency graph must still be inspected after pushing. Other legacy dependencies
+remain for the separate audit; reaching Django 5.2 does not certify the entire
+dependency inventory or production deployment.
+
+### Apply to another environment
+
+Confirm the database server is PostgreSQL 14+ and take a backup. Stop old app and
+Celery processes, activate the Python 3.12 venv, then run:
+
+```bash
+python -m pip install -r requirements-bootstrap.txt
+python -m pip install -r requirements.txt -r requirements-hooks.txt
+python -m pip uninstall -y django-pdb
+python -m pip check
+python manage.py check
+python manage.py migrate --plan
+python manage.py migrate
+```
+
+Restart with the updated venv after applying migrations. The added index is a
+normal upstream migration; rehearse it on a disposable representative data copy
+and use the normal deployment window. Full broker/worker, production-data and
+browser smoke checks remain deployment work.
+
+## Follow-up work
+
+1. Commit/push and verify hosted offline CI and the dependency graph.
+2. Apply the next published 5.2 security patch and validate it separately.
+3. Rehearse deployment on a disposable representative data copy and check the
+   configured PostgreSQL version, broker/workers, browser flows and rollback.
+4. Resume the remaining targeted regression batches, dependency/legacy audit and
+   uv workflow migration as separate changes.
 
 Follow the [roadmap](modernization-roadmap.md) and Django's
-[upgrade guide](https://docs.djangoproject.com/en/3.2/howto/upgrade-version/): review
+[upgrade guide](https://docs.djangoproject.com/en/5.2/howto/upgrade-version/): review
 intervening release notes and deprecations, run tests and migration checks, then
 record a working checkpoint before moving on. Remaining high-value regression
 batches can accompany the upgrade when they protect affected behavior.

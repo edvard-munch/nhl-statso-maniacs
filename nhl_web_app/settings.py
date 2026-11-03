@@ -30,7 +30,6 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
 INSTALLED_APPS = [
-    "django_pdb",
     "users.apps.UsersConfig",
     "players.apps.PlayersConfig",
     "django.contrib.admin",
@@ -40,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "crispy_forms",
+    "crispy_bootstrap4",
     "django_extensions",
     "nhl_web_app",
     "django_celery_results",
@@ -57,7 +57,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # 'silk.middleware.SilkyMiddleware',
-    "django_pdb.middleware.PdbMiddleware",
 ]
 
 ROOT_URLCONF = "nhl_web_app.urls"

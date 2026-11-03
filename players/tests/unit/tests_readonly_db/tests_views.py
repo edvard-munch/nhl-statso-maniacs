@@ -132,7 +132,9 @@ def test_reset_clears_only_requested_comparison_group(signed_in, view_data, kind
 @pytest.mark.parametrize("route", ["player_note", "player_positions"])
 def test_edit_form_get_does_not_create_records(signed_in, view_data, key, route):
     player = view_data[key]
-    response = signed_in.get(reverse(route, args=[player.slug, player.nhl_id]))
+    url = reverse(route, args=[player.slug, player.nhl_id])
+    assert url == "/player/{}/{}/{}/".format(player.slug, player.nhl_id, route)
+    response = signed_in.get(url)
     assert response.status_code == 200
     assert response.json()["authenticated"] is True
     assert Note.objects.count() == Position.objects.count() == 0

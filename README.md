@@ -8,10 +8,10 @@ remaining test gaps, and the planned Python/Django upgrade sequence.
 ## Stack
 
 - Python 3.12.16
-- Django 4.2.30
-- PostgreSQL
+- Django 5.2.18 LTS
+- PostgreSQL 14+ (validated with PostgreSQL 16)
 
-Django 4.2.30 is the current temporary upgrade checkpoint. See
+Django 5.2 is the planned LTS endpoint of the staged upgrade. See
 [upgrade progress and validation](docs/django-upgrade-checkpoints.md).
 
 ## Local Setup
@@ -127,6 +127,9 @@ For game-response failures and safe reruns, see [game-loader behavior](docs/game
 ```bash
 python manage.py runserver
 ```
+
+Use Python's `breakpoint()` or pytest's `--pdb` for debugging. The obsolete
+`django-pdb` integration was removed because its middleware crashes on Django 5.2.
 
 Open: `http://127.0.0.1:8000/`
 

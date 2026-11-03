@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils.text import slugify
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
-from pytz import timezone
+from zoneinfo import ZoneInfo
 import logging
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ TIMEZONE = "US/Pacific"
 class Command(BaseCommand):
     def handle(self, *args, **options):
         with requests.Session() as session:
-            today = datetime.now(timezone(TIMEZONE)).date()
+            today = datetime.now(ZoneInfo(TIMEZONE)).date()
             schedule = get_schedule(today, session)
             regular_season_end_date = datetime_from_string(schedule["regularSeasonEndDate"])
             regular_season_start_date = datetime_from_string(schedule["regularSeasonStartDate"])

@@ -189,3 +189,17 @@ The clean-checkout CI reproduction exports XML successfully, and the synthetic
 database rehearsal shows no new migrations or changed player/user/task data.
 See [upgrade checkpoints](django-upgrade-checkpoints.md). Hosted CI and the
 dependency graph still require verification after pushing.
+
+## Upgrade checkpoint: Django 5.2.18
+
+The LTS endpoint passes **436 offline tests**, with 12 external checks deselected,
+**82.56% combined coverage** and no test warnings on Python 3.12.16. Eleven new
+cases cover password reset using in-memory email, Pacific date boundaries and
+file overwrite behavior after the framework/storage changes. The recovered storage
+lines improve the measurement; the 35% gate, scope and exclusions are unchanged.
+
+The synthetic data rehearsal preserves existing player/user/task-result values
+across the three upstream task-result migrations. A clean checkout passes the
+coverage suite and XML export. See [upgrade checkpoints](django-upgrade-checkpoints.md)
+for deployment instructions and the follow-up on the documented but not yet
+published 5.2.19 package. Hosted CI still needs verification after pushing.

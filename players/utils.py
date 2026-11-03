@@ -10,7 +10,7 @@ from itertools import chain, zip_longest
 from django.db.models import Max, Min
 
 from . import models
-from pytz import timezone
+from zoneinfo import ZoneInfo
 import json
 
 
@@ -272,7 +272,7 @@ def get_range(players, column):
 
 
 def get_us_pacific_date():
-    pacific_datetime = datetime.datetime.now(timezone(TIMEZONE))
+    pacific_datetime = datetime.datetime.now(ZoneInfo(TIMEZONE))
     return pacific_datetime.strftime(DATE_TEMPLATE)
 
 

@@ -39,9 +39,9 @@ urlpatterns = [
     path("search/", views.search, name="search"),
     path("player/<slug>/<int:nhl_id>/", views.player_detail, name="player_detail"),
     path("player/<slug>/<int:nhl_id>/gamelog/", views.player_gamelog, name="player_gamelog"),
-    path("player/<slug>/<int:nhl_id>/player_note/>", views.player_note, name="player_note"),
+    path("player/<slug>/<int:nhl_id>/player_note/", views.player_note, name="player_note"),
     path(
-        "player/<slug>/<int:nhl_id>/player_positions/>",
+        "player/<slug>/<int:nhl_id>/player_positions/",
         views.player_positions,
         name="player_positions",
     ),

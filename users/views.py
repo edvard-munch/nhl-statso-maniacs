@@ -29,9 +29,6 @@ def profile(request):
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
         ms_form = MeasurementsFormatEdit(request.POST, instance=request.user.profile)
-        print(u_form)
-        print(p_form)
-        print(ms_form)
 
         if u_form.is_valid() and p_form.is_valid() and ms_form.is_valid():
             u_form.save()

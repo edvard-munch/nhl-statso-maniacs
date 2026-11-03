@@ -4,6 +4,8 @@ from html.parser import HTMLParser
 from io import BytesIO
 from types import ModuleType
 import sys
+import re
+from urllib.parse import urlsplit
 
 import pytest
 from django.contrib.auth.models import User
@@ -92,6 +94,38 @@ def test_same_origin_https_login_accepts_csrf_and_preserves_next(account):
     assert response.status_code == 302
     assert response.url == destination
     assert int(client.session["_auth_user_id"]) == account.pk
+
+
+def test_password_reset_email_link_changes_password_and_allows_login(
+    client, account, settings, mailoutbox
+):
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    response = client.post(reverse("password_reset"), {"email": account.email})
+    assert response.status_code == 302
+    assert response.url == reverse("password_reset_done")
+    assert len(mailoutbox) == 1
+    assert mailoutbox[0].to == [account.email]
+    link = re.search(r"https?://\S+", mailoutbox[0].body).group(0)
+
+    response = client.get(urlsplit(link).path)
+    assert response.status_code == 302
+    form_url = response.url
+    assert client.get(form_url).context["validlink"] is True
+    password = "replacement-synthetic-password-456"
+    response = client.post(form_url, {"new_password1": password, "new_password2": password})
+    assert response.status_code == 302
+    assert response.url == reverse("password_reset_complete")
+    account.refresh_from_db()
+    assert account.check_password(password)
+    assert client.login(username=account.username, password=password)
+
+
+def test_password_reset_for_unknown_email_does_not_send_mail(client, settings, mailoutbox):
+    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+    response = client.post(reverse("password_reset"), {"email": "unknown@example.invalid"})
+    assert response.status_code == 302
+    assert response.url == reverse("password_reset_done")
+    assert not mailoutbox
 
 
 def test_profile_renders_bootstrap_forms_for_a_signed_in_user(client, account):
