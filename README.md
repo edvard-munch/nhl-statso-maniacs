@@ -8,8 +8,11 @@ remaining test gaps, and the planned Python/Django upgrade sequence.
 ## Stack
 
 - Python 3.7.17
-- Django 2.2.6
+- Django 2.2.28
 - PostgreSQL
+
+Django 2.2.28 is the first temporary upgrade checkpoint. See
+[upgrade progress and validation](docs/django-upgrade-checkpoints.md).
 
 ## Local Setup
 

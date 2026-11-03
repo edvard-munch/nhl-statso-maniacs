@@ -123,3 +123,12 @@ failed with `tool_version_not_supported`: its service rejects the repository's
 Python 3.7.17 pin and lists Python 3.10+ in that run. This is independent of the
 test workflow. Keep the honest interpreter pin and resolve that limitation during
 the planned Python transition; no repository automation settings were changed.
+
+## Upgrade checkpoint: Django 2.2.28
+
+The first framework patch update keeps Python 3.7.17 and passes **408 tests**,
+with 12 external tests deselected and **82.59% combined coverage**. System checks
+and model/migration drift checks pass for both Django 2.2.6 and 2.2.28; the isolated
+schema migrated under 2.2.6 requires no new migrations after the patch. See
+[upgrade checkpoints](django-upgrade-checkpoints.md). The Python 3.7 dependency-
+graph blocker remains until the later interpreter step.

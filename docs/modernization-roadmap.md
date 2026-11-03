@@ -9,12 +9,12 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: cover real team saves and remaining totals/user contracts.**
-Game JSON handling, roster/gamelog persistence, command replays and report identity
-collisions are covered.
-The complete suite passes, coverage is measured, and CI is configured. Add remaining
-high-risk behavior tests before the staged upgrade; do not wait for 100% coverage.
-Check the GitHub Actions result after pushing.
+**Next: prepare the Django 3.2 compatibility checkpoint.** The staged upgrade is
+now active: Django 2.2.28 passes the existing suite on Python 3.7.17. Continue with
+compatible dependencies and the intervening deprecations before moving Python.
+The Dependabot blocker remains until the interpreter transition. Remaining
+team/totals/user regression batches remain in the queue and can protect affected
+behavior during the upgrade. Do not wait for 100% coverage.
 
 ## What is already complete
 
@@ -69,6 +69,11 @@ following `f0d5729` (saved lists). Detailed contracts live in
   ambiguous HTML fields are skipped with warnings and retain existing defaults;
   recovering those counts through team/name-aware HTML parsing remains optional
   follow-up work. Existing game data is not automatically backfilled.
+- The first framework checkpoint, **Django 2.2.6 → 2.2.28**, passes 408 tests at
+  82.59% combined coverage on Python 3.7.17. Both versions pass system and
+  model/migration checks with no changes detected. A schema migrated under 2.2.6
+  needs no new migrations under 2.2.28. The isolated validation and dependency
+  update are recorded in [upgrade checkpoints](django-upgrade-checkpoints.md).
 - The repaired split fetch was validated read-only against the live API: combined
   6 games / 117 saves, NJD 4 / 75, WPG 2 / 42. This was not a full loader run.
 - Favorites JavaScript had syntax and lightweight controller smoke checks;
@@ -222,7 +227,7 @@ endpoint. See the [5.2 release notes](https://docs.djangoproject.com/en/5.2/rele
 
 | Checkpoint | Proposed interpreter strategy | Main work |
 | --- | --- | --- |
-| Existing 2.2.6 | Keep Python 3.7 initially | Establish baseline; update to the final 2.2 patch in a separate checked change. |
+| Django 2.2.28 — complete locally | Python 3.7.17 | Patch baseline, 408 passing tests, unchanged migration state and working-venv dependency update; see upgrade checkpoints. |
 | Django 3.2 | Keep 3.7 for the framework change, then test 3.10 separately | Upgrade compatible dependencies; remove deprecations; prepare JSONField/schema changes. Python 3.10 is only a bridge. |
 | Django 4.2 | Keep 3.10 for the framework change, then test 3.12 separately | Replace removed APIs, resolve migration/JSONField/storage/time-zone issues and dependency constraints. |
 | Django 5.2 | Use the validated Python 3.12 environment | Complete removals/deprecations, verify deployment and record the supported final dependency set. |
@@ -270,7 +275,8 @@ with relational season rows; neither is required for the current fix or upgrade.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
-Item 6 is in progress: core game roster/gamelog persistence and command replays
-and report-identity collisions are complete. Next add actual team-save/repeat-run
-contracts, then remaining totals enrichment and user-owned actions/browser checks.
-Keep each batch focused before the staged upgrade.
+Item 6 remains in progress: core game persistence and identity contracts are
+complete; team saves, remaining totals enrichment and user-owned/browser checks
+remain queued. The staged upgrade has started with the validated 2.2.28 patch
+checkpoint. The next focused upgrade batch is Django 3.2 compatibility, followed
+by a separate Python bridge. Keep each change reviewable and validate every step.

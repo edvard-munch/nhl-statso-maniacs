@@ -65,6 +65,11 @@ jobs:
           node --check players/static/players/ajax_switch_stats.js
           node --check players/static/players/sorting_favorites.js
           node --check players/static/players/sorting_comparison.js
+      - name: Django system and migration checks
+        run: |
+          python -m django --version
+          python manage.py check
+          python manage.py makemigrations --check --dry-run
       - name: Offline tests and coverage gate
         id: tests
         # pytest-django creates test_nhl_ci using real migrations.

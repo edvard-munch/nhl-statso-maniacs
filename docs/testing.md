@@ -1,8 +1,9 @@
 # Running deterministic tests
 
 Run commands from the repository root. The current baseline is Python 3.7.17,
-Django 2.2.6 and PostgreSQL. Keep this stack while establishing the baseline;
-Python/Django and uv changes are later, separate roadmap stages.
+Django 2.2.28 and PostgreSQL. This is the first temporary framework-upgrade
+checkpoint; Python remains 3.7.17. Further Django/Python and uv changes follow
+separately, as recorded in the roadmap.
 
 ## Python environment
 
