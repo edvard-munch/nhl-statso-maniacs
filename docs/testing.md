@@ -1,8 +1,8 @@
 # Running deterministic tests
 
-Run commands from the repository root. The current baseline is Python 3.7.17,
+Run commands from the repository root. The current baseline is Python 3.10.22,
 Django 3.2.25 and PostgreSQL. This is the current temporary framework-upgrade
-checkpoint; Python remains 3.7.17. Further Django/Python and uv changes follow
+checkpoint with a validated Python bridge. Further Django/Python and uv changes follow
 separately, as recorded in the roadmap.
 
 ## Python environment
@@ -21,7 +21,7 @@ python -m pip check
 For an environment that does not yet exist:
 
 ```bash
-python3.7 -m venv venv
+python3.10 -m venv venv
 source venv/bin/activate
 python -m pip install -r requirements-bootstrap.txt
 python -m pip install -r requirements.txt
@@ -29,10 +29,9 @@ python -m pip check
 ```
 
 The requirements pin the Django 3.2.25 checkpoint and compatible extensions.
-The target Python 3.7.17 environment passes `pip check`, Ruff and all 409 offline
-tests with the 35% coverage gate (82.58% combined coverage). The bootstrap file
-pins packaging tools;
-Celery 4.3's old metadata needs pip before 24.1. This validates the current install
+The target Python 3.10.22 environment passes `pip check`, Ruff and all 414 offline
+tests with the 35% coverage gate (82.79% combined coverage). The bootstrap file
+retains the verified packaging-tool pins. This validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.
 
 Configure the project's `.env` as described in the README. Django loads the normal
@@ -126,7 +125,7 @@ does not establish that they pass against NHL today.
 
 ## Local commit and push hooks
 
-Install the pinned Python 3.7-compatible hook tool in the project venv:
+Install the pinned hook tool in the project venv:
 
 ```bash
 source venv/bin/activate
@@ -217,7 +216,7 @@ and temporary credential file; no application database or real commit/push was u
 
 The workflow in `.github/workflows/tests.yml` runs on pushes, pull requests and
 manual dispatch. It installs the bootstrap tools and requirements on Python
-3.7.17 / Ubuntu 22.04, checks dependencies and lint/JavaScript syntax, then runs
+3.10.22 / Ubuntu 22.04, checks dependencies and lint/JavaScript syntax, then runs
 `make test-ci` with a PostgreSQL 16 service and real test migrations. Its disposable
 database credentials come from the workflow, without application secrets or `.env`.
 It uploads the XML coverage report, including when tests fail if data was produced.

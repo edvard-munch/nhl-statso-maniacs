@@ -1,2 +1,2 @@
-# Last pre-commit series compatible with the project's Python 3.7 baseline.
+# Retain the existing hook interface during the Python 3.10 transition.
 pre-commit==2.21.0

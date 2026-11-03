@@ -54,7 +54,9 @@ def test_import_team_create_sets_defaults_and_uploads_logo_when_missing(monkeypa
             },
         }
     ]
-    assert pic_missing_calls == [("anaheim-ducks.svg", fake_team_obj.image, upd_tms.TEAMS_LOGOS_DIR)]
+    assert pic_missing_calls == [
+        ("anaheim-ducks.svg", fake_team_obj.image, upd_tms.TEAMS_LOGOS_DIR)
+    ]
     assert upload_calls == [
         (
             upd_tms.TEAMS_LOGOS_DIR,
@@ -136,7 +138,9 @@ def test_get_country_name_returns_unknown_code_and_logs_once(monkeypatch):
     warnings = []
     upd_pls.UNKNOWN_COUNTRY_CODES.clear()
 
-    monkeypatch.setattr(upd_pls.logger, "warning", lambda message, code: warnings.append((message, code)))
+    monkeypatch.setattr(
+        upd_pls.logger, "warning", lambda message, code: warnings.append((message, code))
+    )
 
     assert upd_pls.get_country_name("XXX") == "XXX"
     assert upd_pls.get_country_name("XXX") == "XXX"
@@ -174,7 +178,9 @@ def test_get_season_id_returns_latest_when_multiple_seasons(monkeypatch):
             return {"teams": [{"seasonId": 20242025}, {"seasonId": 20252026}]}
 
     monkeypatch.setattr(upd_pls.requests, "get", lambda *args, **kwargs: FakeResponse())
-    monkeypatch.setattr(upd_pls.logger, "warning", lambda message, *args: warnings.append((message, args)))
+    monkeypatch.setattr(
+        upd_pls.logger, "warning", lambda message, *args: warnings.append((message, args))
+    )
 
     assert upd_pls.get_season_id() == "20252026"
     assert warnings[0][0] == "Multiple seasonId values from NHL schedule API (%s), using %s"

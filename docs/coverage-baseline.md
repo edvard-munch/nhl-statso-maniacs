@@ -57,7 +57,7 @@ make test-cov
 make test-ci
 ```
 
-The GitHub Actions workflow uses Ubuntu 22.04, Python 3.7.17 and an isolated
+The GitHub Actions workflow now uses Ubuntu 22.04, Python 3.10.22 and an isolated
 PostgreSQL 16 service exposed on localhost:5432. It installs the verified
 `requirements-bootstrap.txt` tools, installs `requirements.txt`, runs `pip check`,
 Ruff and syntax checks for the four season-table JavaScript controllers, and runs
@@ -65,7 +65,7 @@ Ruff and syntax checks for the four season-table JavaScript controllers, and run
 commands run and live API tests remain excluded. The workflow uses read-only
 repository permissions, no application secrets and no deployment steps.
 
-After tests, CI exports `coverage.xml` and uploads it as `coverage-python37` for
+After tests, CI exports `coverage.xml` and uploads it as `coverage-python310` for
 14 days. Generated XML and coverage data are ignored by Git. Workflow syntax and
 expressions passed actionlint 1.7.7 validation; the dependency install, static checks,
 coverage command and XML export were validated locally. The first hosted test
@@ -144,3 +144,18 @@ old-to-new migration rehearsal preserves synthetic player and user data; see
 [upgrade checkpoints](django-upgrade-checkpoints.md). The working venv is updated,
 but the application database still needs `manage.py migrate`. Dependabot's Python
 3.7 blocker remains for the separate interpreter transition.
+
+## Upgrade checkpoint: Python 3.10.22
+
+The interpreter bridge retains Django 3.2.25 and passes **414 offline tests**, with
+12 external checks deselected and **82.79% combined coverage**. This includes the
+full managed push hook and a clean-checkout reproduction with XML export. Five
+new Celery regressions cover loader order, stopping on failure and database-result
+updates/decoding without a broker. Coverage remains 7.2.7, and the gate/exclusions
+are unchanged; source denominators also differ across Python interpreters.
+
+Both CI and local pyenv now use the validated 3.10.22 pin. The synthetic migration
+rehearsal preserves supported task-result values and player/user data; upstream
+Celery-result migrations remove the old `hidden` flag. See
+[upgrade checkpoints](django-upgrade-checkpoints.md). The hosted dependency graph
+must be rerun after pushing to confirm the original version error is resolved.

@@ -1,14 +1,14 @@
 # Django/Python upgrade checkpoints
 
-The upgrade is proceeding in small, reviewable steps. Dependency-graph generation
-currently rejects the real Python 3.7.17 pin. Keep that pin accurate while moving
-the framework and interpreter through the validated checkpoints below.
+The upgrade is proceeding in small, reviewable steps. The current validated stack
+is Python 3.10.22 / Django 3.2.25. Earlier checkpoints below retain their historical
+results. Keep the interpreter pin accurate as the runtime changes.
 
 ## Checkpoint 1: Django 2.2.6 to 2.2.28
 
 Status: implemented and validated locally on Python 3.7.17.
 
-`requirements.txt` now pins Django 2.2.28. Other application dependencies and the
+This checkpoint pinned Django 2.2.28. Other application dependencies and the
 interpreter pin are unchanged. This establishes the 2.2 patch baseline before the
 3.x compatibility work. Django 2.2 is unsupported; this is a temporary upgrade
 checkpoint, not the final supported stack. See the official
@@ -32,7 +32,8 @@ reports no broken requirements. This rehearsal covers a database built from
 migrations; a representative application-data copy remains part of later upgrade
 validation. Existing loader/view persistence tests use their synthetic records.
 
-The local project venv has been updated to 2.2.28. For another checkout/environment:
+The project venv was updated to 2.2.28 at this checkpoint. To install the currently
+pinned requirements in another checkout/environment:
 
 ```bash
 source venv/bin/activate
@@ -107,11 +108,90 @@ python manage.py migrate
 Installing requirements alone does not apply migrations. The local implementation
 updated the venv but intentionally left the application database untouched.
 
+## Checkpoint 3: Python 3.7.17 to 3.10.22
+
+Status: implemented and validated locally, retaining Django 3.2.25. Python 3.10
+is a temporary bridge, not the final runtime; its final patch is
+[3.10.22](https://www.python.org/downloads/release/python-31022/), and it has reached
+end of life. Continue to Django 4.2, then the Python 3.12 bridge and Django 5.2.
+
+`.python-version` pins 3.10.22, Ruff targets `py310`, and CI reads the pin directly
+with `setup-python`'s `python-version-file`. GitHub's
+[interpreter manifest](https://github.com/actions/python-versions/blob/main/versions-manifest.json)
+includes an Ubuntu 22.04 x64 build for this patch. Coverage artifacts are now named
+`coverage-python310`. The working venv was recreated using the target interpreter;
+the previous venv was preserved separately, and the application database was untouched.
+
+### Dependency changes
+
+| Component | Target | Reason |
+| --- | --- | --- |
+| Celery / Kombu / AMQP / Vine | 5.2.7 / 5.2.4 / 5.1.1 / 5.0.0 | Replace the Python 3.7-era task stack with a coherent Python 3.10-compatible set. |
+| django-celery-results | 2.4.0 | Match Celery 5 and remove old imports of `celery.five` and `ugettext_lazy`. |
+| psycopg2-binary | 2.9.10 | Use a driver with Python 3.10 wheels. |
+| pytest / pytest-cov | 7.4.4 / 4.1.0 | Replace old assertion-rewriting/test tooling for the newer interpreter. |
+| Pluggy / packaging | 1.3.0 / 23.2 | Meet the new pytest tooling's dependency constraints. |
+| coverage | 7.2.7 | Explicitly retain the version used for earlier measured baselines. |
+
+The bootstrap and pre-commit versions remain unchanged for this step. Celery's
+[5.2 release notes](https://docs.celeryq.dev/en/v5.2.3/whatsnew-5.2.html) document
+Python 3.10 support. These pins are a tested bridge, not the final dependency set.
+
+### Validation and migration implications
+
+- Fresh target installs and the recreated working venv pass `pip check`.
+- System checks and model/migration drift checks pass.
+- A disposable UTF-8 PostgreSQL 16 database was migrated and seeded under the
+  previous Python 3.7 / Celery 4 environment, then upgraded under Python 3.10.
+  All 13 player JSON fields, IDs, team links, user/profile identity/passwords,
+  favorites and comparisons match before/after snapshots. Stored task IDs,
+  status, result payloads, metadata, arguments and completion times also match;
+  the new task creation timestamp is backfilled from completion time.
+- django-celery-results migrations **0005 through 0011** apply successfully.
+  They add worker/creation/periodic-task fields, group/chord tables and indexes,
+  and **remove the old `TaskResult.hidden` column**. Task rows and result payloads
+  survive; the removed soft-delete flag does not. No application migration is added.
+- **414 offline tests pass**, 12 external checks are deselected, and combined
+  coverage is **82.79%**, including through the managed push hook. Five new tests
+  cover eager loader order/failure and database-backend result update/decoding.
+  No broker or live loader is invoked. Broker/worker deployment checks remain
+  separate from these offline tests.
+- A fresh temporary checkout without a venv, `.env` or logs passes static checks,
+  the full coverage gate and XML export. Workflow syntax passes actionlint.
+  Hosted CI and the dependency graph must still be verified after pushing.
+
+Remaining startup/test warnings concern Celery/Kombu's entry-point API and
+django-pdb's `default_app_config`; resolve them during the following dependency
+and Django 4.2 work. The 35% coverage gate and exclusions are unchanged. Coverage
+denominators also vary across Python versions, so percentages are not an exact
+cross-interpreter comparison.
+
+### Recreate another Python 3.7 environment
+
+Deactivate the old venv and move it outside the checkout before creating the new
+`venv`. Installing packages into the old venv does not upgrade its interpreter.
+With pyenv available, run from the project root:
+
+```bash
+pyenv install -s 3.10.22
+python --version  # must report 3.10.22 from .python-version
+python -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements-bootstrap.txt
+python -m pip install -r requirements.txt -r requirements-hooks.txt
+python -m pip check
+make hooks
+```
+
+Back up the application database, stop old Celery workers, inspect
+`python manage.py migrate --plan`, then run `python manage.py migrate` before
+restarting the app/workers with the new venv. Use dedicated test credentials for
+`make hooks-run-push`. The local implementation only migrated disposable databases.
+
 ## Next checkpoints
 
-1. Establish the compatible Python 3.10 bridge separately, adjusting dependencies
-   and test tooling as required. Recheck the dependency graph after that change.
-2. Continue through Django 4.2, the planned Python 3.12 bridge, and Django 5.2.
+1. Move to Django 4.2 while retaining Python 3.10 for that framework change.
+2. Continue through the planned Python 3.12 bridge and Django 5.2.
    Older framework/interpreter versions remain temporary checkpoints.
 
 Follow the [roadmap](modernization-roadmap.md) and Django's
@@ -122,8 +202,9 @@ batches can accompany the upgrade when they protect affected behavior.
 
 ## Dependabot status
 
-This checkpoint does **not** resolve the failing hosted dependency-graph job:
-Python is still 3.7.17, which that service no longer supports. Our test CI is a
-separate workflow and supports the current baseline. No security feature was
-disabled and no interpreter version was misreported to make the graph job pass.
-The runtime transition must be validated before updating `.python-version` and CI.
+The earlier hosted graph rejected Python 3.7.17. The bridge now uses a tested
+Python 3.10.22 interpreter, and test CI reads `.python-version` directly. This
+addresses that run's version restriction in the repository; it does not prove
+the hosted service succeeds. Push and inspect both the offline-test workflow and
+the separate dependency graph. No security feature was disabled and no version
+was misreported. Other dependency findings remain separate upgrade work.

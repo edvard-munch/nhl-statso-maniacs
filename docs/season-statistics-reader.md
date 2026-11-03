@@ -74,7 +74,7 @@ now projects its results for filtering, sorting and pagination.
 The [team table integration](team-season-tables.md) uses the same reader with an
 explicit team abbreviation for initial rendering and AJAX switches.
 
-Run the reader tests using the existing Python 3.7 virtual environment:
+Run the reader tests using the current project virtual environment:
 
 ```bash
 python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_stats_reader.py
