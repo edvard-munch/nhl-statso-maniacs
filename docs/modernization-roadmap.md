@@ -9,10 +9,11 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: harden game JSON fetching and test its failure paths.** The complete
-suite now passes, the coverage baseline is measured, and CI is configured. Add
-remaining high-risk behavior tests before the staged upgrade; do not wait for
-100% coverage. Check the first GitHub Actions result after pushing the workflow.
+**Next: extend game roster/gamelog persistence and loader orchestration tests.**
+Game JSON request handling and per-day rollback are now covered. The complete
+suite passes, coverage is measured, and CI is configured. Add remaining high-risk
+behavior tests before the staged upgrade; do not wait for 100% coverage. Check
+the GitHub Actions result after pushing.
 
 ## What is already complete
 
@@ -50,6 +51,11 @@ following `f0d5729` (saved lists). Detailed contracts live in
   **349 tests passed, 12 external tests deselected, 74.65% coverage**. Hook runner
   tests cover missing/invalid credentials and flag isolation. Hooks use an ignored
   dedicated test-database config; installing them is a per-clone setup step.
+- The game-response follow-up passes **379 tests**, with **12 external tests
+  deselected** and **76.88% combined coverage** through the push-stage coverage
+  hook. Empty/HTML/invalid JSON, retries and client errors have mocked coverage;
+  isolated PostgreSQL tests verify failed-day rollback and idempotent scheduled
+  game replays. No live NHL loader run or application database was used.
 - The repaired split fetch was validated read-only against the live API: combined
   6 games / 117 saves, NJD 4 / 75, WPG 2 / 42. This was not a full loader run.
 - Favorites JavaScript had syntax and lightweight controller smoke checks;
@@ -125,7 +131,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 
 | Priority | Work | Behavior to protect |
 | --- | --- | --- |
-| First | `upd_gms` response handling | Reproduce the reported JSONDecodeError with empty/HTML/non-200 responses; add timeout/status/JSON handling and bounded retries with game/date context. Decide which unavailable future games can be deferred, and ensure replay is safe. `get_game_data()` still calls `.json()` directly. |
+| Completed | `upd_gms` response handling | Shared checked JSON requests, bounded retries, game/date/endpoint errors and per-day transaction rollback. Unavailable future-game JSON remains a controlled failure; a deferral policy is separate. See [game loading](game-loading.md). |
 | First | Loader orchestration | Audit remaining `upd_pls.import_player` branches, report pagination/coverage, failure-before-publication, absent players, season detection and current/full totals precedence. Much is covered already; use coverage to find real gaps. |
 | First | Game persistence | Mocked schedule/boxscore/report inputs, repeated loads, missing players, saved game values and failure boundaries. Preserve existing report parser tests. |
 | Next | Team persistence | Complement mocked `upd_tms` ORM calls with real isolated saves and repeat runs. |
@@ -134,10 +140,11 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
 | Next | Browser smoke tests | Actual season selection, favorites goalie-only/empty lists, totals/averages, comparison modes/removal/reset and team joined/split controls; assert displayed values and AJAX season persistence. |
 
-The reported `upd_gms` JSON failure was investigated but is not fixed by the NHL
-split-label change. Bring that issue forward if it still blocks normal updates.
-Player-detail season selection is also a separate product change; characterize
-its current behavior first, then decide whether to extend the selector there.
+The reported `upd_gms` JSON failure now has controlled request handling and
+rollback tests; live endpoint availability is not established by mocked checks.
+Future-game deferral and full roster/gamelog orchestration still need explicit
+contracts. Player-detail season selection is also a separate product change;
+characterize its current behavior before extending the selector there.
 
 Done when the important loader failure paths and user workflows have regression
 checks that would catch a framework upgrade breaking them. Coverage guides this
@@ -239,10 +246,10 @@ with relational season rows; neither is required for the current fix or upgrade.
 3. Completed: repair season-sensitive mocks and document the test environment.
 4. Completed locally; hosted run pending: record coverage and add CI. Local commit/
    push test hooks are implemented; follow the per-clone setup in the test guide.
-5. Harden game JSON fetching with regression tests for the reported failure.
+5. Completed: harden game JSON fetching and verify failed-day rollback/replay.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
-The next implementation task is item 5: reproduce and handle invalid/empty game
-API responses, keeping game context, bounded retries and safe reruns. Confirm the
-hosted CI result when this workflow is pushed.
+The next implementation task is item 6: add game roster/gamelog persistence and
+remaining loader orchestration contracts, then user-owned actions and browser
+smoke checks. Keep these as focused batches before the staged upgrade.

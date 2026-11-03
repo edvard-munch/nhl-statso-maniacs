@@ -108,6 +108,8 @@ Optional projection update:
 python manage.py upd_pls_proj
 ```
 
+For game-response failures and safe reruns, see [game-loader behavior](docs/game-loading.md).
+
 ## Update Cadence
 
 - `upd_tms`: run weekly to keep team metadata current.

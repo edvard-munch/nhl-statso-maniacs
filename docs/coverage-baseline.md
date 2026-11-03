@@ -74,3 +74,11 @@ CI run passed.
 
 References: [GitHub's PostgreSQL service guidance](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers)
 and [setup-python](https://github.com/actions/setup-python/tree/v6).
+
+## Follow-up: game request handling
+
+After adding request-failure and gameday transaction regression tests, the full
+push-stage coverage hook passes **379 tests**, with 12 external tests deselected
+and **76.88% combined coverage**. `upd_gms` rises to 65% combined coverage. The
+original baseline table above is retained as a historical checkpoint. Remaining
+game roster/gamelog persistence and command orchestration are still priorities.

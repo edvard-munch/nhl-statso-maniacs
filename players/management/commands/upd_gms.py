@@ -1,9 +1,11 @@
 import re
 from html import unescape
 from datetime import datetime
+from time import sleep
 
 import requests
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.utils.text import slugify
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
 from pytz import timezone
@@ -34,6 +36,13 @@ URL_PLAY_BY_PLAY = "https://api-web.nhle.com/v1/gamecenter/{}/play-by-play"
 REGULAR_SEASON_CODE = "02"
 REGULAR_PERIODS_AMOUNT = 3
 REPORT_FETCH_TIMEOUT = 10
+JSON_FETCH_TIMEOUT = 10
+JSON_FETCH_ATTEMPTS = 3
+JSON_RETRY_DELAY = 1
+RETRYABLE_HTTP_STATUSES = {408, 429}
+SERVER_ERROR_STATUS = 500
+SCHEDULE_FIELDS = {"gameWeek", "regularSeasonStartDate", "regularSeasonEndDate"}
+BOXSCORE_FIELDS = {"gameState", "awayTeam", "homeTeam"}
 
 GAME_REPORT_LINK_KEYS = ["eventSummary", "faceoffSummary", "toiAway", "toiHome"]
 REPORT_STAT_KEYS = [
@@ -174,7 +183,16 @@ def get_score(game_data):
     return score
 
 
+@transaction.atomic
 def process_games(day, session):
+    """A failed required response must not publish a partially refreshed day."""
+    try:
+        return _process_games(day, session)
+    except CommandError as error:
+        raise CommandError("Gameday {}: {}".format(day["date"], error)) from error
+
+
+def _process_games(day, session):
     date_api = datetime_from_string(day["date"])
     gameday_obj = Gameday.objects.update_or_create(day=date_api)[0]
     games_finished_total = 0
@@ -346,8 +364,9 @@ def get_played_goalies(goalies):
 
 
 def get_schedule(date, session=None):
-    client = session or requests
-    return client.get(URL_SCHEDULE.format(date)).json()
+    return fetch_json(
+        URL_SCHEDULE.format(date), "schedule for {}".format(date), session, SCHEDULE_FIELDS
+    )
 
 
 def iterate_players(
@@ -504,8 +523,38 @@ def get_player(nhl_id):
 
 
 def get_game_data(game_id, url, session=None):
+    required = BOXSCORE_FIELDS if url == URL_BOXSCORE else ()
+    return fetch_json(url.format(game_id), "game {}".format(game_id), session, required)
+
+
+def fetch_json(url, context, session=None, required_fields=()):
+    """Bounded retries; an unavailable endpoint must never resemble empty stats."""
     client = session or requests
-    return client.get(url.format(game_id)).json()
+    for attempt in range(1, JSON_FETCH_ATTEMPTS + 1):
+        try:
+            response = client.get(url, timeout=JSON_FETCH_TIMEOUT)
+            response.raise_for_status()
+            payload = response.json()
+            if not isinstance(payload, dict):
+                raise ValueError("Expected a JSON object")
+            if not set(required_fields).issubset(payload):
+                raise ValueError(
+                    "Missing required fields: {}".format(
+                        ", ".join(sorted(set(required_fields) - set(payload)))
+                    )
+                )
+            return payload
+        except (requests.RequestException, ValueError) as error:
+            retryable = True
+            if isinstance(error, requests.HTTPError) and error.response is not None:
+                status = error.response.status_code
+                retryable = status in RETRYABLE_HTTP_STATUSES or status >= SERVER_ERROR_STATUS
+            if not retryable or attempt == JSON_FETCH_ATTEMPTS:
+                raise CommandError(
+                    "Failed {} at {} after {} attempt(s): {}".format(context, url, attempt, error)
+                ) from error
+            logger.warning("Retrying %s at %s after attempt %s: %s", context, url, attempt, error)
+            sleep(JSON_RETRY_DELAY)
 
 
 def get_game_report_links(game_id, session=None):
