@@ -17,10 +17,10 @@ hooks-run:
 	pre-commit run --all-files
 
 test:
-	pytest -c players/tests/pytest.ini players/tests
+	python -m pytest -c players/tests/pytest.ini players/tests
 
 test-cov:
-	pytest -c players/tests/pytest.ini --cov=players --cov-config=.coveragerc --cov-report=term-missing players/tests
+	python -m pytest -c players/tests/pytest.ini --cov=players --cov-config=.coveragerc --cov-report=term-missing players/tests
 
 test-ci:
-	pytest -c players/tests/pytest.ini --cov=players --cov-config=.coveragerc --cov-report=term-missing --cov-fail-under=35 players/tests
+	python -m pytest -c players/tests/pytest.ini --cov=players --cov-config=.coveragerc --cov-report=term-missing --cov-fail-under=35 players/tests

@@ -16,8 +16,8 @@ remaining test gaps, and the planned Python/Django upgrade sequence.
 From the project root:
 
 ```bash
-python3.7 -m venv .venv
-source .venv/bin/activate
+python3.7 -m venv venv
+source venv/bin/activate
 python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -131,6 +131,9 @@ of the season, and Favorites gamelog covers all stored seasons. See the
 
 ## Tests
 
+Use the active Python 3.7 environment and a PostgreSQL role dedicated to tests.
+See [test environment setup](docs/testing.md) before the first database test run.
+
 ```bash
 make test
 make test-cov
@@ -140,5 +143,5 @@ make test-ci
 Run live external API tests explicitly (for example in nightly jobs):
 
 ```bash
-pytest -c players/tests/pytest.ini -m external players/tests/integration
+python -m pytest -c players/tests/pytest.ini -m external players/tests/integration
 ```

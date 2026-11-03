@@ -39,12 +39,11 @@ following `f0d5729` (saved lists). Detailed contracts live in
 
 ## Evidence and limits
 
-- The latest isolated regression run passed **330 tests** against a disposable
-  PostgreSQL cluster with real migrations. The complete default suite then ran:
-  **330 passed, 2 failed, 12 external tests deselected**. Both failures are in
-  `unit/other/tests_requests_mock.py`: old mocks expect the 2019-20 season and
-  outdated URL formatting. Those are the next queue item. Coverage is not measured
-  by this run. Ruff checks passed for the isolation changes.
+- The latest complete default run passed **336 tests**, with **12 external tests
+  deselected**, against a disposable PostgreSQL cluster with real migrations.
+  The previously failing request mocks now freeze the season and compare semantic
+  query values, including pagination and timeout. Ruff checks passed; the current
+  installed venv also passed `pip check`. Coverage is not measured by this run.
 - The repaired split fetch was validated read-only against the live API: combined
   6 games / 117 saves, NJD 4 / 75, WPG 2 / 42. This was not a full loader run.
 - Favorites JavaScript had syntax and lightweight controller smoke checks;
@@ -53,8 +52,8 @@ following `f0d5729` (saved lists). Detailed contracts live in
 - The application's database was not modified by these validation runs. A complete
   successful local update after the latest fix has not been reported in the chat.
 - **Collection and database isolation are repaired.** The original collection
-  repair selected 320 default tests; after replacing and expanding the legacy
-  tests, the default suite selects 332 tests and deselects 12 external tests.
+  repair selected 320 default tests; after replacing and expanding legacy/request
+  tests, the default suite selects 336 tests and deselects 12 external tests.
   Removed-command imports and obsolete helper references are gone. HTTP requests
   and database connections were explicitly blocked for the earlier collection
   checks; normal execution now uses pytest-django's migrated test database.
@@ -83,16 +82,17 @@ Suggested focused commits, in order:
    now assert their actual 403 contract; anonymous player actions assert no writes.
    Replaced session-wide utility database dumps with function-scoped records and
    fixed the measurements test to check both height and weight.
-3. **Repair stale request mocks.** Inject/freeze the season and mock API boundaries
-   rather than relying on the old hardcoded 2019-20 season or making accidental
-   network calls. Keep the default suite offline.
-4. **Make the environment and test workflow repeatable.** Document one venv naming
-   convention (`venv` versus `.venv` currently differs across docs), test settings,
-   PostgreSQL setup and required environment variables. Verify a clean environment
-   from declared dependencies; an already populated venv is not proof that the
-   requirements can recreate it. Use `python -m pytest` through the active
-   interpreter. Preserve real migrations: the legacy ImageField model/schema
-   mismatch makes `--nomigrations` an unsuitable workaround.
+3. **Completed: repair stale request mocks.** Tests freeze two explicit seasons,
+   isolate mutable request parameters and assert semantic query values rather than
+   URL whitespace/order. Success, pagination, timeout configuration and the HTTP
+   401 response contract remain checked without live requests.
+4. **Documented; fresh-install verification remains.** The [test setup guide](testing.md)
+   standardizes `venv`, describes the required application `.env` and a dedicated
+   PostgreSQL role/database, and scopes test credentials to a subshell. Make test
+   targets now use `python -m pytest` through the activated interpreter. Real
+   migrations remain required. Verify a fresh installation from declared
+   dependencies separately; the populated venv and its passing `pip check` do not
+   prove that every pin can be reinstalled.
 5. **Measure the baseline and run the gate.** Run `make test`, `make test-cov`, and
    `make test-ci`; record test counts, line/branch coverage and gate outcome. If
    below 35%, cover meaningful gaps without weakening the agreed threshold.
@@ -224,11 +224,12 @@ with relational season rows; neither is required for the current fix or upgrade.
 
 1. Completed: fix test collection without importing removed commands.
 2. Completed: replace database bypass and existing-record tests with isolated fixtures.
-3. Repair season-sensitive mocks and document a reproducible test environment.
+3. Completed: repair season-sensitive mocks and document the test environment.
 4. Record full-suite coverage and wire the verified suite into CI.
 5. Harden game JSON fetching with regression tests for the reported failure.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
-The next implementation task is item 3: repair the two stale request mocks and
-document the reproducible test environment before measuring full-suite coverage.
+The next implementation task is item 4: measure full-suite coverage and the 35%
+gate, record the baseline, then wire the verified workflow into CI. A fresh install
+from requirements still needs verification before claiming dependency reproducibility.
