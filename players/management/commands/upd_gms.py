@@ -73,6 +73,7 @@ GAME_STATES = {
     "finished": "OFF",
 }
 GAME_LIVE_SUFFIX = f" ({GAME_STATES['live'].capitalize()})"
+FINAL_GAME_STATES = {GAME_STATES["hard_final"], GAME_STATES["finished"]}
 
 SIDES = {
     "away": "away",
@@ -231,7 +232,9 @@ def _process_games(day, session):
                         rosters_api, team_objects, gameday_obj, report_player_stats
                     )
 
-                    if rosters_equal(rosters_api, rosters_database):
+                    if game_data["gameState"] in FINAL_GAME_STATES and rosters_equal(
+                        rosters_api, rosters_database
+                    ):
                         games_finished_total += 1
                         game_obj.game_finished = True
                         game_obj.save(update_fields=["game_finished"])
@@ -246,13 +249,11 @@ def _process_games(day, session):
     games_db = len(gameday_obj.games.all())
     games_api = len(day["games"])
 
-    if (games_api > 0) and (games_db == games_api):
-        gameday_obj.all_games_uploaded = True
-        gameday_obj.save(update_fields=["all_games_uploaded"])
-
-    if (games_api > 0) and (games_finished_total == games_api):
-        gameday_obj.all_games_finished = True
-        gameday_obj.save(update_fields=["all_games_finished"])
+    # A successful refresh can also discover that a previously complete day is
+    # incomplete. Flags must describe this response, not remain sticky once true.
+    gameday_obj.all_games_uploaded = (games_api > 0) and (games_db == games_api)
+    gameday_obj.all_games_finished = (games_api > 0) and (games_finished_total == games_api)
+    gameday_obj.save(update_fields=["all_games_uploaded", "all_games_finished"])
 
 
 def get_rosters_api(game_data):

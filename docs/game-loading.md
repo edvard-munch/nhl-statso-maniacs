@@ -40,9 +40,34 @@ python manage.py upd_gms
 ```
 
 Existing command orchestration may revisit earlier days. Regression tests verify
-that repeating the tested scheduled-day load preserves game identity and does not
-duplicate games or sides. Broader roster/gamelog orchestration contracts remain
-follow-up work; a mocked passing test does not establish live endpoint availability.
+scheduled and finished-game replays, updates to the same gamelog date, preservation
+of older history and saved memberships, and rollback of player gamelogs when a later
+game fails. Mocked schedule tests exercise a fresh database, existing pending days,
+and live-to-final updates. Passing mocked tests do not establish live availability.
+
+## Completion and roster contracts
+
+A game is finished only when its state is `FINAL` or `OFF` and its played roster
+matches stored players. `FUT`, `PRE`, `LIVE`, `CRIT` and `OVER` remain unfinished.
+A matching live roster is not a reason to stop refreshing that game. Each successful
+gameday refresh recomputes both completion flags, including clearing an earlier
+finished flag when a roster is now missing/incomplete. The per-day transaction
+preserves the previous state if the refresh itself fails. Existing completion
+flags are corrected when those days are refreshed; this change does not scan or
+backfill every stored day automatically.
+
+The new database contracts check all six away/home roster groups and saved game
+statistics. Existing HTML report fixtures are reused through real parsers, with
+mocked right-rail/play-by-play responses. Boxscore zero/nonzero values take
+precedence over enrichment; missing fields use report values and existing defaults.
+Gamelog team/opponent identity comes from the game rather than the player's current
+team foreign key. Bench goalies with zero TOI are excluded; shared shutouts are not
+awarded as individual shutouts by the existing rule.
+
+Missing database players leave the game/day unfinished and produce a warning;
+loading the missing player and replaying can complete that roster. Follow-up
+contracts should still cover opposing players with the same sweater number,
+removed participants/gamelog cleanup, and malformed roster groups.
 
 ## Regression checks
 
@@ -56,7 +81,8 @@ Using the [isolated PostgreSQL test setup](testing.md), also run:
 
 ```bash
 python -m pytest -c players/tests/pytest.ini \
-  players/tests/integration/tests_upd_gms_failures_db.py
+  players/tests/integration/tests_upd_gms_failures_db.py \
+  players/tests/integration/tests_upd_gms_rosters_db.py
 ```
 
 Request tests cover recovered and exhausted retries, fail-fast client errors,
@@ -64,3 +90,7 @@ required JSON shape, session/timeout use and date/game/endpoint diagnostics.
 Database tests exercise failure on a later boxscore, existing-day rollback,
 right-rail/play-by-play failures, preservation of earlier days, and repeat loads.
 All HTTP inputs are mocked; real migrations and an isolated test database are used.
+
+Latest full hook validation: **397 passed, 12 external tests deselected, 82.53%
+combined coverage**. The roster/persistence module contributes 18 regression
+cases; it initially exposed live-game and stale-day completion bugs, both repaired.

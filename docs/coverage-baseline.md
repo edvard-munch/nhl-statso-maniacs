@@ -82,3 +82,12 @@ push-stage coverage hook passes **379 tests**, with 12 external tests deselected
 and **76.88% combined coverage**. `upd_gms` rises to 65% combined coverage. The
 original baseline table above is retained as a historical checkpoint. Remaining
 game roster/gamelog persistence and command orchestration are still priorities.
+
+## Follow-up: roster/gamelog persistence
+
+The next database-contract batch passes **397 tests**, with 12 external checks
+deselected and **82.53% combined coverage**; `upd_gms` reaches 93%. It covers real
+roster relations, enrichment precedence, historical gamelogs, saved memberships,
+missing/bench/shared goalies, command replay and rollback after player writes.
+The tests also exposed and repaired premature live-game completion and stale
+finished-day flags. The threshold remains unchanged at 35%.
