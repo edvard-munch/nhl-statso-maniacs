@@ -150,14 +150,106 @@ def test_historical_team_registry_resolves_missing_team_ids(season_report_data, 
     assert {row["teamAbbr"] for row in rows} == {"TOT", "COL", "BUF"}
 
 
-def test_split_that_is_not_team_scoped_is_rejected(season_report_data, requests_mock):
+@pytest.mark.parametrize("labels", ["BUF,COL", "COL, BUF"])
+def test_scoped_counts_with_season_wide_team_labels_are_accepted(
+    season_report_data, requests_mock, labels
+):
     case = season_report_data["traded_skater"]
-    case["team_reports"]["BUF"]["summary"][0]["teamAbbrevs"] = "BUF,COL"
+    for reports in case["team_reports"].values():
+        for rows in reports.values():
+            for row in rows:
+                row["teamAbbrevs"] = labels
     register_case(requests_mock, case)
-    with pytest.raises(CommandError, match="unscoped"):
+    rows = loading.fetch_player_rows(
+        case["player_id"], "skater", {"BUF": 7, "COL": 16}, season="20262027"
+    )
+    assert [(row["teamAbbr"], row["gamesPlayed"], row["goals"]) for row in rows] == [
+        ("TOT", 10, 4),
+        ("BUF", 6, 3),
+        ("COL", 4, 1),
+    ]
+    assert all(
+        "teamid=" in request.qs["cayenneexp"][0] for request in requests_mock.request_history[4:]
+    )
+
+
+@pytest.mark.parametrize("labels", ["COL", "BUF,NJD", "", None])
+def test_split_with_missing_or_unrelated_team_identity_is_rejected(
+    season_report_data, requests_mock, labels
+):
+    case = season_report_data["traded_skater"]
+    case["team_reports"]["BUF"]["summary"][0]["teamAbbrevs"] = labels
+    register_case(requests_mock, case)
+    with pytest.raises(CommandError, match="Missing or invalid BUF split"):
         loading.fetch_player_rows(
             case["player_id"], "skater", {"BUF": 7, "COL": 16}, season="20262027"
         )
+
+
+def test_ignored_team_filter_is_rejected_by_count_reconciliation(season_report_data, requests_mock):
+    case = season_report_data["traded_skater"]
+    for team in case["team_reports"]:
+        case["team_reports"][team] = deepcopy(case["reports"])
+    register_case(requests_mock, case)
+    with pytest.raises(CommandError, match="Team splits disagree with combined gamesPlayed"):
+        loading.fetch_player_rows(
+            case["player_id"], "skater", {"BUF": 7, "COL": 16}, season="20262027"
+        )
+
+
+def test_goalie_team_labels_can_stay_combined_while_rates_are_scoped(requests_mock):
+    combined = dict(
+        playerId=8482076,
+        seasonId=20262027,
+        teamAbbrevs="NJD,WPG",
+        gamesPlayed=6,
+        wins=2,
+        losses=3,
+        otLosses=0,
+        saves=117,
+        shotsAgainst=132,
+        goalsAgainst=15,
+        shutouts=0,
+        goalsAgainstAverage=2.85956,
+        savePct=0.88636,
+    )
+    njd = dict(
+        combined,
+        gamesPlayed=4,
+        wins=2,
+        losses=2,
+        saves=75,
+        shotsAgainst=86,
+        goalsAgainst=11,
+        goalsAgainstAverage=2.77699,
+        savePct=0.87209,
+    )
+    wpg = dict(
+        combined,
+        gamesPlayed=2,
+        wins=0,
+        losses=1,
+        saves=42,
+        shotsAgainst=46,
+        goalsAgainst=4,
+        goalsAgainstAverage=3.11418,
+        savePct=0.91304,
+    )
+
+    def response(request, context):
+        expression = request.qs["cayenneexp"][0]
+        row = njd if "teamid=1" in expression else wpg if "teamid=52" in expression else combined
+        return {"data": [row], "total": 1}
+
+    requests_mock.get(loading.REPORT_URL.format("goalie", "summary"), json=response)
+    rows = loading.fetch_player_rows(8482076, "goalie", {"NJD": 1, "WPG": 52}, season="20262027")
+    assert [(row["teamAbbr"], row["gamesPlayed"], row["saves"]) for row in rows] == [
+        ("TOT", 6, 117),
+        ("NJD", 4, 75),
+        ("WPG", 2, 42),
+    ]
+    assert rows[1]["savePctg"] == 0.87209
+    assert rows[2]["goalsAgainstAvg"] == 3.11418
 
 
 def test_disagreeing_reports_are_rejected(season_report_data):

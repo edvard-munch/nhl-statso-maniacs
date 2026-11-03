@@ -135,6 +135,11 @@ def test_traded_player_persists_combined_and_distinct_team_stats(
     old_skater, mock_reports, season_report_data
 ):
     mock_reports["skater"] = season_report_data["traded_skater"]
+    # The live API retains combined team labels in numerically scoped reports.
+    for reports in mock_reports["skater"]["team_reports"].values():
+        for rows in reports.values():
+            for row in rows:
+                row["teamAbbrevs"] = "BUF,COL"
 
     upd_pls.Command().handle()
 

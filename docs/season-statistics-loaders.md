@@ -40,6 +40,11 @@ combined report becomes a `TOT` row and each team's contributions are requested
 separately using `teamId` in `cayenneExp`, alongside player and season filters.
 Whole-season totals are never copied into individual team rows. This also
 preserves supplied overall goalie rates without guessing GAA from game counts.
+The API may retain a combined `teamAbbrevs` label such as `NJD,WPG` even in
+team-filtered responses. Saved split identities therefore use the requested
+team, while validating that the response includes that team and no unrelated
+teams. Additive summary counts must still reconcile with the combined row;
+an ignored team filter returning whole-season counts is rejected.
 The existing career tables will display the new `TOT` row as well as team splits.
 
 Team IDs come from stored team metadata. Historical teams missing from the local

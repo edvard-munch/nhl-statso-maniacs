@@ -236,9 +236,15 @@ def assemble_player_rows(reports, player_type, player_id, team_ids, session=None
                     raise CommandError("Unknown historical team {}".format(team))
                 scoped = fetch_reports(player_type, session, season, player_id, team_ids[team])
                 scoped_summary = _report_row(scoped, SUMMARY, player_id, season)
-                if not scoped_summary or scoped_summary.get("teamAbbrevs") != team:
+                # NHL reports can retain the full season's teamAbbrevs even
+                # when teamId correctly scopes the numeric statistics. Use the
+                # requested team for the saved row; reconcile counts below.
+                scoped_teams = set(_teams(scoped_summary))
+                if team not in scoped_teams or not scoped_teams.issubset(teams):
                     raise CommandError(
-                        "Missing or unscoped {} split for player {}".format(team, player_id)
+                        "Missing or invalid {} split for player {}, season {}".format(
+                            team, player_id, season
+                        )
                     )
                 result.append(_assemble_row(scoped, player_type, player_id, season, team))
             combined = result[split_start]
