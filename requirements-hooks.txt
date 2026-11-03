@@ -1,0 +1,2 @@
+# Last pre-commit series compatible with the project's Python 3.7 baseline.
+pre-commit==2.21.0

@@ -18,7 +18,7 @@ From the project root:
 ```bash
 python3.7 -m venv venv
 source venv/bin/activate
-python -m pip install --upgrade pip
+python -m pip install -r requirements-bootstrap.txt
 pip install -r requirements.txt
 ```
 
@@ -34,15 +34,21 @@ make lint
 make check
 ```
 
-Optional pre-commit hooks:
+Local commit/push hooks run formatting/lint and the offline tests before a
+commit, then lint and the coverage gate before a push. One-time setup per clone:
 
 ```bash
-pip install pre-commit
-pre-commit install
-pre-commit run --all-files
+python -m pip install -r requirements-hooks.txt
+cp test-database.example.json test-database.local.json
+# Edit test-database.local.json with your dedicated test-role credentials.
+make hooks
 ```
 
-Pre-commit uses Ruff's official hook configuration, so it does not depend on a GUI app resolving your local `python` executable.
+Create the test role/database and validate the setup as described in
+[local hook setup](docs/testing.md#local-commit-and-push-hooks). The local JSON file
+is ignored by Git; hooks do not fall back to application database credentials.
+GitHub CI independently checks pushed code. Branch protection is a separate
+repository setting.
 
 
 ## Environment Variables
@@ -139,6 +145,10 @@ make test
 make test-cov
 make test-ci
 ```
+
+The measured baseline is **74.65% combined line/branch coverage**; the initial
+35% gate passes with 336 offline tests. The GitHub Actions workflow runs that same
+gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 
 Run live external API tests explicitly (for example in nightly jobs):
 

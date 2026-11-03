@@ -1,0 +1,7 @@
+{
+  "name": "nhl_test_base",
+  "user": "nhl_test_runner",
+  "password": "replace-with-your-test-role-password",
+  "host": "localhost",
+  "port": "5432"
+}

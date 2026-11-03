@@ -1,4 +1,4 @@
-.PHONY: format lint check hooks hooks-run test test-cov test-ci
+.PHONY: format lint check hooks hooks-run hooks-run-push test test-cov test-ci
 
 format:
 	python -m ruff format .
@@ -11,10 +11,13 @@ check:
 	python -m ruff format --check .
 
 hooks:
-	pre-commit install
+	python -m pre_commit install --hook-type pre-commit --hook-type pre-push
 
 hooks-run:
-	pre-commit run --all-files
+	python -m pre_commit run --all-files --hook-stage commit
+
+hooks-run-push:
+	python -m pre_commit run --all-files --hook-stage push
 
 test:
 	python -m pytest -c players/tests/pytest.ini players/tests

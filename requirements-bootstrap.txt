@@ -1,0 +1,5 @@
+# Packaging tools verified for Python 3.7 and the legacy requirements.
+# Celery 4.3's nonstandard dependency metadata is rejected by pip >=24.1.
+pip==24.0
+setuptools==67.8.0
+wheel==0.42.0

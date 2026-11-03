@@ -22,14 +22,16 @@ For an environment that does not yet exist:
 ```bash
 python3.7 -m venv venv
 source venv/bin/activate
+python -m pip install -r requirements-bootstrap.txt
 python -m pip install -r requirements.txt
 python -m pip check
 ```
 
-The requirements remain the existing pinned legacy set. The current installed
-venv passed `pip check`; a clean install of every pin has not yet been verified.
-Record installation failures rather than upgrading unrelated dependencies to
-make a test run work. Clean-environment verification remains a roadmap task.
+The requirements remain the existing pinned legacy set. A fresh Python 3.7.17
+venv installed every requirement and passed `pip check`, Ruff and all 336 offline
+tests with the 35% coverage gate. The bootstrap file pins packaging tools;
+Celery 4.3's old metadata needs pip before 24.1. This validates the current install
+procedure, not a full transitive lockfile; uv remains separate work.
 
 Configure the project's `.env` as described in the README. Django loads the normal
 application settings, which require database, allowed-host and email values even
@@ -120,9 +122,101 @@ Actual live checks require dropping `--collect-only`. Some still describe retire
 API contracts and need the deferred maintenance in the roadmap; collecting them
 does not establish that they pass against NHL today.
 
+## Local commit and push hooks
+
+Install the pinned Python 3.7-compatible hook tool in the project venv:
+
+```bash
+source venv/bin/activate
+python -m pip install -r requirements-hooks.txt
+```
+
+Use the dedicated PostgreSQL role/database created above. Copy the example once:
+
+```bash
+cp test-database.example.json test-database.local.json
+```
+
+Edit `test-database.local.json` to use that role's password. All values, including
+the port, are JSON strings. The file is ignored by Git and is the only credential
+source for hook tests. The default database name `nhl_test_base` produces the
+migrated test database `test_nhl_test_base`. The role must be able to create/drop
+that test database. A name beginning with `nhl_test_` is required for the base
+configuration; do not use application data or credentials.
+
+The runner also accepts an alternate config path through
+`NHL_TEST_DATABASE_CONFIG`, useful for disposable validation environments.
+Missing/invalid config stops the hook; it does not use `POSTGRES_*` from the
+application shell. Host and port support separate local PostgreSQL installations.
+The runner uses normal application settings with explicit test database overrides,
+local-only email and test-only Django environment values. Inherited pytest flags
+are cleared so `--lf`, live-test selection or migration bypasses cannot silently
+narrow the intended run.
+
+Check the setup before installing hooks:
+
+```bash
+python scripts/run_hook_tests.py
+python scripts/run_hook_tests.py --coverage
+make hooks
+```
+
+`make hooks` installs both `pre-commit` and `pre-push` hooks. Installation is local
+to each clone; committing the config does not install hooks on other machines.
+
+| Event | Checks |
+| --- | --- |
+| Commit | Ruff formatting/lint on relevant changed files, followed by the complete offline test suite. |
+| Push | Ruff lint on relevant changed files, followed by the complete offline suite and the 35% coverage gate. |
+| GitHub push/PR | Independent clean-environment lint, JavaScript checks and coverage gate using disposable PostgreSQL. |
+
+The test hooks always run, including for documentation-only commits, and receive
+no changed-file arguments: a changed-file list never substitutes for the full
+suite. Failures block the commit/push. Ruff may reformat files during a commit;
+review and stage those changes before retrying. Checks are serial within each
+hook invocation. Optional live API tests remain excluded.
+
+To run hooks manually:
+
+```bash
+make hooks-run
+make hooks-run-push
+```
+
+These all-file commands also check existing files outside the current change;
+`hooks-run` can format them. To run only a test hook during troubleshooting:
+
+```bash
+python -m pre_commit run offline-tests --all-files --hook-stage commit
+python -m pre_commit run offline-coverage --all-files --hook-stage push
+```
+
+The `commit`/`push` stage names match the pinned pre-commit 2.21 tool; upgrading
+that tool belongs with the Python transition. Pre-commit supplies a managed Python to launch the standard-library runner,
+so a GUI does not need `python` on PATH. The runner uses the repository's
+`venv`/`.venv` before any active environment; the managed hook environment does
+not need Django installed. Git still needs access to the local PostgreSQL server
+and config file. The first run initializes the managed hook environment.
+
+Hooks can be bypassed locally; GitHub CI is the independent check of pushed code.
+A push can contain several commits and CI checks its latest snapshot. Required
+status checks/branch protection must be configured separately to block merging
+when CI fails; this change does not modify repository settings.
+
 ## Validation status
 
-Update the [roadmap](modernization-roadmap.md) with the latest full-suite result.
-A normal passing run does not measure coverage. Run both coverage targets before
-claiming the 35% gate passes; `.coverage` artifacts are generated and ignored by
-Git. CI and a verified fresh installation remain separate follow-up work.
+The [measured baseline](coverage-baseline.md) is 74.65% combined line/branch
+coverage, and both coverage targets pass the unchanged 35% gate with 336 tests.
+The same gate passes in a fresh Python 3.7.17 environment. After adding hook-runner
+regression tests, both hook stages pass all 349 offline tests, with the same 74.65%
+coverage and 12 external checks deselected. `.coverage` and `coverage.xml` are
+generated and ignored by Git. Both stages also passed with no `python` command on PATH. Hook validation used a disposable PostgreSQL cluster
+and temporary credential file; no application database or real commit/push was used.
+
+The workflow in `.github/workflows/tests.yml` runs on pushes, pull requests and
+manual dispatch. It installs the bootstrap tools and requirements on Python
+3.7.17 / Ubuntu 22.04, checks dependencies and lint/JavaScript syntax, then runs
+`make test-ci` with a PostgreSQL 16 service and real test migrations. Its disposable
+database credentials come from the workflow, without application secrets or `.env`.
+It uploads the XML coverage report, including when tests fail if data was produced.
+The first GitHub-hosted execution is pending until this workflow is pushed.

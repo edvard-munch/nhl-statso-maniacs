@@ -9,10 +9,10 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: stabilize the complete offline test suite and measure coverage.** The
-season-statistics work is complete enough to move on. Add tests for the remaining
-high-risk behavior after collection and database isolation are reliable. Do not
-wait for 100% coverage before starting the upgrade.
+**Next: harden game JSON fetching and test its failure paths.** The complete
+suite now passes, the coverage baseline is measured, and CI is configured. Add
+remaining high-risk behavior tests before the staged upgrade; do not wait for
+100% coverage. Check the first GitHub Actions result after pushing the workflow.
 
 ## What is already complete
 
@@ -43,7 +43,13 @@ following `f0d5729` (saved lists). Detailed contracts live in
   deselected**, against a disposable PostgreSQL cluster with real migrations.
   The previously failing request mocks now freeze the season and compare semantic
   query values, including pagination and timeout. Ruff checks passed; the current
-  installed venv also passed `pip check`. Coverage is not measured by this run.
+  installed venv also passed `pip check`. Both coverage Make targets now pass;
+  the combined result is **74.65%** (76.95% lines, 68.64% branches).
+- Local hook configuration now runs the full offline suite before commits and
+  the coverage gate before pushes. Both stages passed through pre-commit 2.21:
+  **349 tests passed, 12 external tests deselected, 74.65% coverage**. Hook runner
+  tests cover missing/invalid credentials and flag isolation. Hooks use an ignored
+  dedicated test-database config; installing them is a per-clone setup step.
 - The repaired split fetch was validated read-only against the live API: combined
   6 games / 117 saves, NJD 4 / 75, WPG 2 / 42. This was not a full loader run.
 - Favorites JavaScript had syntax and lightweight controller smoke checks;
@@ -62,8 +68,14 @@ following `f0d5729` (saved lists). Detailed contracts live in
   Utility tests no longer load database dumps at session scope. The legacy
   `tests_readonly_db` folder name remains for compatibility; its database tests
   are marked integration tests.
-- The complete coverage baseline is **not established**. The 35% gate was an
-  agreed starting threshold, not a measured result or a reason to exclude code.
+- The [coverage baseline](coverage-baseline.md) is established: 74.65% combined
+  coverage passes the unchanged 35% initial gate. A fresh Python 3.7.17 venv
+  installed the requirements with pinned bootstrap tools, passed `pip check` and
+  all tests, and reproduced that gate result. This is a verified install procedure,
+  not a transitive lockfile.
+- CI now runs the offline gate on Python 3.7.17 / Ubuntu 22.04 with a PostgreSQL 16
+  service, static checks and XML coverage upload. actionlint validation passed;
+  the first GitHub-hosted run is pending until the workflow is pushed.
 - The current Make targets select `players/tests`; tests added under `users`
   must be included deliberately in the normal run and CI.
 
@@ -86,19 +98,19 @@ Suggested focused commits, in order:
    isolate mutable request parameters and assert semantic query values rather than
    URL whitespace/order. Success, pagination, timeout configuration and the HTTP
    401 response contract remain checked without live requests.
-4. **Documented; fresh-install verification remains.** The [test setup guide](testing.md)
-   standardizes `venv`, describes the required application `.env` and a dedicated
-   PostgreSQL role/database, and scopes test credentials to a subshell. Make test
-   targets now use `python -m pytest` through the activated interpreter. Real
-   migrations remain required. Verify a fresh installation from declared
-   dependencies separately; the populated venv and its passing `pip check` do not
-   prove that every pin can be reinstalled.
-5. **Measure the baseline and run the gate.** Run `make test`, `make test-cov`, and
-   `make test-ci`; record test counts, line/branch coverage and gate outcome. If
-   below 35%, cover meaningful gaps without weakening the agreed threshold.
-6. **Add CI for the same offline suite.** Supply an isolated PostgreSQL service,
-   migration setup, normal tests, the coverage gate and relevant static checks.
-   Optional external checks belong in a separate explicit job.
+4. **Completed: document and validate the environment.** The [test setup guide](testing.md)
+   standardizes `venv` and dedicated test credentials. Make targets use the active
+   Python. The pinned bootstrap tools and full requirements were installed in a
+   fresh Python 3.7.17 venv; dependency checks and the full coverage gate passed.
+   Keep real migrations; uv/lockfile work remains separate.
+5. **Completed: measure the baseline and run the gate.** Both coverage Make
+   targets pass: 336 tests, 74.65% combined coverage, unchanged 35% threshold.
+   See [measured counts and gaps](coverage-baseline.md).
+6. **Implemented: CI for the same offline suite.** A PostgreSQL service and real
+   test migrations support `make test-ci`; lint, JavaScript syntax and XML upload
+   are included. Workflow validation and a local fresh-environment reproduction
+   passed. Confirm the first hosted run after push. Optional live tests remain out
+   of the default job.
 
 Done when a fresh test database and documented environment can run the default
 suite repeatedly, with no application-data dependency, and coverage is measured.
@@ -225,11 +237,12 @@ with relational season rows; neither is required for the current fix or upgrade.
 1. Completed: fix test collection without importing removed commands.
 2. Completed: replace database bypass and existing-record tests with isolated fixtures.
 3. Completed: repair season-sensitive mocks and document the test environment.
-4. Record full-suite coverage and wire the verified suite into CI.
+4. Completed locally; hosted run pending: record coverage and add CI. Local commit/
+   push test hooks are implemented; follow the per-clone setup in the test guide.
 5. Harden game JSON fetching with regression tests for the reported failure.
 6. Add remaining high-value loader/user-flow tests, then begin the staged upgrade.
 
 Use small focused commits with messages explaining both what changed and why.
-The next implementation task is item 4: measure full-suite coverage and the 35%
-gate, record the baseline, then wire the verified workflow into CI. A fresh install
-from requirements still needs verification before claiming dependency reproducibility.
+The next implementation task is item 5: reproduce and handle invalid/empty game
+API responses, keeping game context, bounded retries and safe reruns. Confirm the
+hosted CI result when this workflow is pushed.

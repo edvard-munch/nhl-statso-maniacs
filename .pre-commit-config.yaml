@@ -1,6 +1,29 @@
+minimum_pre_commit_version: 2.21.0
+default_install_hook_types: [pre-commit, pre-push]
+
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.10
     hooks:
       - id: ruff-format
+        stages: [commit]
       - id: ruff-check
+        stages: [commit, push]
+  - repo: local
+    hooks:
+      - id: offline-tests
+        name: Full offline regression tests
+        entry: python scripts/run_hook_tests.py
+        language: python
+        pass_filenames: false
+        always_run: true
+        require_serial: true
+        stages: [commit]
+      - id: offline-coverage
+        name: Full offline tests and coverage gate
+        entry: python scripts/run_hook_tests.py --coverage
+        language: python
+        pass_filenames: false
+        always_run: true
+        require_serial: true
+        stages: [push]

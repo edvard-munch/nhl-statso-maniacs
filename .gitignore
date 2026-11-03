@@ -3,8 +3,12 @@ venv/
 # Generated coverage data (including parallel-run files)
 .coverage
 .coverage.*
+coverage.xml
 
 .env
+
+# Dedicated local hook test credentials
+test-database.local.json
 
 *.pyc
 
