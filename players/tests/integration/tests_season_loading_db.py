@@ -5,6 +5,7 @@ from copy import deepcopy
 import pytest
 from django.contrib.auth.models import User
 from django.core.management.base import CommandError
+from django.core.management import call_command
 from django.db import IntegrityError
 
 from players import season_loading as loading
@@ -14,6 +15,69 @@ from players.season_stats import read_season_stats
 
 
 pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+
+
+def stored_players():
+    return {
+        model.__name__: list(model.objects.order_by("nhl_id").values())
+        for model in (Skater, Goalie)
+    }
+
+
+@pytest.fixture
+def paged_reports(monkeypatch, requests_mock, season_report_data):
+    """Reuse the report fixtures while exercising real HTTP pagination and assembly."""
+    selected = {
+        "skater": deepcopy(season_report_data["current_skater"]),
+        "goalie": deepcopy(season_report_data["current_goalie"]),
+    }
+    for rows in [selected["skater"]["bios"], *selected["skater"]["reports"].values()]:
+        second = deepcopy(rows[0])
+        second["playerId"] = 9000002
+        rows.append(second)
+    selected["skater"]["bios"][1].update(
+        skaterFullName="Second Synthetic Skater",
+        lastName="Second",
+        draftYear=2020,
+        draftRound=4,
+        draftOverall=100,
+    )
+    selected["skater"]["reports"]["summary"][1].update(goals=5, points=8)
+    state = {"selected": selected, "observed": [], "failure": None}
+    monkeypatch.setattr(loading, "REPORT_LIMIT", 1)
+    monkeypatch.setattr(upd_pls, "pic_missing", lambda *args: False)
+    requests_mock.get(upd_pls.URL_SCHEDULE_CALENDAR_NOW, json={"teams": [{"seasonId": 20262027}]})
+
+    def response(request, context, player_type, report):
+        state["observed"].append(stored_players())
+        assert "seasonid=20262027" in request.qs["cayenneexp"][0]
+        assert "gametypeid=2" in request.qs["cayenneexp"][0]
+        assert request.timeout == loading.REPORT_TIMEOUT
+        case = selected[player_type]
+        rows = case["bios"] if report == loading.BIOS else case["reports"][report]
+        start = int(request.qs["start"][0])
+        size = int(request.qs["limit"][0])
+        if player_type == "skater" and report == loading.BIOS and start == 1:
+            if state["failure"] == "http":
+                context.status_code = 503
+                return {"error": "synthetic unavailable page"}
+            if state["failure"] == "shape":
+                return {"data": None, "total": len(rows)}
+            if state["failure"] == "truncated":
+                return {"data": [], "total": len(rows)}
+            if state["failure"] == "overflow":
+                return {"data": deepcopy(rows), "total": len(rows)}
+        return {"data": deepcopy(rows[start : start + size]), "total": len(rows)}
+
+    for player_type in (loading.GOALIE, loading.SKATER):
+        for report in (loading.BIOS, *loading.REPORTS[player_type]):
+            requests_mock.get(
+                loading.REPORT_URL.format(player_type, report),
+                json=lambda request, context, player_type=player_type, report=report: response(
+                    request, context, player_type, report
+                ),
+            )
+    return state
 
 
 @pytest.fixture
@@ -270,3 +334,121 @@ def test_full_refresh_uses_team_scoped_reports_and_preserves_unreturned_history(
         old_skater.sbs_stats, "2026-27", player_type="skater", team_abbr="COL"
     )
     assert colorado.totals["hits"] == 8
+
+
+def test_paginated_command_publishes_both_player_types_and_replays_without_duplicates(
+    old_skater, paged_reports, requests_mock
+):
+    before = stored_players()
+    history = deepcopy(old_skater.sbs_stats)
+
+    call_command("upd_pls")
+
+    assert paged_reports["observed"]
+    assert all(snapshot == before for snapshot in paged_reports["observed"])
+    old_skater.refresh_from_db()
+    assert old_skater.sbs_stats[:1] == history
+    assert old_skater.stats_season_id == "20262027"
+    assert old_skater.goals == 2
+    second = Skater.objects.get(nhl_id=9000002)
+    assert (second.name, second.games, second.goals, second.points) == (
+        "Second Synthetic Skater",
+        10,
+        5,
+        8,
+    )
+    assert (second.draft_year, second.draft_round, second.draft_number) == (2020, 4, 100)
+    goalie = Goalie.objects.get(nhl_id=9000001)
+    assert (goalie.games, goalie.wins, goalie.saves, goalie.position_abbr) == (4, 2, 90, "G")
+    assert goalie.stats_season_id == "20262027"
+    for report in (loading.BIOS, *loading.REPORTS[loading.SKATER]):
+        pages = [
+            item.qs["start"]
+            for item in requests_mock.request_history
+            if item.path == "/stats/rest/en/skater/" + report
+        ]
+        assert pages == [["0"], ["1"]]
+    published = stored_players()
+    paged_reports["observed"].clear()
+
+    call_command("upd_pls")
+
+    assert stored_players() == published
+    assert all(snapshot == published for snapshot in paged_reports["observed"])
+
+
+@pytest.mark.parametrize(
+    "invalid, message",
+    [
+        ("duplicate_bio", "Bios report does not cover summary players uniquely"),
+        ("missing_bio", "Bios report does not cover summary players uniquely"),
+        ("bio_games", "Bios and summary disagree on gamesPlayed"),
+        ("duplicate_summary", "Ambiguous summary rows"),
+        ("duplicate_enrichment", "Ambiguous realtime rows"),
+    ],
+)
+def test_paginated_validation_failure_does_not_publish_staged_goalies_or_skaters(
+    old_skater, paged_reports, invalid, message
+):
+    case = paged_reports["selected"]["skater"]
+    if invalid == "duplicate_bio":
+        case["bios"].append(deepcopy(case["bios"][-1]))
+    elif invalid == "missing_bio":
+        case["bios"].pop()
+    elif invalid == "bio_games":
+        case["bios"][-1]["gamesPlayed"] += 1
+    else:
+        report = loading.SUMMARY if invalid == "duplicate_summary" else loading.REALTIME
+        case["reports"][report].append(deepcopy(case["reports"][report][-1]))
+    before = stored_players()
+
+    with pytest.raises(CommandError, match=message):
+        call_command("upd_pls")
+
+    assert stored_players() == before
+    assert paged_reports["observed"]
+    assert all(snapshot == before for snapshot in paged_reports["observed"])
+
+
+@pytest.mark.parametrize("failure", ["http", "shape", "truncated", "overflow"])
+def test_bad_later_bios_page_never_publishes_a_partial_roster(
+    old_skater, paged_reports, requests_mock, failure
+):
+    paged_reports["failure"] = failure
+    before = stored_players()
+    message = {
+        "http": "Failed skater bios report at start=1",
+        "shape": "Failed skater bios report at start=1",
+        "truncated": "pagination ended before",
+        "overflow": "more rows than its declared total",
+    }[failure]
+
+    with pytest.raises(CommandError, match=message):
+        call_command("upd_pls")
+
+    assert stored_players() == before
+    assert all(snapshot == before for snapshot in paged_reports["observed"])
+    pages = [
+        request.qs["start"]
+        for request in requests_mock.request_history
+        if request.path == "/stats/rest/en/skater/bios"
+    ]
+    attempts = loading.REPORT_ATTEMPTS if failure in {"http", "shape"} else 1
+    assert pages == [["0"]] + [["1"]] * attempts
+
+
+def test_bio_without_summary_leaves_existing_player_and_season_marker_untouched(
+    old_skater, paged_reports
+):
+    case = paged_reports["selected"]["skater"]
+    case["bios"] = case["bios"][:1]
+    case["bios"][0]["gamesPlayed"] = 0
+    for report in case["reports"]:
+        case["reports"][report] = []
+    before = list(Skater.objects.order_by("nhl_id").values())
+
+    call_command("upd_pls")
+
+    assert list(Skater.objects.order_by("nhl_id").values()) == before
+    assert Skater.objects.count() == 1
+    assert Goalie.objects.get(nhl_id=9000001).stats_season_id == "20262027"

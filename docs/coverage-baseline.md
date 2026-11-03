@@ -223,3 +223,21 @@ unchanged. The application database and live NHL endpoints were not accessed.
 Malformed reports, non-connection HTTP failures and cross-team atomicity remain
 separate loader-hardening decisions. Django 5.2.19 is still a pending patch task:
 its PyPI metadata/download returned unavailable when rechecked for this batch.
+
+## Follow-up: paginated player publication
+
+Eleven additional integration cases bring the full managed push-hook run to
+**456 passed**, with 12 external tests deselected and **83.57% combined coverage**.
+The existing shared report fixtures now also run through mocked HTTP responses,
+real pagination, report assembly and real PostgreSQL publication.
+
+The cases cover successful skater/goalie publication and exact replay, draft
+metadata, preserved history, duplicate/missing bios, conflicting games/summary/
+enrichment rows, bounded retries and rejection of malformed/truncated/overflowing
+later bios pages. All report callbacks observe unchanged saved players until
+publication. Rejected reports preserve the full saved roster, and a bio without
+summary statistics retains its existing values and season marker.
+
+The ORM is not mocked. No live NHL calls, media writes or application-database
+access are needed. Existing report/persistence tests remain; application code,
+dependencies, migrations, coverage exclusions and the 35% gate are unchanged.

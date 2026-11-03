@@ -10,12 +10,12 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 445 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 456 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
 must be rerun to confirm the former Python 3.7 blocker is cleared.
-The team-persistence batch now verifies real saves and logo recovery. Remaining
+Team persistence and paginated player publication now have database regressions. Remaining
 totals/user regression batches remain in the queue and can protect affected
 behavior during the upgrade. Do not wait for 100% coverage.
 
@@ -156,7 +156,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Priority | Work | Behavior to protect |
 | --- | --- | --- |
 | Completed | `upd_gms` response handling | Shared checked JSON requests, bounded retries, game/date/endpoint errors and per-day transaction rollback. Unavailable future-game JSON remains a controlled failure; a deferral policy is separate. See [game loading](game-loading.md). |
-| First | Loader orchestration | Audit remaining `upd_pls.import_player` branches, report pagination/coverage, failure-before-publication, absent players, season detection and current/full totals precedence. Much is covered already; use coverage to find real gaps. |
+| Player publication covered; totals/metadata edges next | Loader orchestration | Real HTTP pagination through `upd_pls` staging/persistence/replay, bios/summary identity/count checks and malformed later-page rejection are covered. Audit remaining metadata/flag branches and current/full totals precedence without duplicating existing fixtures. |
 | Core complete; edge cases next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Opposing-player sweater collisions now have ID/team-scoped enrichment contracts. Removed participants and malformed roster groups remain follow-up cases. |
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
 | Next | User-facing views | Player detail/career tables, search/filtering, games/detail/date navigation, 404s and empty/invalid inputs. Reuse existing season-table tests. |
@@ -169,6 +169,15 @@ rollback tests; live endpoint availability is not established by mocked checks.
 Future-game deferral, removed participants and malformed roster groups still need
 explicit contracts; shared-sweater identity is now covered. Player-detail season selection is also a separate product change;
 characterize its current behavior before extending the selector there.
+
+The player-publication follow-up passes 456 tests at 83.57% combined coverage.
+Synthetic HTTP callbacks observe the existing database throughout report fetching;
+publication happens after the requests complete. Duplicate/missing bios, conflicting
+games/rows, failed or malformed later pages leave all saved players unchanged,
+including goalies staged before a skater failure. Repeat loads preserve identities
+and historical rows. Bios without a summary do not publish a new season marker.
+This does not establish live API availability or correctness of every upstream
+report shape; metadata/flag and totals-enrichment edges remain separate work.
 
 Done when the important loader failure paths and user workflows have regression
 checks that would catch a framework upgrade breaking them. Coverage guides this
