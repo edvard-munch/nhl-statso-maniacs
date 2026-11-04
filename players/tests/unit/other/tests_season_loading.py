@@ -1,6 +1,8 @@
 from copy import deepcopy
 from types import SimpleNamespace
 from unittest.mock import Mock
+import json
+from pathlib import Path
 
 import pytest
 import requests
@@ -12,6 +14,97 @@ from players.season_stats import read_season_stats
 
 
 pytestmark = pytest.mark.unit
+
+
+@pytest.fixture
+def mermis_reports(requests_mock):
+    # Public NHL stats/rest reports for Mermis, 2024-25, with and without teamId.
+    path = Path(__file__).parents[2] / "fixtures/mermis_20242025_reports.json"
+    reports = json.loads(path.read_text())
+    registry = [
+        {"id": 10, "triCode": "TOR", "rawTricode": "TOR"},
+        {"id": 59, "triCode": "UTA", "rawTricode": "UTA"},
+        {"id": 68, "triCode": "UTA", "rawTricode": "UTA"},
+    ]
+    requests_mock.get(
+        "https://api.nhle.com/stats/rest/en/team", json={"data": registry, "total": len(registry)}
+    )
+    for report in loading.REPORTS["skater"]:
+
+        def response(request, context, report=report):
+            expression = request.qs["cayenneexp"][0]
+            team = next((key for key in reports if "teamid=" + key in expression), "all")
+            rows = reports[team][report]
+            return {"data": rows, "total": len(rows)}
+
+        requests_mock.get(loading.REPORT_URL.format("skater", report), json=response)
+    return reports, registry
+
+
+@pytest.mark.parametrize("teams", [{"TOR": 10, "UTA": 68}, {"TOR": 10}])
+def test_historical_utah_split_uses_the_id_that_played_in_that_season(mermis_reports, teams):
+    rows = loading.fetch_player_rows(8477541, "skater", teams, season="20242025")
+    assert [(row["teamAbbr"], row["gamesPlayed"], row["shots"]) for row in rows] == [
+        ("TOT", 4, 6),
+        ("TOR", 3, 4),
+        ("UTA", 1, 2),
+    ]
+    assert rows[-1]["avgToi"] == "10:47"
+    assert teams["UTA"] == (59, 68)
+
+
+def test_registry_keeps_duplicate_team_abbreviations_in_either_order(mermis_reports, requests_mock):
+    assert loading.fetch_team_ids()["UTA"] == (59, 68)
+    mermis_reports[1].reverse()
+    requests_mock.get(
+        loading.TEAM_REGISTRY_URL,
+        json={"data": mermis_reports[1], "total": len(mermis_reports[1])},
+    )
+    assert loading.fetch_team_ids()["UTA"] == (59, 68)
+
+
+def test_team_id_resolution_is_not_cached_across_seasons(mermis_reports):
+    reports, _ = mermis_reports
+    teams = {"TOR": 10, "UTA": 68}
+    loading.fetch_player_rows(8477541, "skater", teams, season="20242025")
+    # Simulate another season in which the new Utah ID has the contribution.
+    for scoped in reports.values():
+        for rows in scoped.values():
+            for row in rows:
+                row["seasonId"] = 20252026
+    reports["59"], reports["68"] = reports["68"], reports["59"]
+    rows = loading.fetch_player_rows(8477541, "skater", teams, season="20252026")
+    assert [(row["teamAbbr"], row["gamesPlayed"]) for row in rows] == [
+        ("TOT", 4),
+        ("TOR", 3),
+        ("UTA", 1),
+    ]
+
+
+def test_multiple_team_ids_with_season_rows_are_rejected(mermis_reports):
+    reports, _ = mermis_reports
+    reports["68"] = deepcopy(reports["59"])
+    with pytest.raises(CommandError, match="Ambiguous UTA team IDs"):
+        loading.fetch_player_rows(8477541, "skater", {"TOR": 10}, season="20242025")
+
+
+def test_missing_historical_split_still_fails(mermis_reports):
+    reports, _ = mermis_reports
+    reports["59"] = deepcopy(reports["68"])
+    with pytest.raises(CommandError, match="Missing or invalid UTA split"):
+        loading.fetch_player_rows(8477541, "skater", {"TOR": 10, "UTA": 68}, season="20242025")
+
+
+def test_historical_candidate_request_failure_is_not_treated_as_missing(
+    mermis_reports, requests_mock
+):
+    requests_mock.get(
+        loading.REPORT_URL.format("skater", "summary"),
+        additional_matcher=lambda request: "teamid=59" in request.qs["cayenneexp"][0],
+        status_code=503,
+    )
+    with pytest.raises(CommandError, match="Failed skater summary"):
+        loading.fetch_player_rows(8477541, "skater", {"TOR": 10, "UTA": 68}, season="20242025")
 
 
 def register_case(requests_mock, case):

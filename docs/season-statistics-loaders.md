@@ -49,7 +49,14 @@ The existing career tables will display the new `TOT` row as well as team splits
 
 Team IDs come from stored team metadata. Historical teams missing from the local
 database are resolved through the NHL team registry, without creating or changing
-team records. Unknown teams, duplicate summary rows, unscoped split responses,
+team records. If a stored ID returns no summary for the requested player/season,
+the loader also consults the registry and tries the other IDs for that abbreviation.
+The registry preserves all IDs when an abbreviation is reused (for example,
+`UTA`: Utah Hockey Club 59 and Utah Mammoth 68). Player/season-filtered summary
+rows select the applicable ID; a resolved ID is not reused across seasons.
+Multiple matching IDs are rejected rather than choosing arbitrarily. Combined
+team labels remain accepted, and split counts must still reconcile.
+Unknown teams, duplicate summary rows, unscoped split responses,
 disagreements about games/teams, and inconsistent combined/split summary counts
 stop the update before publishing that data. Multi-team counts exclude `TOT`.
 
@@ -80,6 +87,14 @@ player-detail integrations remain separate commits.
 Synthetic stats/rest inputs are in `players/tests/fixtures/season_reports.json`,
 paired with the existing expected table values in `season_stats.json`. Unit tests
 cover report mapping, pagination, failures, repeatability and history preservation:
+
+`mermis_20242025_reports.json` contains official NHL skater summary, realtime,
+faceoffwins and timeonice data for player 8477541 in season 20242025, unscoped and
+scoped to team IDs 10, 59 and 68. These were fetched from
+`https://api.nhle.com/stats/rest/en/skater/{report}` with `gameTypeId=2`,
+`playerId=8477541`, `seasonId=20242025` and the respective optional `teamId` filter.
+Regression tests cover the old Utah contribution, duplicate registry order,
+successor-season selection, ambiguous/missing splits and request failures.
 
 ```bash
 python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_loading.py

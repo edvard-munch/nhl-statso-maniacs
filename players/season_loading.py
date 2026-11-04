@@ -17,6 +17,7 @@ from .season_stats import (
 
 
 REPORT_URL = "https://api.nhle.com/stats/rest/en/{}/{}"
+TEAM_REGISTRY_URL = "https://api.nhle.com/stats/rest/en/team"
 REPORT_LIMIT = 100
 REPORT_TIMEOUT = 10
 REPORT_ATTEMPTS = 3
@@ -120,16 +121,19 @@ def _fetch_pages(url, params, client, label):
 
 def fetch_team_ids(session=None):
     rows = _fetch_pages(
-        "https://api.nhle.com/stats/rest/en/team",
+        TEAM_REGISTRY_URL,
         {"limit": REPORT_LIMIT, "start": 0, "sort": '[{"property":"id","direction":"ASC"}]'},
         session or requests,
         "team registry",
     )
+    candidates = {}
+    for row in rows:
+        for key in ("triCode", "rawTricode"):
+            if row.get(key) and row.get("id") is not None:
+                candidates.setdefault(row[key], set()).add(row["id"])
     return {
-        row[key]: row["id"]
-        for row in rows
-        for key in ("triCode", "rawTricode")
-        if row.get(key) and row.get("id") is not None
+        team: next(iter(ids)) if len(ids) == 1 else tuple(sorted(ids))
+        for team, ids in candidates.items()
     }
 
 
@@ -213,6 +217,36 @@ def _assemble_row(reports, player_type, player_id, season, team_abbr):
     return row
 
 
+def _fetch_team_reports(player_type, player_id, season, team, team_ids, session):
+    """Resolve reused abbreviations through player/season-scoped report evidence."""
+    attempted = set()
+    matches = []
+
+    def try_candidates():
+        value = team_ids[team]
+        candidates = value if isinstance(value, tuple) else (value,)
+        for team_id in candidates:
+            if team_id in attempted:
+                continue
+            attempted.add(team_id)
+            scoped = fetch_reports(player_type, session, season, player_id, team_id)
+            if _report_row(scoped, SUMMARY, player_id, season):
+                matches.append(scoped)
+
+    try_candidates()
+    if not matches:
+        # Current metadata can point at a successor team (e.g. Utah Mammoth),
+        # while a historical contribution belongs to an earlier team ID.
+        # Keep all registry IDs; do not replace them with a season-specific ID.
+        team_ids.update(fetch_team_ids(session))
+        try_candidates()
+    if len(matches) > 1:
+        raise CommandError(
+            "Ambiguous {} team IDs for player {}, season {}".format(team, player_id, season)
+        )
+    return matches[0] if matches else {}
+
+
 def assemble_player_rows(reports, player_type, player_id, team_ids, session=None):
     """Keep combined results separate from team-scoped requests for traded players."""
     result = []
@@ -234,7 +268,9 @@ def assemble_player_rows(reports, player_type, player_id, team_ids, session=None
             for team in teams:
                 if team not in team_ids:
                     raise CommandError("Unknown historical team {}".format(team))
-                scoped = fetch_reports(player_type, session, season, player_id, team_ids[team])
+                scoped = _fetch_team_reports(
+                    player_type, player_id, season, team, team_ids, session
+                )
                 scoped_summary = _report_row(scoped, SUMMARY, player_id, season)
                 # NHL reports can retain the full season's teamAbbrevs even
                 # when teamId correctly scopes the numeric statistics. Use the
