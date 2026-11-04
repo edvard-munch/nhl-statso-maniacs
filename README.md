@@ -58,7 +58,25 @@ repository setting.
 
 ## Environment Variables
 
-Create a `.env` file in the project root with these keys:
+Copy the local development example to `.env` in the project root (preserve any
+existing configuration):
+
+```bash
+cp -n .env.example .env
+```
+
+If `.env` already exists but is empty, copy the example's contents into it.
+Set `SECRET_KEY` to a random value and replace the PostgreSQL values with your
+local database name, role, and password. For example, generate a secret with
+`python -c 'import secrets; print(secrets.token_urlsafe(50))'`.
+The example uses `ALLOWED_HOSTS=localhost,127.0.0.1,[::1]` and sends development
+email to the console, so email credentials can be empty.
+
+The loader finds `.env` relative to the project files; existing shell environment
+variables take precedence. A `Set the ALLOWED_HOSTS environment variable` error
+means that key is missing from both sources.
+
+The supported keys are:
 
 - `SECRET_KEY`
 - `DEBUG`
