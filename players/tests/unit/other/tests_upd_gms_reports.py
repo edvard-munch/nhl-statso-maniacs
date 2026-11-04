@@ -1,5 +1,8 @@
 from players.management.commands import upd_gms
 from pathlib import Path
+import json
+
+import pytest
 
 
 FIXTURES_DIR = Path(__file__).parent / "files"
@@ -117,6 +120,29 @@ def test_parse_toi_report_fallback_player_blocks():
         13: {"powerPlayToi": "05:10", "shorthandedToi": "01:16"},
         15: {"powerPlayToi": "03:37", "shorthandedToi": "01:14"},
     }
+
+
+@pytest.mark.parametrize(
+    "report", ["2025020181_away", "2025020184_away", "2025020192_home", "2025020185_away"]
+)
+def test_real_toi_report_totals_stay_with_their_players(report):
+    # Official regulation, overtime and shootout reports, reduced to headings,
+    # overtime shift rows and TOT rows. Expected values come from each player's TOT.
+    expected = json.loads(load_fixture("report_toi_expected.json"))[report]
+    expected = {int(sweater): stats for sweater, stats in expected.items()}
+    assert upd_gms.parse_toi_report(load_fixture("report_toi_" + report + ".html")) == expected
+
+
+@pytest.mark.parametrize("heading", ["13 REINHART, SAM", "13 C REINHART, SAM", "10 BÄCK, OSKAR"])
+def test_player_heading_accepts_names_with_optional_position_and_accents(heading):
+    assert upd_gms.parse_player_heading_sweater(heading) == int(heading.split()[0])
+
+
+@pytest.mark.parametrize(
+    "shift", ["29 OT 0:40 / 4:20 1:04 / 3:56 00:24", "4 OT 0:00 / 5:00 1:48 / 3:12 01:48 G"]
+)
+def test_overtime_shift_is_not_a_player_heading(shift):
+    assert upd_gms.parse_player_heading_sweater(shift) is None
 
 
 def test_parse_special_teams_points_from_play_by_play_goal_events():

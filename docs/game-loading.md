@@ -95,6 +95,26 @@ games are reloaded; this change does not automatically backfill historical games
 
 ## Regression checks
 
+### Overtime special-teams TOI
+
+Player headings must contain a surname and given name separated by a comma,
+with an optional position before the surname. Unicode letters are supported.
+An overtime shift row such as `29 | OT | ...` is not a player heading: its number
+is a shift number, not a jersey. Previously those rows interrupted the player's
+block and could assign full-game PP/SH totals to a different jersey, or leave the
+real player's values missing (subsequently defaulting to zero).
+
+Reduced official reports from November 1, 2025 cover regulation (CAR), overtime
+(COL and EDM), and a shootout (DAL). Fixtures preserve player headings, overtime
+shift rows and full-game totals; each HTML file records its source URL. Tests
+compare every reported player's totals, including goalies and accented names.
+They also reject overtime shift rows as headings directly.
+
+The fix affects report-derived `powerPlayToi` and `shorthandedToi`; boxscore values
+still take precedence. Already stored gamelogs require replaying affected dates.
+The normal updater may skip completed historical days; this fix does not perform
+a historical backfill.
+
 ```bash
 python -m pytest -c players/tests/pytest.ini \
   players/tests/unit/other/tests_upd_gms_requests.py \

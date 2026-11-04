@@ -23,8 +23,10 @@ HTML_TAG_REGEX = r"<[^>]+>"
 HEADER_NORMALIZE_REGEX = r"[^a-z0-9#]"
 INT_REGEX = r"-?\d+"
 TIME_MM_SS_REGEX = r"^\d{1,2}:\d{2}$"
-PLAYER_HEADING_WITH_POSITION_REGEX = r"^(\d+)\s+[A-Z]{1,2}\s+.+"
-PLAYER_HEADING_REGEX = r"^(\d+)\s+[A-Z\-\.' ]+,\s*[A-Z\-\.' ]+"
+# Require a surname/given-name heading (with an optional position before the
+# surname). OT shift rows start with a shift number followed by "OT", not a name.
+# Unicode letters also preserve headings such as "10 BÄCK, OSKAR".
+PLAYER_HEADING_REGEX = r"^(\d+)\s+[^\W\d_][^,\d]*,\s*[^\W\d_][^,\d]*$"
 TOTAL_ROW_LABEL = "TOT"
 FACEOFF_TOTAL_VALUE_REGEX = r"^(\d+)\s*-"
 
@@ -1006,10 +1008,6 @@ def parse_time_stat(value):
 
 
 def parse_player_heading_sweater(row_text):
-    match = re.match(PLAYER_HEADING_WITH_POSITION_REGEX, row_text)
-    if match:
-        return int(match.group(1))
-
     match = re.match(PLAYER_HEADING_REGEX, row_text)
     if match and not row_text.startswith(TOTAL_ROW_LABEL):
         return int(match.group(1))
