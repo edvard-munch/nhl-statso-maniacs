@@ -340,3 +340,27 @@ unknown/invalid totals, and targeted repair of wrong/missing saved values using
 zero-total evidence. All NHL responses are mocked; no live audit or application
 writes were performed. User-reported zero total TOI for Zachary L'Heureux explains
 the prior two unverified fields; re-run the live single-game audit to confirm.
+
+
+## Follow-up: player biography and flag persistence
+
+Twenty new integration cases bring the full offline suite to **580 passed**, with
+12 external tests deselected and **86.07% combined coverage** on disposable
+PostgreSQL 16. `upd_pls` reaches 95% combined coverage. Ruff, formatting and the
+unchanged 35% coverage gate pass.
+
+Shared synthetic season reports run through mocked HTTP, real command publication
+and PostgreSQL saves for both skaters and goalies. Tests cover biography/position/
+team refreshes, stable primary keys/slugs and saved memberships, preserved gamelogs
+and unreported metadata, distinct nationality/birth countries, nationality fallback,
+birthday boundaries, retained draft history and later explicit corrections.
+Current roster changes do not relabel a player's saved season contribution.
+
+Temporary media exercises the real flag lookup/attachment code: cached flags attach
+once, follow nationality changes and remain local; missing flags do not block stats
+publication and recover when their files become available. Unknown country codes
+persist and warn once per command, with a summary warning. HTTP inputs are mocked
+and unexpected urllib downloads fail the tests. Application code, dependencies,
+migrations, coverage scope and the gate are unchanged. No application data or live
+NHL endpoints were accessed. Career-enrichment response handling remains a separate
+regression/hardening batch.
