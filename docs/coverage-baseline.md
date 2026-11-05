@@ -496,3 +496,24 @@ remain unchanged by display conversion. All HTTP is blocked, media paths are
 temporary, and the application database was not accessed. Existing upload and
 metric-filter cases remain; this batch does not claim transaction rollback for
 runtime save failures or interactive browser coverage.
+
+
+## Follow-up: favorites/comparison mutation and quota boundaries
+
+Sixteen integration cases bring the offline suite to **724 passed**, with
+12 external tests deselected and **90.13% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% gate pass.
+
+Tests use the real 100-player shared favorites quota and separate five-player
+skater/goalie comparison quotas with real M2M writes. They protect the final allowed
+addition, rejection at capacity, removal while full and adding after removal;
+independent comparison groups; other-user/favorite preservation; repeated toggles
+without duplicate memberships or player-column changes; anonymous POST no-writes;
+and repeated comparison resets affecting only the selected user/group.
+
+Four initially failing target-identity cases exposed server errors for missing IDs
+and mismatched slugs. Favorite/comparison endpoints now raise Http404 when lookup
+fails, leaving saved lists unchanged. Toggle semantics, quotas, HTTP methods and
+selection payloads are unchanged. These are sequential contracts, not concurrent
+quota enforcement; GET-to-POST/CSRF migration is separate work. HTTP is mocked and
+the application database was not accessed.

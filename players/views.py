@@ -529,6 +529,8 @@ def player_compare(request, slug, nhl_id):
             return JsonResponse({"error": str(error)}, status=400)
         data["authenticated"] = True
         player = utils.get_player(nhl_id, slug)
+        if player is None:
+            raise Http404("Player not found")
         if isinstance(player, Goalie):
             quota = user.comparable_goalies.count()
         else:
@@ -578,6 +580,8 @@ def player_favorite(request, slug, nhl_id):
         data["authenticated"] = True
         quota = user.favorite_skaters.count() + user.favorite_goalies.count()
         player = utils.get_player(nhl_id, slug)
+        if player is None:
+            raise Http404("Player not found")
         if player.favoriting.filter(id=user.id).exists():
             player.favoriting.remove(user)
             data["message"] = f"{player.name} successfully removed from the favorites"
