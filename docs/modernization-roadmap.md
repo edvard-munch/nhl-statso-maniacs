@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 724 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 725 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -163,7 +163,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
 | Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
-| Next | Browser smoke tests | Actual season selection, favorites goalie-only/empty lists, totals/averages, comparison modes/removal/reset and team joined/split controls; assert displayed values and AJAX season persistence. |
+| Foundation/Players covered; saved-list controls next | Browser smoke tests | Three real Chromium checks cover Players season submission, totals/averages/goalie switching and unloaded-season empty states with selected-season AJAX assertions. Separate locked tooling, offline assets and CI execution are implemented. Next cover favorites goalie-only/empty lists, comparison controls and team joined/split controls. |
 
 The reported `upd_gms` JSON failure now has controlled request handling and
 rollback tests; live endpoint availability is not established by mocked checks.
@@ -266,8 +266,13 @@ removal/re-addition at capacity, repeated toggles/resets and user isolation now 
 real M2M contracts. Four initially failing identity cases led to 404 guards for
 favorite/comparison endpoints; the legacy toggle API and quota policy are unchanged.
 These tests do not establish concurrent quota enforcement or CSRF protection for
-GET-based mutations. Next implementation batch: browser smoke tests for season
-selection and saved-list controls. Hosted CI verification and deployment rehearsal
+GET-based mutations. The browser foundation now passes three real Chromium cases for Players season
+selection, statistics modes and empty seasons. A separate Node lockfile, cached
+checksum-verified frontend assets, isolated live server, local browser target and
+CI step are implemented. The offline gate passes 725 tests at 90.13%; browser
+checks run separately. They exposed and fixed empty metadata checkbox options
+that caused jQuery UI errors. See [browser setup](browser-smoke-tests.md).
+Next implementation batch: saved-list browser controls, then team layout controls. Hosted CI verification and deployment rehearsal
 remain operational priorities; GET-to-POST migration, concurrency policy and
 ambiguous legacy-data review stay separate focused work.
 

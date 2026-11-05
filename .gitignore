@@ -29,3 +29,8 @@ links.txt
 *.sublime-project
 
 *.sublime-workspace
+
+# Optional browser-test dependencies, cached assets and failure artifacts
+node_modules/
+.browser-cache/
+browser-artifacts/

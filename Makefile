@@ -1,4 +1,4 @@
-.PHONY: format lint check hooks hooks-run hooks-run-push test test-cov test-ci
+.PHONY: format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser
 
 format:
 	python -m ruff format .
@@ -27,3 +27,7 @@ test-cov:
 
 test-ci:
 	python -m pytest -c players/tests/pytest.ini --cov=players --cov-config=.coveragerc --cov-report=term-missing --cov-fail-under=35 players/tests
+
+# Uses the same dedicated test configuration as local hooks.
+test-browser:
+	python scripts/run_hook_tests.py --browser

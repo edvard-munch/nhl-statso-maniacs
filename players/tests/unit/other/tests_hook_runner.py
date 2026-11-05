@@ -21,9 +21,9 @@ def database_config(tmp_path):
     return path
 
 
-@pytest.mark.parametrize("coverage", [False, True])
+@pytest.mark.parametrize("mode", ["normal", "coverage", "browser"])
 def test_runner_uses_explicit_test_credentials_and_preserves_exit_code(
-    monkeypatch, database_config, coverage
+    monkeypatch, database_config, mode
 ):
     monkeypatch.setenv(runner.CONFIG_VARIABLE, str(database_config))
     monkeypatch.setenv("POSTGRES_DB", "application")
@@ -45,14 +45,16 @@ def test_runner_uses_explicit_test_credentials_and_preserves_exit_code(
         assert env["DJANGO_SETTINGS_MODULE"] == runner.SETTINGS_MODULE
         assert "PYTEST_ADDOPTS" not in env
         assert "--ds=" + runner.SETTINGS_MODULE in command
-        assert command[command.index("-m", 2) + 1] == "not external"
+        assert command[command.index("-m", 2) + 1] == (
+            "browser and not external" if mode == "browser" else "not external and not browser"
+        )
         assert command[-1] == str(runner.ROOT / "players/tests")
         assert command[0] == "selected-python"
-        assert ("--cov-fail-under=35" in command) is coverage
+        assert ("--cov-fail-under=35" in command) is (mode == "coverage")
         return 7
 
     monkeypatch.setattr(runner.subprocess, "call", run)
-    assert runner.main(["--coverage"] if coverage else []) == 7
+    assert runner.main([] if mode == "normal" else ["--" + mode]) == 7
     assert len(calls) == 1
     assert runner.load_database(database_config)["password"] == "test-secret"
     assert os.environ["POSTGRES_DB"] == "application"

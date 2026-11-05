@@ -32,6 +32,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.browser-cache/browsers
       CI: "true"
       DEBUG: "false"
       SECRET_KEY: ci-only-django-key
@@ -74,6 +75,25 @@ jobs:
         id: tests
         # pytest-django creates test_nhl_ci using real migrations.
         run: make test-ci
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: browser/package-lock.json
+      - name: Prepare offline Chromium smoke tests
+        run: |
+          npm --prefix browser ci --ignore-scripts
+          python scripts/prepare_browser_assets.py
+          npm --prefix browser exec -- playwright install --with-deps --no-shell chromium
+      - name: Browser smoke tests
+        run: python -m pytest -c players/tests/pytest.ini -m "browser and not external" players/tests/browser
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: browser-failures
+          path: browser-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Export coverage report
         if: always() && hashFiles('.coverage') != ''
         run: python -m coverage xml -o coverage.xml

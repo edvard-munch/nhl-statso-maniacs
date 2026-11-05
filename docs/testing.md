@@ -29,7 +29,7 @@ python -m pip check
 ```
 
 The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
-The target Python 3.12.16 environment passes `pip check`, Ruff and all 724 offline
+The target Python 3.12.16 environment passes `pip check`, Ruff and all 725 offline
 tests with the 35% coverage gate (90.13% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
 validates the current install
@@ -111,7 +111,7 @@ The current targets select `players/tests`; include `users` deliberately when
 adding user-app tests. Unit/integration markers describe test boundaries; the
 legacy `unit/tests_readonly_db` folder now contains marked integration tests.
 
-Default selection excludes tests marked `external`. Requests in deterministic
+Default selection excludes tests marked `external` or `browser`. Requests in deterministic
 loader tests are mocked, and view/lookup tests explicitly block live HTTP.
 Optional live tests can be collected separately without contacting NHL:
 
@@ -227,3 +227,13 @@ a new regression reproduces startup with no existing runtime directories. A clea
 temporary checkout passed 408 tests and the 82.59% gate and exported XML locally.
 Coverage export/upload run only when their input files exist. The fixed workflow
 still needs a new hosted run after push.
+
+
+## Optional browser smoke tests
+
+Three Chromium cases exercise Players season selection, totals/averages/goalie
+switching and unloaded-season behavior against the isolated live server. See
+[browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
+checks are separate from the offline coverage gate and local commit/push hooks;
+CI runs both. The current offline result is 725 passed, 12 external and 3 browser
+cases deselected, at 90.13% combined coverage. The browser runner passes all 3 cases.

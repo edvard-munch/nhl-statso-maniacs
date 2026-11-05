@@ -517,3 +517,26 @@ fails, leaving saved lists unchanged. Toggle semantics, quotas, HTTP methods and
 selection payloads are unchanged. These are sequential contracts, not concurrent
 quota enforcement; GET-to-POST/CSRF migration is separate work. HTTP is mocked and
 the application database was not accessed.
+
+
+## Follow-up: Chromium smoke-test foundation
+
+The offline gate passes **725 tests**, with 12 external and 3 browser cases
+deselected, at **90.13% combined coverage** on disposable PostgreSQL 16. The
+additional offline case validates the browser runner's isolated settings/selection.
+All **3 Chromium checks** also pass through the dedicated local runner, using Node
+24 and the locked Playwright package. Ruff, JavaScript syntax, workflow actionlint
+and the unchanged 35% gate pass; cached assets and locked npm dependencies were
+also prepared successfully without network access after initial installation.
+
+Browser checks exercise real season submission, totals/averages/goalie controls,
+selected-season AJAX requests and unloaded-season empty states. Checksum-pinned
+copies of existing CDN assets run the real frontend code with external network
+requests blocked. The cases initially exposed jQuery UI failures from empty
+nationality checkbox options; empty metadata options are now omitted rather than
+rendering controls with no usable label. Screenshots/traces are captured on failure.
+
+Node/Chromium setup is optional locally and separate from Python dependencies,
+normal hooks and server-side coverage. CI is configured to run both suites and
+upload browser failures; hosted execution is not yet verified. No application data
+or live NHL API was used. Saved-list/team browser workflows remain follow-up work.

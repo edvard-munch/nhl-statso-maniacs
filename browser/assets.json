@@ -1,0 +1,47 @@
+[
+  {
+    "file": "jquery.js",
+    "url": "https://code.jquery.com/jquery-1.12.4.js",
+    "sha256": "430f36f9b5f21aae8cc9dca6a81c4d3d84da5175eaedcf2fdc2c226302cb3575"
+  },
+  {
+    "file": "jquery-ui.js",
+    "url": "https://code.jquery.com/ui/1.12.1/jquery-ui.js",
+    "sha256": "4f455eb2ddf2094ee969f470f6bfac7adb4c057e8990a374e9da819e943c777d"
+  },
+  {
+    "file": "jquery-ui.css",
+    "url": "https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css",
+    "sha256": "44f8a56d427917b5fa0dd7933ba545679be5e6b3b93099e64a4e29c2159f57c0"
+  },
+  {
+    "file": "popper.js",
+    "url": "https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js",
+    "sha256": "a52f7aa54d7bcaafa056ee0a050262dfc5694ae28dee8b4cac3429af37ff0d66"
+  },
+  {
+    "file": "bootstrap.js",
+    "url": "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js",
+    "sha256": "e7ed36ceee5450b4243bbc35188afabdfb4280c7c57597001de0ed167299b01b"
+  },
+  {
+    "file": "bootstrap.css",
+    "url": "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
+    "sha256": "2c0f3dcfe93d7e380c290fe4ab838ed8cadff1596d62697f5444be460d1f876d"
+  },
+  {
+    "file": "sorter.js",
+    "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.js",
+    "sha256": "bed6c210b73899f89d22235dc560d53ef00ae4023ce8f6e94a8b725a8194cb11"
+  },
+  {
+    "file": "widgets.js",
+    "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/jquery.tablesorter.widgets.js",
+    "sha256": "e3a975ab8d15c0e3e7a1fbd6346e2f42e163c449e2740201067ef99202a723a7"
+  },
+  {
+    "file": "pager.js",
+    "url": "https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.31.1/js/extras/jquery.tablesorter.pager.min.js",
+    "sha256": "b753ac527cb52671d3d9572de37438460e5646442471482cf2240816e02790cc"
+  }
+]

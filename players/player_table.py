@@ -348,7 +348,7 @@ def _options(rows, *fields):
         tuple(row.value(field) for field in fields) + ((None,) if len(fields) == 1 else ())
         for row in rows
     }
-    return sorted(values, key=lambda item: (item[0] is None, item[0]))
+    return sorted((item for item in values if item[0] not in (None, "")), key=lambda item: item[0])
 
 
 def _checkboxes(value):

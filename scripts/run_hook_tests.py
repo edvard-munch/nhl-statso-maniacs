@@ -1,4 +1,4 @@
-"""Run the complete offline suite with explicit, test-only database credentials."""
+"""Run offline or browser tests with explicit, test-only database credentials."""
 
 import argparse
 import json
@@ -57,7 +57,9 @@ def project_python():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--coverage", action="store_true")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--coverage", action="store_true")
+    mode.add_argument("--browser", action="store_true")
     options = parser.parse_args(argv)
     config_path = Path(os.environ.get(CONFIG_VARIABLE, str(ROOT / CONFIG_FILENAME))).expanduser()
     try:
@@ -91,7 +93,7 @@ def main(argv=None):
         str(ROOT / "players/tests/pytest.ini"),
         "--ds=" + SETTINGS_MODULE,
         "-m",
-        "not external",
+        "browser and not external" if options.browser else "not external and not browser",
     ]
     if options.coverage:
         command.extend(
