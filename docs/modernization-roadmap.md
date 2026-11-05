@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 488 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 516 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -188,6 +188,14 @@ rollback and live career-enrichment response handling are not established by thi
 Done when the important loader failure paths and user workflows have regression
 checks that would catch a framework upgrade breaking them. Coverage guides this
 work; test count alone does not establish readiness.
+
+The saved-game TOI audit now provides read-only season/date/game selection and
+player-level PP/SH comparisons against current NHL sources. Its 28 integration
+cases bring the full offline suite to 516 passed, 12 external tests deselected,
+and 84.78% combined coverage. See [audit usage](game-loading.md). Run it against
+saved application data to identify mismatches and unverified games; no such live
+audit has been run by this validation. Targeted repair/backfill remains a separate
+commit, with no repair option or automatic data changes in this batch.
 
 ## 3. Make updates convenient and confirm the data workflow
 

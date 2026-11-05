@@ -93,6 +93,56 @@ non-scoring opponent, boxscore precedence, repeat loads, nested roster layouts,
 and unknown/missing identities. Existing gamelogs are corrected only when their
 games are reloaded; this change does not automatically backfill historical games.
 
+## Audit previously loaded TOI (read-only)
+
+The parser fix does not change saved data. Audit a single known game first, then
+expand to a season or an inclusive date range:
+
+```bash
+python manage.py audit_game_toi --game-id 2026020232
+python manage.py audit_game_toi --season 20262027
+python manage.py audit_game_toi --start-date 2026-10-01 --end-date 2026-11-05
+python manage.py audit_game_toi --season 20262027 --json > /tmp/game-toi-audit.json
+```
+
+Use your normal application database configuration: this command deliberately
+reads saved games and player gamelogs, but performs no database writes. It makes
+live NHL requests, unlike the mocked offline tests. No deleting records, resetting
+completion flags or running the updater is necessary to audit. There is no repair
+option in this batch.
+
+`--season` accepts an eight-digit ID and selects regular-season game IDs. Date
+filters and repeated `--game-id` arguments can narrow the selection; filters
+combine as intersections. A season, game ID or both date bounds are required.
+Only saved games are scanned; the command does not discover missing games.
+
+The audit checks source game ID/date and final state, then compares each played
+player's `powerPlayToi` and `shorthandedToi` against their saved date-keyed gamelog.
+Home/away TOI reports are mapped separately by jersey to NHL player IDs. Existing
+boxscore values take precedence, matching the loader. Equivalent time strings
+such as `0:00` and `00:00` compare equally. Unused backup goalies are excluded.
+
+- `match`: the saved field agrees with the current source.
+- `mismatch`: a valid source value differs from the saved field (including a
+  missing/invalid saved field). The output includes game/date/player, field,
+  stored and expected values, and source.
+- `unverified`: source data is unavailable, invalid or missing; the game is not
+  final; its identity/date differs; or a saved player/gamelog cannot be resolved.
+  Missing reports never become expected zeroes. A failed game does not stop the
+  remaining audit.
+
+Default output lists mismatches/unverified records plus a summary. `--json` emits
+one JSON object with `summary` and all `records`, including matches. Summary status
+counts refer to records/fields, not games; separate counters identify games with
+mismatches or unverified records (a game can belong to both). Zero selected games
+means nothing was audited. Findings do not cause a nonzero exit status; review the
+summary rather than treating process success as proof of clean data.
+
+This audit covers special-teams TOI only, using the current parser and current NHL
+responses. It does not independently validate that parser, audit other game stats,
+or infer when a bad value was originally saved. Review unverified games separately
+before planning targeted repair/backfill.
+
 ## Regression checks
 
 ### Overtime special-teams TOI

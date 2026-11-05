@@ -264,3 +264,22 @@ the totals command saves players individually. The ORM is used for persistence;
 upstream reports/enrichment and selected failure points are mocked. No application
 database or live NHL endpoints were accessed. Application code, dependencies,
 migrations and coverage exclusions are unchanged.
+
+
+## Follow-up: read-only saved-game TOI audit
+
+The `audit_game_toi` command adds 28 integration cases. The full offline suite
+passes **516 tests**, with 12 external tests deselected and **84.78% combined
+coverage**, on disposable PostgreSQL 16. Ruff and formatting checks pass; the
+35% coverage gate and coverage exclusions are unchanged.
+
+Tests use real saved games/players and mocked NHL responses, including overtime
+shift rows, shared jerseys, boxscore precedence, genuine zero TOI, mismatches,
+missing saved data, missing/partial reports, HTTP/JSON failures, wrong source
+identity/date, non-final games, selection bounds and continuation after a failed
+game. SQL captured during a successful audit contains only SELECTs and the
+PostgreSQL SELECT cursor declaration; saved game/day/player snapshots stay intact.
+
+The command has no repair mode. No live NHL calls or application-database access
+were performed during validation. Operational examples and the distinction between
+mismatches, unverified evidence and zero selected games are in [game loading](game-loading.md).
