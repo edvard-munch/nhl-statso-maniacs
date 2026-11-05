@@ -540,3 +540,26 @@ Node/Chromium setup is optional locally and separate from Python dependencies,
 normal hooks and server-side coverage. CI is configured to run both suites and
 upload browser failures; hosted execution is not yet verified. No application data
 or live NHL API was used. Saved-list/team browser workflows remain follow-up work.
+
+
+## Follow-up: authenticated saved-list browser controls
+
+All **7 Chromium cases** pass through the dedicated isolated runner: the existing
+three Players checks plus four authenticated saved-list scenarios. The offline gate
+still passes **725 tests**, with 12 external and 7 browser cases deselected, at
+**90.13% combined coverage**. Ruff, JavaScript syntax and formatting checks pass.
+
+Shared real-browser/network/trace infrastructure and synthetic Django sessions
+exercise goalie-only/empty favorites, old-season unavailability, totals/averages,
+comparison season/career modes and season-preserving removal/reset interactions.
+Post-browser PostgreSQL checks confirm only intended owner comparison memberships
+change; other users' saved lists, favorites and stored player columns stay intact.
+Favorites gamelogs remain independent of season selection.
+
+The goalie-only scenario exposed an unavailable-season status present in JSON but
+missing from the DOM because it followed a closed legacy table cell. The affected
+favorite name/status cell now uses valid escaped HTML fragments with canonical
+profile links. No dependency, schema, application-data or workflow changes were
+needed; the existing CI browser selection automatically includes the new cases.
+Hosted execution still needs confirmation after pushing. Team browser controls
+and remaining favorites mutations are separate follow-ups.

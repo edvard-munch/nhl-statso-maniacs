@@ -178,7 +178,7 @@ The current offline suite passes **725 tests at 90.13% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 
-Three optional Chromium smoke checks run separately with `make test-browser` after
+Seven optional Chromium smoke checks run separately with `make test-browser` after
 [browser setup](docs/browser-smoke-tests.md). Default tests and local hooks exclude
 browser checks; CI is configured to run both suites.
 

@@ -1,10 +1,18 @@
 # Offline Chromium smoke tests
 
-The first browser batch checks the Players page with real JavaScript, DOM events
-and Django AJAX responses. It covers changing the season, totals/averages and goalie
-modes, and an unloaded season's empty state. Conflicting player snapshot values
-ensure assertions use season rows. Browser JavaScript errors and failed table AJAX
-responses fail the tests; stored player records must remain unchanged.
+Seven browser cases check real JavaScript, DOM events and Django AJAX responses:
+
+- Players season selection, totals/averages and goalie modes, and unloaded seasons.
+- Goalie-only and empty favorites, including an old season with no goalie data.
+- Favorites skater totals/averages before and after changing season.
+- Comparison season/career modes, mode preservation across season changes,
+  player removal, group reset confirmation and the resulting empty state.
+
+Conflicting snapshot values ensure displayed assertions use the correct sources.
+Browser JavaScript errors and HTTP errors on AJAX responses fail the tests (normal
+redirects are followed). Stored player columns must remain unchanged. Authenticated
+cases use a synthetic Django test session, not an application account, and check
+that other users' saved memberships remain intact after real mutations.
 
 The Python environment is unchanged. Browser tooling uses the separate, locked
 Node package in `browser/` (Node 22+, validated with Node 24 and Playwright 1.56.0).
@@ -65,12 +73,18 @@ npm --prefix browser exec -- playwright show-trace browser-artifacts/modes.zip
 ## CI and remaining work
 
 The existing push/PR workflow runs the offline coverage gate first, installs the
-locked browser toolchain/assets, then runs the three browser checks separately
+locked browser toolchain/assets, then runs all seven browser checks separately
 against the ephemeral PostgreSQL service. Failure artifacts are uploaded when
 present. The coverage report remains the offline server-side result; browser runs
 do not inflate it. Hosted execution still needs confirmation after pushing.
 
-Favorites goalie-only/empty lists, comparison mode/removal/reset controls and team
-joined/split controls remain later focused browser batches. This commit establishes
-the harness and Players workflows, and fixes an exposed empty-metadata checkbox
-error; it does not establish browser coverage for every saved-list interaction.
+The shared harness handles cached assets, blocked external requests, synthetic
+session cookies, AJAX completion and failure artifacts for both suites. Favorites
+gamelogs intentionally span all stored seasons; season-dependent requests must
+retain the selected season. Missing-season players remain listed with dashes and
+a visible status label. A browser case exposed a status label discarded outside
+legacy table-cell markup; that name/status cell now uses valid HTML fragments.
+
+Team joined/split controls and additional favorites mutations remain later focused
+browser work. Browser login, concurrent quota enforcement and migration of legacy
+GET-based mutations to POST are not established by these smoke cases.

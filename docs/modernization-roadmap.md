@@ -163,7 +163,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
 | Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
-| Foundation/Players covered; saved-list controls next | Browser smoke tests | Three real Chromium checks cover Players season submission, totals/averages/goalie switching and unloaded-season empty states with selected-season AJAX assertions. Separate locked tooling, offline assets and CI execution are implemented. Next cover favorites goalie-only/empty lists, comparison controls and team joined/split controls. |
+| Players and core saved-list workflows covered; team controls next | Browser smoke tests | Seven real Chromium cases cover Players season/mode/empty states, goalie-only/empty favorites, totals/averages and comparison modes/removal/reset with season persistence. Cached offline assets and CI execution are implemented. Next cover team joined/split controls and remaining favorites mutations. |
 
 The reported `upd_gms` JSON failure now has controlled request handling and
 rollback tests; live endpoint availability is not established by mocked checks.
@@ -272,7 +272,11 @@ checksum-verified frontend assets, isolated live server, local browser target an
 CI step are implemented. The offline gate passes 725 tests at 90.13%; browser
 checks run separately. They exposed and fixed empty metadata checkbox options
 that caused jQuery UI errors. See [browser setup](browser-smoke-tests.md).
-Next implementation batch: saved-list browser controls, then team layout controls. Hosted CI verification and deployment rehearsal
+The saved-list browser follow-up now passes all seven cases, adding real
+session-authenticated favorites and comparison interactions with database checks.
+It fixes an unavailable-season status label lost outside legacy table-cell markup.
+The offline gate remains 725 passed / 90.13% coverage, with browser tests separate.
+Next implementation batch: team layout controls, then remaining favorites mutations. Hosted CI verification and deployment rehearsal
 remain operational priorities; GET-to-POST migration, concurrency policy and
 ambiguous legacy-data review stay separate focused work.
 

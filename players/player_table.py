@@ -11,6 +11,7 @@ from urllib.parse import parse_qsl
 
 from django.core import serializers
 from django.utils.html import format_html
+from django.urls import reverse
 
 from . import utils
 from .models import Goalie, Skater, Team
@@ -427,8 +428,14 @@ def build_table(
     if collection == FAVORITES:
         for cells, row in zip(data["rows"], selected):
             if not row.season_available:
-                cells[columns.index("name")] += format_html(
-                    '<br><small class="season-unavailable">{}</small>', unavailable_message(season)
+                # Pager AJAX cells must be fragments, not a closed <td> followed
+                # by orphaned text: the browser would discard the status label.
+                cells[columns.index("name")] = format_html(
+                    '<a class="name" href="{}">{}</a><br>'
+                    '<small class="season-unavailable">{}</small>',
+                    reverse("player_detail", args=[row.player.slug, row.player.nhl_id]),
+                    row.player.name,
+                    unavailable_message(season),
                 )
         data["season_availability"] = [row.season_available for row in selected]
     data.update(
