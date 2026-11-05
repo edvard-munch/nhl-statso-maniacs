@@ -452,3 +452,216 @@ def test_bio_without_summary_leaves_existing_player_and_season_marker_untouched(
     assert list(Skater.objects.order_by("nhl_id").values()) == before
     assert Skater.objects.count() == 1
     assert Goalie.objects.get(nhl_id=9000001).stats_season_id == "20262027"
+
+
+@pytest.fixture(params=["skater", "goalie"])
+def totals_player(request, old_skater, teams, mock_reports, season_report_data, monkeypatch):
+    player_type = request.param
+    mock_reports["skater"] = None
+    mock_reports[player_type] = deepcopy(
+        season_report_data["traded_skater" if player_type == "skater" else "current_goalie"]
+    )
+    monkeypatch.setattr(upd_pls_tot, "get_skater_career_enrichment", lambda *args: {})
+    monkeypatch.setattr(upd_pls_tot, "get_goalie_career_enrichment", lambda *args: {})
+    if player_type == "skater":
+        return old_skater, player_type
+    old_skater.delete()
+    goalie = Goalie.objects.create(
+        nhl_id=9000001,
+        name="Synthetic Goalie",
+        birth_date="2000-01-02",
+        team=teams["BUF"],
+        games=80,
+        wins=30,
+        stats_season_id="20252026",
+        sbs_stats=[
+            {
+                "season": "2025-26",
+                "teamAbbr": "BUF",
+                "gamesPlayed": 80,
+                "wins": 30,
+                "customMetadata": "preserve",
+            }
+        ],
+        career_stats={"gamesPlayed": 80, "wins": 30},
+    )
+    return goalie, player_type
+
+
+def totals_landing(player_type):
+    return {
+        "firstName": {"default": "Synthetic"},
+        "heightInInches": 70,
+        "heightInCentimeters": 178,
+        "weightInPounds": 200,
+        "weightInKilograms": 91,
+        "position": "G" if player_type == "goalie" else "C",
+        "careerTotals": {
+            "regularSeason": {
+                "gamesPlayed": 100,
+                "goals": 40,
+                "shotsAgainst": 1000,
+                "goalsAgainst": 100,
+            }
+        },
+        # Landing season totals must not replace the authoritative report rows.
+        "seasonTotals": [{"season": 20262027, "gamesPlayed": 999, "goals": 999}],
+    }
+
+
+def season_projection(player):
+    player.refresh_from_db()
+    fields = ["sbs_stats", "multiteams_seasons", "stats_season_id", "games"]
+    fields += (
+        ["sbs_stats_avg", "goals", "hits", "goals_avg", "hits_avg"]
+        if isinstance(player, Skater)
+        else ["wins", "saves", "saves_perc"]
+    )
+    return {field: deepcopy(getattr(player, field)) for field in fields}
+
+
+def test_player_and_current_totals_commands_agree_in_either_order(totals_player, monkeypatch):
+    player, player_type = totals_player
+    model = type(player)
+    initial = model.objects.filter(pk=player.pk).values().get()
+    history = deepcopy(player.sbs_stats)
+    monkeypatch.setattr(upd_pls_tot, "get_response", lambda *args: pytest.fail("landing called"))
+    results = []
+    for order in [("upd_pls", "current"), ("current", "upd_pls")]:
+        model.objects.filter(pk=player.pk).update(**{k: v for k, v in initial.items() if k != "id"})
+        for command in order:
+            if command == "current":
+                call_command("upd_pls_tot", mode="current")
+            else:
+                call_command("upd_pls")
+        results.append(season_projection(player))
+        assert player.sbs_stats[:1] == history
+        assert player.stats_season_id == "20262027"
+        assert player.games == (10 if player_type == "skater" else 4)
+        assert player.career_stats == initial["career_stats"]
+    assert results[0] == results[1]
+    if player_type == "skater":
+        assert [(r["teamAbbr"], r["goals"]) for r in player.sbs_stats[1:]] == [
+            ("TOT", 4),
+            ("BUF", 3),
+            ("COL", 1),
+        ]
+
+
+def test_full_totals_replaces_overlapping_seasons_and_replays(totals_player, mock_reports):
+    player, player_type = totals_player
+    case = mock_reports[player_type]
+    # Refresh a historical season as well as the current season. Old custom
+    # fields in a refreshed season disappear; an unreturned season stays intact.
+    for rows in case["reports"].values():
+        rows.append(dict(rows[0], seasonId=20252026))
+    for reports in case["team_reports"].values():
+        for rows in reports.values():
+            rows.append(dict(rows[0], seasonId=20252026))
+    untouched = dict(player.sbs_stats[0], season="2024-25")
+    player.sbs_stats.append(deepcopy(untouched))
+    if player_type == "skater":
+        player.sbs_stats_avg.append(dict(untouched, goals=0.25))
+    player.save()
+    data = totals_landing(player_type)
+    for _ in range(2):
+        upd_pls_tot.import_player(deepcopy(data), player)
+        projection = season_projection(player)
+        if _ == 0:
+            first = projection
+        else:
+            assert projection == first
+        keys = [(r["season"], r["teamAbbr"]) for r in player.sbs_stats]
+        assert len(keys) == len(set(keys))
+        assert player.sbs_stats[0] == untouched
+        assert all("customMetadata" not in r for r in player.sbs_stats[1:])
+        assert player.games == (10 if player_type == "skater" else 4)
+        assert player.career_stats["gamesPlayed"] == 100
+        if player_type == "skater":
+            assert player.goals == 4
+            assert player.multiteams_seasons == {"2025-26": 2, "2026-27": 2}
+            assert player.sbs_stats_avg[0] == dict(untouched, goals=0.25)
+            assert len(player.sbs_stats_avg) == len(keys)
+        else:
+            assert player.saves == 90
+            assert player.career_stats["saves"] == 900
+
+
+def test_historical_only_full_refresh_does_not_rewind_current_snapshot(totals_player, mock_reports):
+    player, player_type = totals_player
+    call_command("upd_pls_tot", mode="current")
+    current = season_projection(player)
+    case = mock_reports[player_type]
+    for reports in [case["reports"], *case["team_reports"].values()]:
+        for rows in reports.values():
+            for row in rows:
+                row["seasonId"] = 20252026
+    upd_pls_tot.import_player(totals_landing(player_type), player)
+    refreshed = season_projection(player)
+    assert refreshed["stats_season_id"] == "20262027"
+    assert {
+        k: v
+        for k, v in refreshed.items()
+        if k not in {"sbs_stats", "sbs_stats_avg", "multiteams_seasons"}
+    } == {
+        k: v
+        for k, v in current.items()
+        if k not in {"sbs_stats", "sbs_stats_avg", "multiteams_seasons"}
+    }
+    assert [r for r in player.sbs_stats if r["season"] == "2026-27"] == [
+        r for r in current["sbs_stats"] if r["season"] == "2026-27"
+    ]
+    assert all("customMetadata" not in r for r in player.sbs_stats)
+
+
+@pytest.mark.parametrize("mode", ["current", "full"])
+@pytest.mark.parametrize("failure_stage", ["reports", "persistence"])
+def test_totals_failure_before_save_preserves_player_and_all_seasons(
+    totals_player, monkeypatch, mode, failure_stage
+):
+    player, player_type = totals_player
+    before = stored_players()
+    original = loading.fetch_report
+
+    def fail_report(report, *args, **kwargs):
+        if report == ("timeonice" if player_type == "skater" else "summary"):
+            raise CommandError("synthetic report failure")
+        return original(report, *args, **kwargs)
+
+    def fail_save(*args, **kwargs):
+        raise IntegrityError("synthetic persistence failure")
+
+    if failure_stage == "reports":
+        monkeypatch.setattr(loading, "fetch_report", fail_report)
+    else:
+        monkeypatch.setattr(type(player), "save", fail_save)
+    apply = (
+        upd_pls_tot.apply_current_mode_to_skater
+        if player_type == "skater"
+        else upd_pls_tot.apply_current_mode_to_goalie
+    )
+    error = CommandError if failure_stage == "reports" else IntegrityError
+    with pytest.raises(error, match="synthetic " + failure_stage.rstrip("s")):
+        if mode == "current":
+            apply(player, season="20262027")
+        else:
+            upd_pls_tot.import_player(totals_landing(player_type), player)
+    assert stored_players() == before
+
+
+def test_current_career_failure_preserves_staged_season_updates(totals_player, monkeypatch):
+    player, player_type = totals_player
+    before = stored_players()
+
+    def fail_career(*args):
+        raise CommandError("synthetic career failure")
+
+    monkeypatch.setattr(upd_pls_tot, "get_" + player_type + "_career_enrichment", fail_career)
+    apply = (
+        upd_pls_tot.apply_current_mode_to_skater
+        if player_type == "skater"
+        else upd_pls_tot.apply_current_mode_to_goalie
+    )
+    with pytest.raises(CommandError, match="synthetic career failure"):
+        apply(player, season="20262027")
+    assert stored_players() == before

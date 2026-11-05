@@ -241,3 +241,26 @@ summary statistics retains its existing values and season marker.
 The ORM is not mocked. No live NHL calls, media writes or application-database
 access are needed. Existing report/persistence tests remain; application code,
 dependencies, migrations, coverage exclusions and the 35% gate are unchanged.
+
+
+## Follow-up: totals refresh precedence and history preservation
+
+Sixteen new integration cases, together with the intervening overtime-TOI and
+historical-team fixes, bring the full offline run to **488 passed**, with
+12 external tests deselected and **84.13% combined coverage**. The unchanged
+35% gate, Ruff checks and formatting checks pass on Python 3.12.16 / Django 5.2.18
+using a disposable PostgreSQL 16 cluster.
+
+Shared synthetic reports exercise both skaters and goalies through real saves.
+The cases check player/current-totals command ordering without landing calls,
+replacement of overlapping historical seasons, preservation of unreturned history,
+repeat refreshes without duplicate season/team rows, retained traded-player splits,
+and historical-only backfills that leave the newer snapshot intact. Report data
+wins over conflicting landing season totals. Career totals remain separate.
+
+Injected report, career-fetch and database-save exceptions leave the saved player
+unchanged. These are per-player preservation contracts, not whole-command rollback:
+the totals command saves players individually. The ORM is used for persistence;
+upstream reports/enrichment and selected failure points are mocked. No application
+database or live NHL endpoints were accessed. Application code, dependencies,
+migrations and coverage exclusions are unchanged.
