@@ -551,7 +551,7 @@ def get_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
     except requests.RequestException:
         return []
 
-    return response.json().get("data", [])
+    return checked_stats_rest_rows(response, report_type, player_id)
 
 
 def get_goalie_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
@@ -574,7 +574,22 @@ def get_goalie_stats_rest_rows(report_type, player_id, session=None, aggregate=F
     except requests.RequestException:
         return []
 
-    return response.json().get("data", [])
+    return checked_stats_rest_rows(response, report_type, player_id)
+
+
+def checked_stats_rest_rows(response, report_type, player_id):
+    """A malformed optional report must not masquerade as valid empty data."""
+    try:
+        payload = response.json()
+        if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+            raise ValueError("Expected a JSON object with a data list")
+        if any(not isinstance(row, dict) for row in payload["data"]):
+            raise ValueError("Expected report rows to be JSON objects")
+    except ValueError as error:
+        raise CommandError(
+            f"Invalid career report {report_type} for player {player_id}: {error}"
+        ) from error
+    return payload["data"]
 
 
 def get_player_current_season(player):

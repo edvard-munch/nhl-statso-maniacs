@@ -364,3 +364,25 @@ and unexpected urllib downloads fail the tests. Application code, dependencies,
 migrations, coverage scope and the gate are unchanged. No application data or live
 NHL endpoints were accessed. Career-enrichment response handling remains a separate
 regression/hardening batch.
+
+
+## Follow-up: HTTP-backed career enrichment
+
+Twenty-four integration cases bring the offline suite to **604 passed**, with
+12 external tests deselected and **87.53% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% coverage gate pass.
+
+Synthetic aggregate HTTP responses pass through real request helpers and real
+current/full command saves for skaters and goalies. Tests check player/regular-season
+query scope, aggregate flags, limits and timeout, unchanged records during fetching,
+replay, separate season/history data, skater total/average precedence, goalie
+aggregate replacement, full-mode landing precedence and derived goalie saves.
+Partial rows and valid zeroes retain their distinction from unknown values.
+
+Empty responses, HTTP 503/429 and timeouts preserve saved optional career values;
+the existing no-retry policy is unchanged. Invalid JSON, non-object payloads,
+missing/null data lists and non-object rows now raise contextual CommandError
+rather than resembling empty reports or leaking shape errors. The malformed-input
+cases verify that the current player's staged season/career data remains unsaved.
+This is structural validation, not proof of numeric validity, aggregate completeness
+or whole-command rollback. No live NHL calls or application data were accessed.

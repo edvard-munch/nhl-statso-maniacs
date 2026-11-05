@@ -113,3 +113,35 @@ live NHL data into the application database. Do not use `--nomigrations` for thi
 suite: the legacy model's `ImageField(max_length=None)` prevents schema creation
 directly from models on this Django version; the real migrations create valid
 columns. Other known full-suite collection/isolation issues are separate work.
+
+
+## Career-enrichment response contracts
+
+Career aggregates are separate from season rows. HTTP-backed persistence tests
+use synthetic responses and real test-database saves to protect the current rules:
+
+- Current skater mode fills missing career totals while preserving existing totals
+  (including zero); valid aggregate averages replace saved enrichment averages.
+- Current goalie mode replaces career fields supplied by the aggregate summary.
+  Missing/null values preserve saved fields; explicit zeroes can replace them.
+- Full skater mode prefers landing career totals, fills missing enrichment fields,
+  and uses valid aggregate enrichment averages. Full goalie mode uses landing
+  career totals and derives saves from shots/goals against, without a career
+  aggregate request.
+
+Valid empty report lists and optional HTTP/timeout failures retain saved career
+values. The legacy optional-career HTTP boundary still does not retry failures,
+including 429 responses; the audit's rate-limit policy is separate. A successful
+HTTP response with invalid JSON, missing/null/non-list `data`, or non-object rows
+raises `CommandError` identifying the report and player. It must not silently count
+as an empty report. The current player's statistics are prepared before saving;
+previously saved players are not rolled back as a group. Full-mode image downloads
+still occur separately before statistics fetching; image failures/side effects are
+not covered by these statistics-preservation contracts.
+
+Structural validation does not validate every numeric field or establish aggregate
+identity/completeness. Those remain separate hardening decisions.
+
+```bash
+python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_career_enrichment_db.py
+```
