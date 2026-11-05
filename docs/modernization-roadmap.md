@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 628 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 644 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -160,7 +160,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Core publication, totals, metadata and career-response contracts covered | Loader orchestration | Real HTTP pagination through `upd_pls` staging/persistence/replay, bios/summary identity/count checks and malformed later-page rejection are covered. Current/full totals now protect command ordering, historical replacement/replay, latest-snapshot precedence and per-player failure preservation for skaters/goalies. Biography refreshes, nationality fallback, draft preservation and local flag attachment/recovery now have real persistence contracts. HTTP-backed career current/full precedence, empty/unavailable data, partial rows and malformed-response rejection now have persistence tests. Numeric validity, aggregate identity/completeness and whole-command rollback remain separate decisions; move to user-facing coverage next. |
 | Core complete; edge cases next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Opposing-player sweater collisions now have ID/team-scoped enrichment contracts. Removed participants and malformed roster groups remain follow-up cases. |
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
-| Player profiles/gamelogs covered; games/navigation next | User-facing views | Rendered career totals/averages/rates, current-panel season guards, recent/full gamelog ordering and times, empty states, pager boundary and player 404s now have contracts. Next cover game detail/date navigation, then remaining search/invalid-input gaps; reuse existing fixtures. |
+| Profiles, game detail and navigation covered; search next | User-facing views | Rendered career totals/averages/rates, current-panel season guards, recent/full gamelogs, player 404s, game-date roster/stat rendering, viewer-specific favorites and scoreboard windows/fallbacks now have contracts. Next audit search/filtering and invalid-input gaps, then user-owned actions; reuse existing fixtures. |
 | Next | Auth and user-owned actions | Login/registration/profile, favorite/comparison add/remove/limits/privacy, notes/positions and measurements. Audit existing saved-list coverage before adding cases. |
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
 | Next | Browser smoke tests | Actual season selection, favorites goalie-only/empty lists, totals/averages, comparison modes/removal/reset and team joined/split controls; assert displayed values and AJAX season persistence. |
@@ -228,14 +228,20 @@ A small shared guard rejects malformed JSON/report shapes with a contextual
 CommandError before the current player's statistics are saved. HTTP retry policy
 and per-player publication remain unchanged.
 
-The player-page follow-up adds 24 integration cases and passes 628 offline tests
+The player-page follow-up adds 24 integration cases and passes 644 offline tests
 at 87.91% combined coverage. Real rendered HTML protects career totals/averages,
 current-season visibility, gamelog ordering/PP/SH values, empty states, links and
 pager boundaries. Four initially failing invalid-identity cases exposed missing
 lookup guards; player detail and gamelog now return 404 instead of server errors.
 The profile's existing season-selection behavior is characterized, not extended.
-Next: game-detail/date-navigation regression contracts, followed by remaining
-search and user-owned action gaps, reusing existing fixtures.
+The game-page follow-up adds 16 cases and passes 644 offline tests at 88.02%
+combined coverage. Rendered skater/goalie tables use the game's saved date, preserve
+roster identity and favorite privacy, and do not substitute season values for
+missing gamelogs. Scoreboard contracts cover navigation windows, links, empty data,
+calendar-ordered fallback and a fresh Pacific default date on every request.
+Six initially failing cases led to narrow view fixes for missing-game/malformed-date
+404s, import-time date evaluation and insertion-order fallback. Next: audit search
+and filtering/invalid-input gaps, then user-owned actions, reusing existing fixtures.
 
 ## 3. Make updates convenient and confirm the data workflow
 

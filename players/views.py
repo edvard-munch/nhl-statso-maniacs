@@ -3,6 +3,7 @@ import os
 from itertools import chain
 
 from django.core import serializers
+from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
@@ -20,13 +21,16 @@ def about(request):
     return render(request, "players/about.html", {"title": "About"})
 
 
-def games(request, date=utils.get_us_pacific_date()):
-    context = {}
+def games(request, date=None):
+    if date is None:
+        date = utils.get_us_pacific_date()
     gamedays = list(Gameday.objects.all().order_by("day"))
     try:
         today = Gameday.objects.get(day=date)
+    except ValidationError as error:
+        raise Http404("Invalid gameday") from error
     except Gameday.DoesNotExist:
-        today = Gameday.objects.last()
+        today = gamedays[-1] if gamedays else None
     days_per_page = utils.get_adjacent(gamedays, today, utils.GAMES_PER_PAGE)
 
     context = {
@@ -38,7 +42,7 @@ def games(request, date=utils.get_us_pacific_date()):
 
 
 def game_detail(request, slug, nhl_id):
-    game = Game.objects.get(nhl_id=nhl_id, slug=slug)
+    game = get_object_or_404(Game, nhl_id=nhl_id, slug=slug)
     user = request.user
 
     context = {

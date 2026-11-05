@@ -408,3 +408,26 @@ slugs. Both player views now raise Http404 when their lookup returns no player.
 The shared lookup and other endpoints are unchanged. No application database or
 live NHL endpoints were accessed. Game-detail/navigation and user-owned actions
 remain separate regression batches.
+
+
+## Follow-up: game detail and scoreboard navigation
+
+Sixteen integration cases bring the offline suite to **644 passed**, with
+12 external tests deselected and **88.02% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% gate pass.
+
+Existing saved-game fixtures, mocked loader inputs and the rendered-table parser
+protect all four skater groups and both goalie tables. The checks distinguish
+selected-date gamelog values from season snapshots and other dates, including
+PP/SH times and goalie rates/results; verify player links, last-name ordering,
+viewer-specific favorites and missing-log/empty-roster behavior; and assert that
+rendering makes no extra HTTP calls.
+
+Scoreboard tests cover six-day windows at both ends and in the middle, selected
+score/game/date links, empty databases, valid unavailable dates and invalid dates.
+Six initially failing cases exposed missing game 404s, malformed-date server
+errors, an import-time default date and fallback ordering by insertion rather than
+calendar date. Views now return 404 for invalid game identities/dates, evaluate the
+Pacific default date per request and choose the latest calendar day as fallback.
+No migrations, application data or live NHL endpoints were involved. Search and
+user-owned action gaps remain the next focused batches.
