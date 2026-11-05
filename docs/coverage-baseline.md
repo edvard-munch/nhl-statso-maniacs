@@ -386,3 +386,25 @@ rather than resembling empty reports or leaking shape errors. The malformed-inpu
 cases verify that the current player's staged season/career data remains unsaved.
 This is structural validation, not proof of numeric validity, aggregate completeness
 or whole-command rollback. No live NHL calls or application data were accessed.
+
+
+## Follow-up: rendered player profiles and gamelogs
+
+Twenty-four integration cases bring the offline suite to **628 passed**, with
+12 external tests deselected and **87.91% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% coverage gate pass.
+
+Existing synthetic player/season fixtures and the rendered-table parser are reused.
+The cases assert actual skater/goalie career rows, totals, averages and rate
+formatting; current-panel visibility for stale/missing season markers and zero
+games; newest-first recent/full gamelogs; PP/SH time rendering; the 25/26-game pager
+boundary; empty histories; and profile/gamelog links. Saved data stays unchanged
+by the tested GET workflows. Projection timing is frozen and live HTTP is blocked.
+The profile still has no season selector; a query parameter does not rewrite its
+career history or change its current-panel selection.
+
+Four identity tests initially exposed server errors for missing IDs and mismatched
+slugs. Both player views now raise Http404 when their lookup returns no player.
+The shared lookup and other endpoints are unchanged. No application database or
+live NHL endpoints were accessed. Game-detail/navigation and user-owned actions
+remain separate regression batches.

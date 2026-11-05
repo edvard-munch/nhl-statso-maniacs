@@ -3,7 +3,7 @@ import os
 from itertools import chain
 
 from django.core import serializers
-from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 
@@ -338,6 +338,8 @@ def autocomplete(request):
 
 def player_detail(request, slug, nhl_id):
     player = utils.get_player(nhl_id, slug)
+    if player is None:
+        raise Http404("Player not found")
     current_season_id = get_latest_loaded_season_id()
     show_current_stats = bool(
         player.games
@@ -397,6 +399,8 @@ def player_detail(request, slug, nhl_id):
 
 def player_gamelog(request, slug, nhl_id):
     player = utils.get_player(nhl_id, slug)
+    if player is None:
+        raise Http404("Player not found")
     gamelog = utils.get_gamelog(player)
     options = utils.PAGE_SIZE_OPTIONS
     gamelog_size = len(gamelog)
