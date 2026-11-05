@@ -286,6 +286,16 @@ def audit_game(game, session):
                 if expected in (None, ""):
                     expected = by_id.get(player_id, {}).get(field)
                     source = report_key
+                    # Rostered skaters with no ice time may have no TOI report
+                    # block. An explicit valid zero total establishes zero PP/SH;
+                    # missing or invalid total TOI must never imply zero.
+                    if (
+                        expected in (None, "")
+                        and isinstance(player, Skater)
+                        and toi_seconds(api_player.get("toi")) == 0
+                    ):
+                        expected = upd_gms.ZERO_TOI
+                        source = "boxscore_zero_toi"
                 stored = log.get(field)
                 values = dict(field=field, stored=stored, expected=expected, source=source)
                 if toi_seconds(expected) is None:

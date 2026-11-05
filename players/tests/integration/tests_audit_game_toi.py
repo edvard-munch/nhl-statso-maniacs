@@ -846,3 +846,68 @@ def test_later_game_repair_failure_preserves_previously_committed_game(
     player = Skater.objects.get(nhl_id=900001)
     assert player.gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"] == "01:15"
     assert player.gamelog_stats["2026-11-22"]["powerPlayToi"] == "09:59"
+
+
+@pytest.mark.parametrize("total_toi", ["00:00", "0:00"])
+def test_rostered_skater_zero_toi_without_report_is_verified(
+    audit_fixture, requests_mock, total_toi
+):
+    roster_player = audit_fixture.payload["playerByGameStats"]["awayTeam"]["forwards"][0]
+    roster_player["toi"] = total_toi
+    audit_fixture.register()
+    requests_mock.get("https://reports.invalid/toiAway", text="<html>No player block</html>")
+    player = audit_fixture.players["away_forward"]
+    player.refresh_from_db()
+    player.gamelog_stats[audit_fixture.day["date"]].update(
+        powerPlayToi="00:00", shorthandedToi="00:00"
+    )
+    player.save(update_fields=["gamelog_stats"])
+    before = snapshot()
+    result = audit("--season", "20262027")
+    rows = [r for r in result["records"] if r.get("player_id") == player.nhl_id]
+    assert len(rows) == 2
+    assert all(
+        r["status"] == "match" and r["expected"] == "00:00" and r["source"] == "boxscore_zero_toi"
+        for r in rows
+    )
+    assert snapshot() == before
+
+
+@pytest.mark.parametrize("total_toi", [None, "", "invalid", "00:60", 0, "00:01"])
+def test_missing_invalid_or_positive_total_toi_cannot_establish_zero(
+    audit_fixture, requests_mock, total_toi
+):
+    roster_player = audit_fixture.payload["playerByGameStats"]["awayTeam"]["forwards"][0]
+    if total_toi is None:
+        roster_player.pop("toi")
+    else:
+        roster_player["toi"] = total_toi
+    audit_fixture.register()
+    requests_mock.get("https://reports.invalid/toiAway", text="<html>No player block</html>")
+    result = audit("--season", "20262027", "--repair")
+    rows = [r for r in result["records"] if r.get("player_id") == 900001]
+    assert len(rows) == 2
+    assert all(
+        r["status"] == "unverified" and r["expected"] is None and "repair" not in r for r in rows
+    )
+    assert (
+        Skater.objects.get(nhl_id=900001).gamelog_stats[audit_fixture.day["date"]]["powerPlayToi"]
+        == "01:15"
+    )
+
+
+def test_explicit_zero_total_can_repair_missing_special_teams_values(audit_fixture, requests_mock):
+    roster_player = audit_fixture.payload["playerByGameStats"]["awayTeam"]["forwards"][0]
+    roster_player["toi"] = "00:00"
+    audit_fixture.register()
+    requests_mock.get("https://reports.invalid/toiAway", status_code=404)
+    player = audit_fixture.players["away_forward"]
+    player.refresh_from_db()
+    player.gamelog_stats[audit_fixture.day["date"]].pop("shorthandedToi")
+    player.save(update_fields=["gamelog_stats"])
+    result = audit("--season", "20262027", "--repair")
+    rows = [r for r in result["records"] if r.get("player_id") == player.nhl_id]
+    assert all(r["repair"] == "applied" and r["expected"] == "00:00" for r in rows)
+    player.refresh_from_db()
+    assert player.gamelog_stats[audit_fixture.day["date"]]["powerPlayToi"] == "00:00"
+    assert player.gamelog_stats[audit_fixture.day["date"]]["shorthandedToi"] == "00:00"

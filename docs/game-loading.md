@@ -125,6 +125,14 @@ Home/away TOI reports are mapped separately by jersey to NHL player IDs. Existin
 boxscore values take precedence, matching the loader. Equivalent time strings
 such as `0:00` and `00:00` compare equally. Unused backup goalies are excluded.
 
+A rostered skater may have explicit zero total `toi` in the boxscore and no
+individual TOI report block. In that case, otherwise missing PP/SH fields are
+verified as `00:00`, with source `boxscore_zero_toi`. Missing, malformed or positive
+total TOI does not establish zero special-teams time. Existing boxscore/report
+PP/SH values retain their normal precedence. The same evidence can repair a wrong
+or missing saved PP/SH value under `--repair`; already-zero fields need no write.
+This does not change loader behavior or the exclusion of unused backup goalies.
+
 - `match`: the saved field agrees with the current source.
 - `mismatch`: a valid source value differs from the saved field (including a
   missing/invalid saved field). The output includes game/date/player, field,

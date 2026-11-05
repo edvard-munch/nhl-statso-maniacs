@@ -324,3 +324,19 @@ preserving earlier committed games. Rate limits prevent partial-game patches.
 Repair checkpoints are mode-specific, retry conflicts/failed games, and never
 reuse old read-only findings to perform writes. All HTTP responses are mocked.
 No live repair or application-database write was performed during validation.
+
+
+## Follow-up: rostered skaters with zero ice time
+
+Nine new integration cases bring the offline suite to **560 passed**, with
+12 external tests deselected and **85.68% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% coverage gate pass.
+
+When a rostered skater's boxscore explicitly reports valid zero total TOI, missing
+report PP/SH fields can be verified as zero. Missing, invalid or positive total
+TOI remains insufficient evidence. Tests cover equivalent zero time formats,
+unchanged saved records during audit, unavailable report blocks, rejection of
+unknown/invalid totals, and targeted repair of wrong/missing saved values using
+zero-total evidence. All NHL responses are mocked; no live audit or application
+writes were performed. User-reported zero total TOI for Zachary L'Heureux explains
+the prior two unverified fields; re-run the live single-game audit to confirm.
