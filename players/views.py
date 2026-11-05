@@ -1,12 +1,14 @@
 import json
-import os
 from itertools import chain
+from urllib.parse import urlencode
 
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.html import format_html
 
 from . import player_table, saved_players, team_tables, utils
 from .forms import NoteForm, PositionsForm
@@ -263,9 +265,8 @@ def ajax_players(
 
 
 def search(request):
-    if "q" in request.GET and request.GET["q"]:
-        query = request.GET["q"].strip()
-
+    query = request.GET.get("q", "").strip()
+    if query:
         result_skaters = Skater.objects.filter(name__icontains=query)
         result_goalies = Goalie.objects.filter(name__icontains=query)
         result_teams = Team.objects.filter(name__icontains=query)
@@ -294,6 +295,8 @@ def search(request):
 
 def autocomplete(request):
     query = request.GET.get("term", "").strip()
+    if not query:
+        return JsonResponse({})
 
     search_s = Skater.objects.filter(name__icontains=query)
     search_g = Goalie.objects.filter(name__icontains=query)
@@ -311,30 +314,33 @@ def autocomplete(request):
         search_qs.append(utils.SEARCH_RES_FULL)
 
     data = {}
-    domain = request.get_host()
-
     for index, res in enumerate(search_qs):
         data[index] = {}
 
         if res == utils.SEARCH_RES_FULL:
-            link = os.path.join("//", domain, f"search?q={query}")
-            href = f'href="{link}">{utils.SEARCH_RES_FULL}'
-            data[index]["label"] = f'<a class="{utils.AUTOSEARCH_CSS_TOTAL}"{href}</a>'
+            link = reverse("search") + "?" + urlencode({"q": query})
+            data[index]["label"] = format_html(
+                '<a class="{}" href="{}">{}</a>',
+                utils.AUTOSEARCH_CSS_TOTAL,
+                link,
+                utils.SEARCH_RES_FULL,
+            )
             data[index]["value"] = utils.SEARCH_RES_FULL
         elif res == utils.SEARCH_RES_DELIMETER:
             data[index]["label"] = res
 
         else:
             if isinstance(res, Team):
-                url_mid_part = utils.TEAM_URL
+                route = "team_detail"
                 css_class = utils.AUTOSEARCH_CSS_TEAM
             else:
-                url_mid_part = utils.PLAYER_URL
+                route = "player_detail"
                 css_class = utils.AUTOSEARCH_CSS_PLAYER
 
-            link = os.path.join("//", domain, url_mid_part, res.slug, str(res.nhl_id))
-            href = f'href="{link}">{res.name}'
-            data[index]["label"] = f'<a class="{css_class}"{href}</a>'
+            link = reverse(route, args=[res.slug, res.nhl_id])
+            data[index]["label"] = format_html(
+                '<a class="{}" href="{}">{}</a>', css_class, link, res.name
+            )
             data[index]["value"] = res.name
 
     return JsonResponse(data)

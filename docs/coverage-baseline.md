@@ -431,3 +431,26 @@ calendar date. Views now return 404 for invalid game identities/dates, evaluate 
 Pacific default date per request and choose the latest calendar day as fallback.
 No migrations, application data or live NHL endpoints were involved. Search and
 user-owned action gaps remain the next focused batches.
+
+
+## Follow-up: search and autocomplete input contracts
+
+Twenty-two integration cases bring the offline suite to **666 passed**, with
+12 external tests deselected and **89.11% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% coverage gate pass.
+
+Shared isolated view fixtures protect mixed skater/goalie/team matching,
+case-insensitive trimmed queries, literal percent/underscore/Unicode terms, empty
+results, profile/team links, suggestion grouping/separators and viewer-specific
+favorite/comparison controls. Blank search/autocomplete requests perform no model
+reads. An HTML parser checks autocomplete labels and URL parsing checks that
+reserved query characters round-trip without becoming attributes or fragments.
+
+Eleven initially failing cases exposed whitespace searches returning all records,
+blank autocomplete suggestions, noncanonical detail links and raw HTML/query
+construction. Views now trim before searching, return no suggestions for blank
+terms, reverse canonical internal routes, escape labels with format_html and
+encode full-results queries. Literal substring matching and the existing JSON
+shape/grouping remain. All tests block live HTTP and use isolated PostgreSQL;
+no application data or schema changes were involved. Interactive browser behavior
+and user-owned mutation endpoints remain separate batches.
