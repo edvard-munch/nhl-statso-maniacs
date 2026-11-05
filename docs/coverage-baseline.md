@@ -473,3 +473,26 @@ the actual submitted checkboxes and notes/positions report form errors with HTTP
 400 instead of claiming success. No schema migration, bulk reassignment, live HTTP
 or application-database access was involved. Concurrency/uniqueness constraints
 and ambiguous legacy-data review remain separate work.
+
+
+## Follow-up: saved measurement preferences
+
+Twenty-two integration cases bring the offline suite to **708 passed**, with
+12 external tests deselected and **90.05% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% gate pass. No application
+changes were needed.
+
+Existing isolated users/player-season fixtures drive real profile POSTs, rendered
+player detail pages and all three Players AJAX table modes. Tests cover USA/Europe
+updates and replay, forged profile/user identifiers, other-account isolation,
+invalid/blank/missing choices preserving both account and profile values, login
+redirects and CSRF. Invalid choices re-render the browser form with errors (HTTP
+200), consistent with the existing profile workflow.
+
+Anonymous/default and signed-in profile displays, table height/weight values and
+height options follow the chosen units. Switching viewers/preferences repeatedly
+does not leak settings or accumulate conversion drift. Full saved player snapshots
+remain unchanged by display conversion. All HTTP is blocked, media paths are
+temporary, and the application database was not accessed. Existing upload and
+metric-filter cases remain; this batch does not claim transaction rollback for
+runtime save failures or interactive browser coverage.

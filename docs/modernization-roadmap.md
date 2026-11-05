@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 686 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 708 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -161,7 +161,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Core complete; edge cases next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Opposing-player sweater collisions now have ID/team-scoped enrichment contracts. Removed participants and malformed roster groups remain follow-up cases. |
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
-| Notes/positions covered; measurements and remaining saved-action gaps next | Auth and user-owned actions | Typed note/position ownership, validation, update/clear, CSRF, privacy and legacy compatibility now have contracts. Audit existing auth/saved-list tests, then cover measurement preferences and remaining favorite/comparison quotas/mutations without duplication. |
+| Notes/positions and measurements covered; saved-action gaps next | Auth and user-owned actions | Typed note/position ownership, validation, update/clear, CSRF, privacy and legacy compatibility have contracts. Saved unit preferences now have real profile POST, user isolation, invalid-input, CSRF and display-preservation coverage. Audit remaining favorite/comparison quota/mutation gaps without duplicating existing auth/saved-list cases. |
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
 | Next | Browser smoke tests | Actual season selection, favorites goalie-only/empty lists, totals/averages, comparison modes/removal/reset and team joined/split controls; assert displayed values and AJAX season persistence. |
 
@@ -228,33 +228,39 @@ A small shared guard rejects malformed JSON/report shapes with a contextual
 CommandError before the current player's statistics are saved. HTTP retry policy
 and per-player publication remain unchanged.
 
-The player-page follow-up adds 24 integration cases and passes 686 offline tests
+The player-page follow-up adds 24 integration cases and passes 708 offline tests
 at 87.91% combined coverage. Real rendered HTML protects career totals/averages,
 current-season visibility, gamelog ordering/PP/SH values, empty states, links and
 pager boundaries. Four initially failing invalid-identity cases exposed missing
 lookup guards; player detail and gamelog now return 404 instead of server errors.
 The profile's existing season-selection behavior is characterized, not extended.
-The game-page follow-up adds 16 cases and passes 686 offline tests at 88.02%
+The game-page follow-up adds 16 cases and passes 708 offline tests at 88.02%
 combined coverage. Rendered skater/goalie tables use the game's saved date, preserve
 roster identity and favorite privacy, and do not substitute season values for
 missing gamelogs. Scoreboard contracts cover navigation windows, links, empty data,
 calendar-ordered fallback and a fresh Pacific default date on every request.
 Six initially failing cases led to narrow view fixes for missing-game/malformed-date
-404s, import-time date evaluation and insertion-order fallback. The search follow-up adds 22 integration cases and passes 686 offline tests at
+404s, import-time date evaluation and insertion-order fallback. The search follow-up adds 22 integration cases and passes 708 offline tests at
 89.11% combined coverage. Existing Players filtering contracts already cover
 selected-season projection, sorting, pagination and invalid table requests.
 New search/autocomplete checks cover matching/grouping, literal special characters,
 empty inputs/results, links and private saved controls. Eleven initially failing
 cases led to narrow fixes for blank-term matching, canonical routes, escaped HTML
-labels and encoded queries. The private-data follow-up adds 20 cases and passes 686 offline tests at 90.00%
+labels and encoded queries. The private-data follow-up adds 20 cases and passes 708 offline tests at 90.00%
 combined coverage. Colliding skater/goalie IDs exposed missing content-type identity;
 new notes/positions and profile lookups now use typed ownership. Form errors return
 400 without overwriting data, submitted checkbox values are validated, and missing
 players return 404. Existing CSRF and anonymous/GET contracts remain checked.
 Single unambiguous legacy rows upgrade on edit; ambiguous untyped rows are preserved
 but hidden pending explicit review. See [private player data](private-player-data.md).
-Next: measurement preferences and remaining favorite/comparison mutation/quota gaps,
-after auditing existing auth/saved-list tests. Browser interaction remains separate.
+The measurement-preference follow-up adds 22 cases and passes 708 offline tests
+at 90.05% combined coverage. Real profile posts protect USA/Europe persistence,
+repeat updates, other-account isolation, invalid choices, login and CSRF. Rendered
+skater/goalie profiles and all Players table modes follow saved units, with no
+changes to stored player columns or conversion drift when switching viewers.
+Existing behavior passed without application changes. Next: remaining favorite/
+comparison mutation and quota gaps after auditing existing auth/saved-list tests.
+Browser interaction remains separate.
 
 ## 3. Make updates convenient and confirm the data workflow
 
