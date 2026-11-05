@@ -303,3 +303,24 @@ resume/retry/deduplication, partial-line recovery, corrupt-file rejection and
 protection against overwriting files or mixing selections. All HTTP responses and
 waits are mocked; application data and live NHL endpoints were not accessed. The
 command still performs no database writes and has no repair mode.
+
+
+## Follow-up: targeted PP/SH gamelog repair
+
+Fourteen additional integration cases bring the full offline suite to **551 passed**,
+with 12 external tests deselected and **85.67% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% gate pass.
+
+The audit remains read-only by default. Explicit `--repair` re-fetches sources and
+patches only verified PP/SH mismatches under per-game transactions and row locks.
+Tests cover skaters/goalies, verified zeroes, unverified-field preservation, exact
+preservation of all other saved columns/gamelog content, roster/favorite retention,
+clean re-audits and idempotence. Simulated concurrent field/identity/date changes
+are checked again before saving; unrelated edits survive, already-correct values
+are recognized and duplicate evidence is refused.
+
+Injected database failures roll back all patches for the current game while
+preserving earlier committed games. Rate limits prevent partial-game patches.
+Repair checkpoints are mode-specific, retry conflicts/failed games, and never
+reuse old read-only findings to perform writes. All HTTP responses are mocked.
+No live repair or application-database write was performed during validation.

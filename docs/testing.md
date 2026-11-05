@@ -29,8 +29,8 @@ python -m pip check
 ```
 
 The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
-The target Python 3.12.16 environment passes `pip check`, Ruff and all 537 offline
-tests with the 35% coverage gate (85.36% combined coverage). The bootstrap file
+The target Python 3.12.16 environment passes `pip check`, Ruff and all 551 offline
+tests with the 35% coverage gate (85.67% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
 validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.

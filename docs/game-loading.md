@@ -93,7 +93,7 @@ non-scoring opponent, boxscore precedence, repeat loads, nested roster layouts,
 and unknown/missing identities. Existing gamelogs are corrected only when their
 games are reloaded; this change does not automatically backfill historical games.
 
-## Audit previously loaded TOI (read-only)
+## Audit previously loaded TOI (read-only by default)
 
 The parser fix does not change saved data. Audit a single known game first, then
 expand to a season or an inclusive date range:
@@ -108,8 +108,8 @@ python manage.py audit_game_toi --season 20262027 --json > /tmp/game-toi-audit.j
 Use your normal application database configuration: this command deliberately
 reads saved games and player gamelogs, but performs no database writes. It makes
 live NHL requests, unlike the mocked offline tests. No deleting records, resetting
-completion flags or running the updater is necessary to audit. There is no repair
-option in this batch.
+completion flags or running the updater is necessary to audit. Database writes
+require the explicit `--repair` option described below.
 
 `--season` accepts an eight-digit ID and selects regular-season game IDs. Date
 filters and repeated `--game-id` arguments can narrow the selection; filters
@@ -195,6 +195,68 @@ This audit covers special-teams TOI only, using the current parser and current N
 responses. It does not independently validate that parser, audit other game stats,
 or infer when a bad value was originally saved. Review unverified games separately
 before planning targeted repair/backfill.
+
+## Targeted repair of verified PP/SH mismatches
+
+Use `--repair` with the same game/season/date selectors. This explicitly enables
+database writes; without it the command remains read-only. Start with the known
+game, then cover the range you reviewed. Keep a database backup before a bulk repair.
+
+```bash
+python manage.py audit_game_toi --game-id 2026020232 --repair \
+  --output /tmp/game-toi-repair-2026020232.jsonl
+
+python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 --repair \
+  --output /tmp/game-toi-repair-season.jsonl --request-delay 2
+
+# Resume the repair, retaining exactly the same selectors and repair mode.
+python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 --repair \
+  --output /tmp/game-toi-repair-season.jsonl --request-delay 2 --resume
+```
+
+The command **fetches fresh sources** before repairing each game. It does not
+import expected values from the old JSON report. Only verified mismatches in
+`gamelog_stats[date].powerPlayToi` and `shorthandedToi` are patched. Genuine source
+zeroes can replace wrong values. Unverified fields, missing players/gamelogs and
+ambiguous identities are left untouched; valid fields in a partially unverified
+game can still be repaired. A source rate limit stops the game before any patches.
+
+Network requests finish before the per-game write transaction. The day, game and
+player rows are locked, identities/dates are checked again, and each candidate
+field must still equal the stored value observed by the fresh audit. A concurrent
+TOI edit becomes a conflict rather than being overwritten; a value already corrected
+is recorded as such. Unrelated edits, other gamelog dates/statistics, season/career
+statistics, player metadata, rosters, memberships and completion flags are preserved.
+Duplicate repair evidence is rejected. Database failure rolls back every patch
+for that game and stops the run; earlier committed games remain repaired.
+
+Repair records keep the pre-repair `stored` and fresh `expected` values, plus a
+`repair` result: `applied`, `already_correct`, `conflict`, or `failed`.
+`mismatch` counts still describe the comparisons **before** repair. Additional
+summary fields `repaired`, `already_correct`, `repair_conflicts` and `repair_failed`
+count repair outcomes. Inspect conflicts/unverified fields even when the command
+finishes successfully. Database failures, interruption and rate limits produce a
+nonzero exit status.
+
+Use a **new checkpoint path for repair**. Read-only checkpoints cannot be resumed
+as repairs (and repair checkpoints cannot be resumed as read-only audits). On repair
+resume, games with unverified fields, conflicts or failed saves are re-audited;
+verified completed games are skipped. Latest per-game results replace previous
+results in final summaries, so `repaired` counts describe the latest records, not
+a lifetime total across retries. The JSONL journal preserves the previous entries.
+If interrupted after a database commit but before writing its checkpoint, a resumed
+fresh audit sees the already-correct fields and does not patch them again.
+
+Finally, verify with a **new read-only audit**, without `--resume`:
+
+```bash
+python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 \
+  --output /tmp/game-toi-verification.jsonl --request-delay 2 \
+  --json > /tmp/game-toi-verification.json
+```
+
+Previously unverified fields still need separate investigation; a successful repair
+is not proof that every source field was available or every other game stat is correct.
 
 ## Regression checks
 

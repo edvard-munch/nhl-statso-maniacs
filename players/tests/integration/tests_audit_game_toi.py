@@ -517,3 +517,332 @@ def test_corrupt_checkpoint_is_rejected_without_modification(audit_fixture, tmp_
     with pytest.raises(CommandError, match="Invalid game checkpoint"):
         audit("--season", "20262027", "--output", str(path), "--resume")
     assert path.read_bytes() == before
+
+
+@pytest.fixture
+def incorrect_toi(audit_fixture):
+    fixture = audit_fixture
+    for key in ("away_forward", "away_goalie", "home_forward"):
+        player = fixture.players[key]
+        player.refresh_from_db()
+        player.gamelog_stats[fixture.day["date"]].update(
+            powerPlayToi="09:59", shorthandedToi="04:15"
+        )
+        player.save(update_fields=["gamelog_stats"])
+    return fixture
+
+
+def test_repair_changes_only_verified_toi_and_reaudit_is_clean(incorrect_toi, tmp_path):
+    before = snapshot()
+    favorites = list(incorrect_toi.user.favorite_skaters.values_list("pk", flat=True))
+    roster = list(incorrect_toi.game.away_forwards.values_list("pk", flat=True))
+    path = tmp_path / "repair.jsonl"
+    result = audit("--season", "20262027", "--repair", "--output", str(path))
+    assert result["summary"]["repaired"] == 6
+    assert result["summary"]["repair_conflicts"] == 0
+    assert result["summary"]["repair_failed"] == 0
+    after = snapshot()
+    # Compare all model columns directly, replacing only the six allowed fields.
+    for model in ("Skater", "Goalie"):
+        for row in before[model]:
+            if row["nhl_id"] in (900001, 900003, 900005):
+                log = row["gamelog_stats"][incorrect_toi.day["date"]]
+                log["powerPlayToi"] = "02:30" if row["nhl_id"] == 900005 else "01:15"
+                log["shorthandedToi"] = "00:00"
+    assert after == before
+    assert list(incorrect_toi.user.favorite_skaters.values_list("pk", flat=True)) == favorites
+    assert list(incorrect_toi.game.away_forwards.values_list("pk", flat=True)) == roster
+    assert len([r for r in result["records"] if r.get("repair") == "applied"]) == 6
+    fresh = audit("--season", "20262027")
+    assert fresh["summary"]["mismatch"] == 0
+    assert fresh["summary"]["unverified"] == 0
+    replay = audit("--season", "20262027", "--repair")
+    assert replay["summary"]["repaired"] == 0
+    assert snapshot() == after
+
+
+def test_repair_skips_unverified_fields_but_applies_verified_zero(incorrect_toi, requests_mock):
+    requests_mock.get(
+        "https://reports.invalid/toiAway",
+        text="""
+        <table><tr><th>#</th><th>TOI PP</th><th>TOI SH</th></tr>
+        <tr><td>98</td><td>invalid</td><td>00:00</td></tr></table>
+    """,
+    )
+    report = audit("--season", "20262027", "--repair")
+    player = incorrect_toi.players["away_forward"]
+    player.refresh_from_db()
+    log = player.gamelog_stats[incorrect_toi.day["date"]]
+    assert log["powerPlayToi"] == "09:59"
+    assert log["shorthandedToi"] == "00:00"
+    assert report["summary"]["unverified"] > 0
+    assert any(r.get("repair") == "applied" and r["expected"] == "00:00" for r in report["records"])
+
+
+def test_repair_preserves_unrelated_edits_and_skips_concurrently_changed_field(
+    incorrect_toi, monkeypatch
+):
+    original = audit_game_toi.audit_game
+
+    def concurrent_edit(game, session):
+        records = original(game, session)
+        player = Skater.objects.get(nhl_id=900001)
+        log = player.gamelog_stats[incorrect_toi.day["date"]]
+        log.update(powerPlayToi="08:00", goals=99, note="concurrent change")
+        player.gamelog_stats["2024-01-01"] = {"keep": "new history"}
+        Skater.objects.filter(pk=player.pk).update(gamelog_stats=player.gamelog_stats)
+        return records
+
+    monkeypatch.setattr(audit_game_toi, "audit_game", concurrent_edit)
+    report = audit("--season", "20262027", "--repair")
+    player = Skater.objects.get(nhl_id=900001)
+    log = player.gamelog_stats[incorrect_toi.day["date"]]
+    assert log["powerPlayToi"] == "08:00"
+    assert log["shorthandedToi"] == "00:00"
+    assert (log["goals"], log["note"]) == (99, "concurrent change")
+    assert player.gamelog_stats["2024-01-01"] == {"keep": "new history"}
+    assert report["summary"]["repair_conflicts"] == 1
+    assert report["summary"]["repaired"] == 5
+
+
+def test_repair_already_correct_concurrent_value_is_not_written(incorrect_toi, monkeypatch):
+    original = audit_game_toi.audit_game
+
+    def concurrent_correction(game, session):
+        records = original(game, session)
+        player = Skater.objects.get(nhl_id=900001)
+        player.gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"] = "1:15"
+        Skater.objects.filter(pk=player.pk).update(gamelog_stats=player.gamelog_stats)
+        return records
+
+    monkeypatch.setattr(audit_game_toi, "audit_game", concurrent_correction)
+    report = audit("--season", "20262027", "--repair")
+    assert report["summary"]["already_correct"] == 1
+    assert report["summary"]["repaired"] == 5
+    assert (
+        Skater.objects.get(nhl_id=900001).gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"]
+        == "1:15"
+    )
+
+
+@pytest.mark.parametrize("change", ["deleted_player", "missing_log", "game_date"])
+def test_repair_refuses_changed_identities_or_missing_log(incorrect_toi, monkeypatch, change):
+    original = audit_game_toi.audit_game
+
+    def mutate(game, session):
+        records = original(game, session)
+        if change == "game_date":
+            Gameday.objects.filter(pk=game.gameday_id).update(day="2026-11-22")
+        else:
+            player = Skater.objects.get(nhl_id=900001)
+            if change == "deleted_player":
+                player.delete()
+                Skater.objects.create(
+                    nhl_id=900001,
+                    name="Replacement",
+                    games=0,
+                    birth_date="2001-01-01",
+                    gamelog_stats={incorrect_toi.day["date"]: {"powerPlayToi": "09:59"}},
+                )
+            else:
+                player.gamelog_stats.pop(incorrect_toi.day["date"])
+                player.save(update_fields=["gamelog_stats"])
+        return records
+
+    monkeypatch.setattr(audit_game_toi, "audit_game", mutate)
+    report = audit("--season", "20262027", "--repair")
+    assert report["summary"]["repair_conflicts"] == (6 if change == "game_date" else 2)
+    if change == "deleted_player":
+        assert (
+            Skater.objects.get(nhl_id=900001).gamelog_stats[incorrect_toi.day["date"]][
+                "powerPlayToi"
+            ]
+            == "09:59"
+        )
+
+
+def test_database_failure_rolls_back_entire_game_and_preserves_failed_checkpoint(
+    incorrect_toi, monkeypatch, tmp_path
+):
+    from django.db import IntegrityError
+    from django.db.models.query import QuerySet
+
+    before = snapshot()
+    original = QuerySet.update
+    calls = []
+
+    def fail_second_update(queryset, **kwargs):
+        if "gamelog_stats" in kwargs:
+            calls.append(queryset.model)
+            if len(calls) == 2:
+                raise IntegrityError("synthetic repair save failure")
+        return original(queryset, **kwargs)
+
+    monkeypatch.setattr(QuerySet, "update", fail_second_update)
+    path = tmp_path / "repair.jsonl"
+    output = StringIO()
+    with pytest.raises(CommandError, match="repair failed"):
+        call_command(
+            "audit_game_toi",
+            "--season",
+            "20262027",
+            "--repair",
+            "--output",
+            str(path),
+            "--json",
+            stdout=output,
+        )
+    assert len(calls) == 2
+    assert snapshot() == before
+    summary = json.loads(output.getvalue())["summary"]
+    assert summary["repaired"] == 0
+    assert summary["repair_failed"] == 6
+    monkeypatch.setattr(QuerySet, "update", original)
+    resumed = audit("--season", "20262027", "--repair", "--output", str(path), "--resume")
+    assert resumed["summary"]["repaired"] == 6
+    assert resumed["summary"]["repair_failed"] == 0
+
+
+def test_repair_checkpoints_cannot_reuse_read_only_findings(incorrect_toi, tmp_path, requests_mock):
+    path = tmp_path / "audit.jsonl"
+    audit("--season", "20262027", "--output", str(path))
+    count = requests_mock.call_count
+    before = snapshot()
+    with pytest.raises(CommandError, match="selection"):
+        audit("--season", "20262027", "--repair", "--output", str(path), "--resume")
+    assert snapshot() == before
+    assert requests_mock.call_count == count
+
+
+def test_repair_resume_skips_successful_games_and_retries_conflicts(
+    incorrect_toi, monkeypatch, tmp_path, requests_mock
+):
+    original = audit_game_toi.audit_game
+    path = tmp_path / "repair.jsonl"
+
+    def concurrent_change(game, session):
+        records = original(game, session)
+        player = Skater.objects.get(nhl_id=900001)
+        player.gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"] = "08:00"
+        player.save(update_fields=["gamelog_stats"])
+        return records
+
+    monkeypatch.setattr(audit_game_toi, "audit_game", concurrent_change)
+    first = audit("--season", "20262027", "--repair", "--output", str(path))
+    assert first["summary"]["repair_conflicts"] == 1
+    monkeypatch.setattr(audit_game_toi, "audit_game", original)
+    resumed = audit("--season", "20262027", "--repair", "--output", str(path), "--resume")
+    assert resumed["summary"]["repair_conflicts"] == 0
+    assert resumed["summary"]["repaired"] == 1
+    count = requests_mock.call_count
+    assert audit("--season", "20262027", "--repair", "--output", str(path), "--resume") == resumed
+    assert requests_mock.call_count == count
+
+
+def test_duplicate_repair_evidence_is_not_guessed(incorrect_toi, monkeypatch):
+    from copy import deepcopy
+
+    original = audit_game_toi.audit_game
+
+    def duplicate(game, session):
+        rows = original(game, session)
+        extra = deepcopy(
+            next(
+                r for r in rows if r.get("player_id") == 900001 and r.get("field") == "powerPlayToi"
+            )
+        )
+        extra["expected"] = "07:00"
+        return rows + [extra]
+
+    monkeypatch.setattr(audit_game_toi, "audit_game", duplicate)
+    report = audit("--season", "20262027", "--repair")
+    assert report["summary"]["repair_conflicts"] == 2
+    assert (
+        Skater.objects.get(nhl_id=900001).gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"]
+        == "09:59"
+    )
+
+
+def test_repair_rechecks_sources_instead_of_using_old_audit_values(incorrect_toi, requests_mock):
+    preview = audit("--season", "20262027")
+    old = next(
+        r
+        for r in preview["records"]
+        if r.get("player_id") == 900001 and r.get("field") == "powerPlayToi"
+    )
+    assert old["expected"] == "01:15"
+    requests_mock.get(
+        "https://reports.invalid/toiAway",
+        text="""
+        <table><tr><th>#</th><th>TOI PP</th><th>TOI SH</th></tr>
+        <tr><td>98</td><td>03:00</td><td>00:00</td></tr></table>
+    """,
+    )
+    report = audit("--season", "20262027", "--repair")
+    assert report["summary"]["repaired"] > 0
+    assert (
+        Skater.objects.get(nhl_id=900001).gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"]
+        == "03:00"
+    )
+
+
+def test_rate_limit_during_repair_does_not_patch_a_partial_game(incorrect_toi, requests_mock):
+    requests_mock.get("https://reports.invalid/toiHome", status_code=429)
+    before = snapshot()
+    output = StringIO()
+    with pytest.raises(CommandError, match="stopping"):
+        call_command("audit_game_toi", "--season", "20262027", "--repair", "--json", stdout=output)
+    assert snapshot() == before
+    report = json.loads(output.getvalue())
+    assert report["summary"]["repaired"] == 0
+    assert report["summary"]["games_unverified"] == 1
+
+
+def test_later_game_repair_failure_preserves_previously_committed_game(
+    incorrect_toi, requests_mock, monkeypatch
+):
+    from copy import deepcopy
+    from django.db import IntegrityError
+    from django.db.models.query import QuerySet
+
+    second_day = Gameday.objects.create(day="2026-11-22")
+    second = Game.objects.create(nhl_id=2026020002, gameday=second_day, game_finished=True)
+    for model in (Skater, Goalie):
+        for player in model.objects.all():
+            if incorrect_toi.day["date"] not in player.gamelog_stats:
+                continue
+            player.gamelog_stats["2026-11-22"] = deepcopy(
+                player.gamelog_stats[incorrect_toi.day["date"]]
+            )
+            player.save(update_fields=["gamelog_stats"])
+    payload = deepcopy(incorrect_toi.payload)
+    payload.update(id=second.nhl_id, gameDate="2026-11-22")
+    requests_mock.get(upd_gms.URL_BOXSCORE.format(second.nhl_id), json=payload)
+    requests_mock.get(
+        upd_gms.URL_RIGHT_RAIL.format(second.nhl_id),
+        json={
+            "gameReports": {
+                "toiAway": "https://reports.invalid/toiAway",
+                "toiHome": "https://reports.invalid/toiHome",
+            }
+        },
+    )
+    original = QuerySet.update
+
+    def fail_second_game(queryset, **kwargs):
+        logs = kwargs.get("gamelog_stats")
+        if logs and logs["2026-11-22"].get("powerPlayToi") != "09:59":
+            raise IntegrityError("synthetic second-game failure")
+        return original(queryset, **kwargs)
+
+    monkeypatch.setattr(QuerySet, "update", fail_second_game)
+    output = StringIO()
+    with pytest.raises(CommandError, match="repair failed"):
+        call_command("audit_game_toi", "--season", "20262027", "--repair", "--json", stdout=output)
+    summary = json.loads(output.getvalue())["summary"]
+    assert summary["games"] == 2
+    assert summary["repaired"] == 6
+    assert summary["repair_failed"] == 6
+    player = Skater.objects.get(nhl_id=900001)
+    assert player.gamelog_stats[incorrect_toi.day["date"]]["powerPlayToi"] == "01:15"
+    assert player.gamelog_stats["2026-11-22"]["powerPlayToi"] == "09:59"

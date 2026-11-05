@@ -1,5 +1,7 @@
-"""Compare saved game PP/SH time with current NHL sources without writing data."""
+"""Audit saved PP/SH time; explicitly repair verified mismatches when requested."""
 
+from collections import Counter
+from copy import deepcopy
 from datetime import date, datetime, timezone
 from email.utils import parsedate_to_datetime
 import math
@@ -10,8 +12,9 @@ import re
 
 import requests
 from django.core.management.base import BaseCommand, CommandError
+from django.db import DatabaseError, transaction
 
-from players.models import Game, Goalie, Skater
+from players.models import Game, Gameday, Goalie, Skater
 from . import upd_gms
 
 
@@ -29,6 +32,8 @@ RATE_LIMIT_ATTEMPTS = 3
 RATE_BACKOFF_SECONDS = 5
 MAX_RATE_WAIT_SECONDS = 60
 CHECKPOINT_VERSION = 1
+REPAIR_MODELS = {"skater": Skater, "goalie": Goalie}
+REPAIR_RETRY_RESULTS = {"conflict", "failed"}
 
 
 class AuditRateLimitError(Exception):
@@ -79,10 +84,13 @@ class AuditSession(requests.Session):
 
 
 def checkpoint_selection(options):
-    return {
+    selection = {
         key: sorted(options[key]) if key == "game_id" and options[key] else options[key]
         for key in ("season", "start_date", "end_date", "game_id", "include_unfinished")
     }
+    if options["repair"]:
+        selection["repair"] = True
+    return selection
 
 
 class Checkpoint:
@@ -154,7 +162,7 @@ class Checkpoint:
             self.file.close()
 
 
-def summarize(results):
+def summarize(results, repair=False):
     records = [record for row in results.values() for record in row["records"]]
     summary = {status: sum(r["status"] == status for r in records) for status in STATUSES}
     summary["games"] = len(results)
@@ -164,6 +172,13 @@ def summarize(results):
     summary["games_unverified"] = len(
         {r["game_id"] for r in records if r["status"] == "unverified"}
     )
+    if repair:
+        summary.update(
+            repaired=sum(r.get("repair") == "applied" for r in records),
+            repair_conflicts=sum(r.get("repair") == "conflict" for r in records),
+            repair_failed=sum(r.get("repair") == "failed" for r in records),
+            already_correct=sum(r.get("repair") == "already_correct" for r in records),
+        )
     return summary, records
 
 
@@ -254,7 +269,11 @@ def audit_game(game, session):
                 record("unverified", "Missing or ambiguous saved player", **details)
                 continue
             player = candidates[0]
-            details["player"] = player.name
+            details.update(
+                player=player.name,
+                player_pk=player.pk,
+                player_type="skater" if isinstance(player, Skater) else "goalie",
+            )
             logs = player.gamelog_stats
             log = logs.get(day) if isinstance(logs, dict) else None
             if not isinstance(log, dict):
@@ -277,8 +296,84 @@ def audit_game(game, session):
     return records
 
 
+@transaction.atomic
+def repair_game(game, records):
+    """Lock and patch fresh mismatches; never replace a stale gamelog snapshot."""
+    changes = [row for row in records if row["status"] == "mismatch"]
+    if not changes:
+        return
+
+    def conflict(row, reason):
+        row.update(repair="conflict", repair_reason=reason)
+
+    # Match the loader's day -> game -> player lock order. No network calls occur
+    # within this transaction. Date identity must still match the audited game.
+    day = Gameday.objects.select_for_update().filter(pk=game.gameday_id).first()
+    current_game = Game.objects.select_for_update().filter(pk=game.pk).first()
+    if (
+        not day
+        or not current_game
+        or current_game.gameday_id != day.pk
+        or current_game.nhl_id != game.nhl_id
+        or str(day.day) != str(game.gameday.day)
+    ):
+        for row in changes:
+            conflict(row, "Saved game/date changed since audit")
+        return
+
+    ids = {row["player_id"] for row in changes}
+    saved = {}
+    for player_type, model in REPAIR_MODELS.items():
+        for player in model.objects.select_for_update().filter(nhl_id__in=ids).order_by("pk"):
+            saved.setdefault(player.nhl_id, []).append((player_type, player))
+    pending = {}
+    targets = Counter((row.get("player_id"), row.get("field")) for row in changes)
+    for row in changes:
+        if targets[row.get("player_id"), row.get("field")] > 1:
+            conflict(row, "Duplicate repair evidence")
+            continue
+        if (
+            row.get("field") not in TOI_FIELDS
+            or toi_seconds(row.get("expected")) is None
+            or row.get("game_id") != game.nhl_id
+            or row.get("date") != str(day.day)
+        ):
+            conflict(row, "Invalid repair evidence")
+            continue
+        candidates = saved.get(row["player_id"], [])
+        if (
+            len(candidates) != 1
+            or candidates[0][0] != row.get("player_type")
+            or candidates[0][1].pk != row.get("player_pk")
+        ):
+            conflict(row, "Saved player identity changed since audit")
+            continue
+        player_type, player = candidates[0]
+        logs = player.gamelog_stats
+        log = logs.get(row["date"]) if isinstance(logs, dict) else None
+        if not isinstance(log, dict):
+            conflict(row, "Saved gamelog disappeared since audit")
+            continue
+        current = log.get(row["field"])
+        if toi_seconds(current) == toi_seconds(row["expected"]):
+            row["repair"] = "already_correct"
+            continue
+        if current != row["stored"]:
+            conflict(row, "Saved field changed since audit")
+            continue
+        key = (player_type, player.pk)
+        if key not in pending:
+            pending[key] = (player, deepcopy(logs))
+        pending[key][1][row["date"]][row["field"]] = row["expected"]
+        row["repair"] = "applied"
+    for player, logs in pending.values():
+        # Update only this JSON column, preserving metadata, memberships, other
+        # dates, game statistics and any unrelated edits made since the audit.
+        type(player).objects.filter(pk=player.pk).update(gamelog_stats=logs)
+
+
 class Command(BaseCommand):
-    help = "Read-only audit of saved game PP/SH TOI against NHL boxscores and reports."
+    help = "Audit game PP/SH TOI; --repair explicitly fixes verified mismatches."
 
     def add_arguments(self, parser):
         parser.add_argument("--season", help="Regular-season ID, e.g. 20262027")
@@ -286,6 +381,11 @@ class Command(BaseCommand):
         parser.add_argument("--end-date", help="Inclusive YYYY-MM-DD")
         parser.add_argument("--game-id", type=int, action="append", help="Repeat to select games")
         parser.add_argument("--json", action="store_true", dest="json_output")
+        parser.add_argument(
+            "--repair",
+            action="store_true",
+            help="Recheck live sources and patch only verified PP/SH mismatches",
+        )
 
         parser.add_argument(
             "--include-unfinished",
@@ -331,7 +431,8 @@ class Command(BaseCommand):
             progress(f"Checkpoint: {Path(options['output']).resolve()}")
         else:
             progress("No checkpoint: use --output PATH to preserve progress for --resume.")
-        progress(f"Selected {len(games)} saved games; database is read-only.")
+        mode = "repair" if options["repair"] else "read-only audit"
+        progress(f"Selected {len(games)} saved games; mode: {mode}.")
         try:
             with AuditSession(options["request_delay"], progress) as session:
                 for index, game in enumerate(games, start=1):
@@ -341,40 +442,62 @@ class Command(BaseCommand):
                     if (
                         previous
                         and previous["date"] == day
-                        and all(r["status"] != "unverified" for r in previous["records"])
+                        and all(
+                            r["status"] != "unverified"
+                            and r.get("repair") not in REPAIR_RETRY_RESULTS
+                            for r in previous["records"]
+                        )
                     ):
                         progress(prefix + " · already audited (checkpoint)")
                         continue
                     progress(prefix)
                     try:
                         records = audit_game(game, session)
+                        if options["repair"]:
+                            try:
+                                repair_game(game, records)
+                            except DatabaseError as error:
+                                # The per-game transaction rolled back every patch.
+                                stopped = f"Game {game.nhl_id} repair failed; no patches from this game saved: {error}"
+                                for row in records:
+                                    if row["status"] == "mismatch":
+                                        row.update(repair="failed", repair_reason=stopped)
                     except AuditRateLimitError as error:
                         stopped = str(error)
                         records = [
                             dict(game_id=game.nhl_id, date=day, status="unverified", reason=stopped)
                         ]
                     checkpoint.save(game, records)
-                    summary, _ = summarize(checkpoint.results)
+                    summary, _ = summarize(checkpoint.results, options["repair"])
                     progress(
                         f"  {len(checkpoint.results)}/{len(games)} recorded · "
                         f"{summary['games_with_mismatches']} games with mismatches · "
                         f"{summary['games_unverified']} unverified · "
                         f"{monotonic() - started:.1f}s elapsed"
                     )
+                    if options["repair"]:
+                        progress(
+                            f"  {summary['repaired']} fields repaired · "
+                            f"{summary['repair_conflicts']} conflicts · "
+                            f"{summary['repair_failed']} failed"
+                        )
                     if stopped:
                         break
         except KeyboardInterrupt:
             stopped = "Interrupted; completed game results are preserved in --output if supplied."
         finally:
             checkpoint.close()
-        summary, records = summarize(checkpoint.results)
+        summary, records = summarize(checkpoint.results, options["repair"])
         if options["json_output"]:
             self.stdout.write(json.dumps(dict(summary=summary, records=records)))
         else:
             for row in records:
                 if row["status"] != "match":
                     self.stdout.write(json.dumps(row))
-            self.stdout.write("Read-only audit: " + json.dumps(summary))
+            self.stdout.write(
+                ("Repair audit: " if options["repair"] else "Read-only audit: ")
+                + json.dumps(summary)
+            )
         progress(
             f"Audit {'stopped' if stopped else 'finished'}: {summary['games']}/{len(games)} "
             f"games recorded in {monotonic() - started:.1f}s. "

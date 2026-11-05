@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 537 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 551 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -196,9 +196,15 @@ and 84.78% combined coverage. See [audit usage](game-loading.md). Run it against
 saved application data to identify mismatches and unverified games; no such live
 audit has been run by this validation. The audit-hardening follow-up adds finished-game selection, request pacing,
 bounded rate-limit handling, stderr progress and resumable JSONL checkpoints;
-537 offline tests now pass at 85.36% combined coverage. Run the hardened audit with
-`--output` to collect actionable findings before targeted repair/backfill, which
-remains a separate commit. No repair option or automatic data changes are included.
+537 offline tests now pass at 85.36% combined coverage. The user's completed read-only report covers 235 games through November 2, 2026:
+224 games have 3,441 PP/SH mismatches; two fields in game 2026020100 remain
+unverified. The explicit `--repair` follow-up is now implemented, with 14 additional
+integration cases and a full run of 551 passed / 85.67% combined coverage. It
+rechecks sources, patches only verified fields, preserves unverified/concurrent
+changes, and commits per game. Mode-specific checkpoints support repair resume.
+See [repair workflow](game-loading.md). Application repair has not been run by this
+validation; perform targeted repair and a fresh read-only verification as an
+operational step. Investigate the remaining unverified fields separately.
 
 ## 3. Make updates convenient and confirm the data workflow
 
