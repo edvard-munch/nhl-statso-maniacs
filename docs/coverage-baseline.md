@@ -582,3 +582,27 @@ and full team/skater/goalie database snapshots remain unchanged after interactio
 The existing offline asset/browser harness and CI selection include these cases
 without new dependencies or setup. No live NHL calls or application data were used.
 Favorites mutations and browser-level AJAX failure/recovery remain separate work.
+
+
+## Follow-up: favorites removal and empty-state browser transitions
+
+All **14 Chromium cases** pass through the isolated runner, including four new
+removal cases (last member of either group and final favorite of either type).
+The offline gate remains **725 passed**, with 12 external and 14 browser cases
+deselected, at **90.13% combined coverage**. Ruff, formatting and JavaScript syntax
+checks pass.
+
+The four cases initially failed. The favorites template left group wrappers
+unclosed and offered the empty state only at initial render; the removal handler
+did not hide empty groups or activate the remaining group. The wrappers are now
+independent, a persistent empty-state container is toggled from server counts,
+and the controller updates both counts, preserves season parameters and refreshes
+the current page when a group remains. Messages use text, requests are guarded
+while in flight, and failed/unconfirmed responses leave visible records intact.
+
+Real keyboard link activation exercises the mutation endpoint; reloads confirm
+persistence. Database checks protect other users' favorites, both users' comparison
+lists and all stored player columns. The existing offline assets and CI browser
+selection include these cases without new dependencies. No application data or
+live NHL calls were involved. Legacy GET/toggle semantics, concurrent mutations
+and browser-level failure injection remain separate work.

@@ -1,83 +1,64 @@
-const pageSize = 25;
-
-const delAlert=$('\
-  <div class="alert alert-primary js-fav-alert" role="alert">\
-    <span class="js-fav-message"></span>\
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">\
-      <span aria-hidden="true">&times;</span>\
-    </button>\
-  </div>\
-');
-
 $(function () {
-$('body').on('click', '.js-fav-del', function() {
-  var btn = $(this);
+  let busy = false;
+  const message = $('#favorites-update-message');
+  const groups = ['skaters', 'goalies'];
 
-  $.ajax({
-    type: 'GET',
-    url: btn.attr('href'),
-    success: function(data) {
-      let table = btn.closest('table');
-      let pager = table.find('.pager');
-      let currPage = table[0].config.pager.page;
-      let currentRow = btn.closest("tr");
-      let nextRow = currentRow.next();
-      let nextRowButton = nextRow.find('.js-fav-del');
-      let beforeLastRow = table.find("tbody tr").eq(-2);
-      let beforeLastRowButton = beforeLastRow.find('.js-fav-del');
+  function showMessage(text, failed) {
+    message.text(text).attr('class', failed ? 'alert alert-danger' : 'alert alert-primary')
+      .prop('hidden', false);
+  }
 
-      delAlert.insertAfter(table);
+  $('body').on('click', '.js-fav-del', function (event) {
+    event.preventDefault();
+    if (busy) return;
+    const button = $(this);
+    const table = button.closest('table');
+    const group = table.attr('id').includes('skaters') ? 'skaters' : 'goalies';
+    const url = new URL(button.attr('href'), window.location.href);
+    if (!url.pathname.endsWith('/')) url.pathname += '/';
+    const season = $('#saved-players-season').attr('data-season');
+    if (season) url.searchParams.set('season', season);
+    busy = true;
+    button.attr('aria-disabled', 'true');
 
-      let object = '';
-      if (nextRow.length > 0) {
-          object = nextRowButton;
-
-      } else {
-          object = beforeLastRowButton;
-      };
-
-      // needed to remove a current row to correctly count a number of rows for
-      // pageEmpty variable
-      currentRow.remove();
-      let pageEmpty = $('tbody tr:visible', table).length === 0;
-
-      $('.js-fav-alert').show().attr('class', 'alert alert-primary js-fav-alert').fadeTo(2000, 500).slideUp(500).insertAfter(object);
-      $('.js-fav-message').html(data['message']);
-
-      if (currPage > 0 && pageEmpty) {
-        // Updating to a current page instead of previous because pagerUpdate
-        // is using 1-based index and table[0].config.pager.page is using 0-based index
-          table.trigger('pagerUpdate', currPage);
-      } else {
-          setTimeout(function() {   // for alert to be shown for enough time
-            table.trigger('pagerUpdate')
-          }, 1000);
-      };
-
-      table.find("tbody tr:not(.filtered) td:first-child").each(function(index) {
-          $(this).text(index + 1);
+    $.getJSON(url.href).done(function (data) {
+      if (!data.authenticated) {
+        showMessage('Sign in to update your favorites.', true);
+        return;
+      }
+      if (!Number.isInteger(data.skaters_count) || !Number.isInteger(data.goalies_count)) {
+        showMessage('Could not confirm removal. Refresh the page and try again.', true);
+        return;
+      }
+      const counts = {skaters: data.skaters_count, goalies: data.goalies_count};
+      const currentPage = table[0].config.pager.page;
+      button.closest('tr').remove();
+      groups.forEach(function (kind) {
+        const tab = $('#js_' + kind + '_switch');
+        tab.text(kind.toUpperCase() + ' (' + counts[kind] + ')').toggle(counts[kind] > 0);
+        if (!counts[kind]) {
+          tab.removeClass('current-tab');
+          $('#js_' + kind + '_block').hide();
+          $('#js_' + kind + '_block [role="status"]').prop('hidden', true);
+          $('#js_' + kind + '_block tbody').empty();
+        }
       });
-
-      let tab = $('.comparison-button.current-tab');
-      let numberOfRows = '';
-
-      if (table.attr('id').includes('skaters')) {
-          numberOfRows = data['skaters_count'];
-          tab.html(buttonMod('SKATERS', numberOfRows));
-      } else if (table.attr('id').includes('goalies')) {
-          numberOfRows = data['goalies_count'];
-          tab.html(buttonMod('GOALIES', numberOfRows));
-      };
-
-      if (numberOfRows <= pageSize) {
-          pager.hide();
-      };
-    }
+      $('#favorites-empty-state').prop('hidden', counts.skaters + counts.goalies > 0);
+      if (!counts[group]) {
+        const remaining = groups.find(kind => counts[kind] > 0);
+        if (remaining) $('#js_' + remaining + '_switch').trigger('click');
+      } else {
+        const pageEmpty = table.find('tbody tr:visible').length === 0;
+        // Pager requests use one-based pages; return to the previous page if the
+        // last visible row was removed, retaining the current filters otherwise.
+        table.trigger('pagerUpdate', Math.max(1, currentPage + (pageEmpty ? 0 : 1)));
+      }
+      showMessage(data.message, false);
+    }).fail(function () {
+      showMessage('Could not remove favorite. Please try again.', true);
+    }).always(function () {
+      busy = false;
+      button.attr('aria-disabled', 'false');
     });
-    return false;
   });
 });
-
-function buttonMod(word, number) {
-    return `${word} (${number})`;
-};

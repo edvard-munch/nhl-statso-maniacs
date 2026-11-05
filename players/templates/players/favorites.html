@@ -14,10 +14,11 @@
 {% if user.is_authenticated %}
 {% include 'players/partial_saved_season_selector.html' %}
 <p>Gamelog includes all stored seasons.</p>
-{% if not favorites_g and not favorites_s %}
+<p id="favorites-update-message" role="status" hidden></p>
+<div id="favorites-empty-state"{% if favorites_g or favorites_s %} hidden{% endif %}>
 <h3>You have no favorite players yet!</h3><br>
 <a class="sign_button gray-orange" href="{% url 'players' %}">Browse for some great players here</a>
-{% endif %}
+</div>
 <div class="button-table-container">
 
 {% if favorites_s %}
@@ -72,6 +73,7 @@
 </tbody>
 </table>
 <p id="js_skaters_total_table-status" role="status" hidden></p>
+</div>
 
 {% endif %}
 
@@ -117,6 +119,7 @@
 </tbody>
 </table>
 <p id="js_goalies_total_table-status" role="status" hidden></p>
+</div>
 {% endif %}
 </div>
 

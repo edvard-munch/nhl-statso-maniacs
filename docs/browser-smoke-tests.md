@@ -1,10 +1,13 @@
 # Offline Chromium smoke tests
 
-Ten browser cases check real JavaScript, DOM events and Django AJAX responses:
+Fourteen browser cases check real JavaScript, DOM events and Django AJAX responses:
 
 - Players season selection, totals/averages and goalie modes, and unloaded seasons.
 - Goalie-only and empty favorites, including an old season with no goalie data.
 - Favorites skater totals/averages before and after changing season.
+- Removing the last skater or goalie from a mixed list and removing either type
+  as the final favorite: updated counts, remaining-group activation, final empty
+  state, season retention and persistence after reloading.
 - Comparison season/career modes, mode preservation across season changes,
   player removal, group reset confirmation and the resulting empty state.
 - Team split/joined layouts and independent totals/averages switches, historical
@@ -76,7 +79,7 @@ npm --prefix browser exec -- playwright show-trace browser-artifacts/modes.zip
 ## CI and remaining work
 
 The existing push/PR workflow runs the offline coverage gate first, installs the
-locked browser toolchain/assets, then runs all ten browser checks separately
+locked browser toolchain/assets, then runs all fourteen browser checks separately
 against the ephemeral PostgreSQL service. Failure artifacts are uploaded when
 present. The coverage report remains the offline server-side result; browser runs
 do not inflate it. Hosted execution still needs confirmation after pushing.
@@ -94,6 +97,14 @@ mode consistency after splitting and selected-season parameters on every team AJ
 request. Full saved team/player snapshots stay unchanged. No application-code or
 asset/dependency changes were needed for these scenarios.
 
-Additional favorites mutations and team AJAX failure/recovery interactions remain
-later focused browser work. Browser login, concurrent quota enforcement and migration of legacy
+The favorites removal controller uses the server's remaining counts rather than
+inferring a globally empty list from filtered table rows. Empty groups are hidden,
+the remaining group is activated and a final empty state offers the Players link.
+Skater/goalie section wrappers are closed independently so hiding one does not hide
+the other. Removal requests retain the selected season; successful updates use a
+stable status message. In-flight requests are guarded, and failed/unconfirmed
+responses do not remove visible rows. The legacy GET/toggle API is unchanged.
+
+Browser-level AJAX failure/recovery and broader filtered/paginated removal cases
+remain later focused work. Browser login, concurrent quota enforcement and migration of legacy
 GET-based mutations to POST are not established by these smoke cases.
