@@ -100,7 +100,7 @@ expand to a season or an inclusive date range:
 
 ```bash
 python manage.py audit_game_toi --game-id 2026020232
-python manage.py audit_game_toi --season 20262027
+python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl
 python manage.py audit_game_toi --start-date 2026-10-01 --end-date 2026-11-05
 python manage.py audit_game_toi --season 20262027 --json > /tmp/game-toi-audit.json
 ```
@@ -114,7 +114,10 @@ option in this batch.
 `--season` accepts an eight-digit ID and selects regular-season game IDs. Date
 filters and repeated `--game-id` arguments can narrow the selection; filters
 combine as intersections. A season, game ID or both date bounds are required.
-Only saved games are scanned; the command does not discover missing games.
+Only saved games marked `game_finished=True` are scanned by default, so scheduled
+future games are excluded without fetching their boxscores. Use
+`--include-unfinished` to inspect games whose local completion flag may be stale;
+the source must still be final. The command does not discover missing games.
 
 The audit checks source game ID/date and final state, then compares each played
 player's `powerPlayToi` and `shorthandedToi` against their saved date-keyed gamelog.
@@ -128,8 +131,8 @@ such as `0:00` and `00:00` compare equally. Unused backup goalies are excluded.
   stored and expected values, and source.
 - `unverified`: source data is unavailable, invalid or missing; the game is not
   final; its identity/date differs; or a saved player/gamelog cannot be resolved.
-  Missing reports never become expected zeroes. A failed game does not stop the
-  remaining audit.
+  Missing reports never become expected zeroes. Ordinary failed games do not stop
+  the remaining audit; persistent rate limiting stops the run as described below.
 
 Default output lists mismatches/unverified records plus a summary. `--json` emits
 one JSON object with `summary` and all `records`, including matches. Summary status
@@ -137,6 +140,56 @@ counts refer to records/fields, not games; separate counters identify games with
 mismatches or unverified records (a game can belong to both). Zero selected games
 means nothing was audited. Findings do not cause a nonzero exit status; review the
 summary rather than treating process success as proof of clean data.
+
+### Progress, rate limits and resuming
+
+Progress is always written to **stderr**, including game index/total, date, NHL ID,
+cumulative mismatch/unverified game counts, elapsed time and retry waits. It stays
+visible when `--json` stdout is redirected. The final progress line identifies the
+checkpoint location (or stdout when no file was requested).
+
+All audit HTTP requests, including HTML reports and retries, are paced at least
+one second apart by default. Override with `--request-delay 2` for a slower run.
+HTTP 429 responses get at most three attempts, with 5/10-second exponential waits
+and a longer `Retry-After` delay when supplied (seconds or an HTTP date). If the
+server requests more than 60 seconds, the audit stops instead of retrying early.
+Persistent 429 responses mark the current game unverified and stop before the next
+game, avoiding a season-long retry loop. This policy is local to the audit; the
+normal game loader's request handling is unchanged.
+
+Use `--output` for an **incremental JSONL checkpoint**, separate from the optional
+final JSON stdout report. The file starts with a version/selection header, followed
+by one flushed JSON object per completed game. It remains usable after Ctrl+C or
+process termination. Existing files are never overwritten by a new audit.
+
+```bash
+# Start a new report; progress remains visible in the terminal.
+python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl
+
+# After interruption or rate limiting, resume with exactly the same selection.
+# Request pacing can be changed without invalidating the checkpoint.
+python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl \
+  --resume --request-delay 2 --json > /tmp/game-toi-audit.json
+```
+
+Resume skips games with verified results (including known mismatches), retries
+unverified games and visits newly selected saved games. A retried game's latest
+checkpoint record replaces earlier results in the final summary/JSON report;
+the JSONL journal retains both entries. A partially written final line is discarded
+and that game is retried. Invalid complete records or a different selection/version
+are rejected. Use one process per checkpoint; do not resume a file while another
+process is still writing it.
+
+Checkpoint results describe the database and sources at the time each game was
+audited. **After repairing data, start a new output file** to recheck those games;
+resume intentionally reuses verified findings. The old single-object `--json`
+stdout report is not a resumable checkpoint. Without `--output`, stdout is still
+written at the end; there is no durable incremental file.
+
+Ctrl+C and rate-limit stops produce a partial final summary/report and a nonzero
+exit status. Completed checkpoint entries survive; an interrupted current game is
+retried on resume. Ordinary mismatches/unverified findings retain the existing
+zero-exit behavior, so always review the summary.
 
 This audit covers special-teams TOI only, using the current parser and current NHL
 responses. It does not independently validate that parser, audit other game stats,

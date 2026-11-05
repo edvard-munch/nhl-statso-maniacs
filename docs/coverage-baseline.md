@@ -283,3 +283,23 @@ PostgreSQL SELECT cursor declaration; saved game/day/player snapshots stay intac
 The command has no repair mode. No live NHL calls or application-database access
 were performed during validation. Operational examples and the distinction between
 mismatches, unverified evidence and zero selected games are in [game loading](game-loading.md).
+
+
+## Follow-up: audit pacing, progress and resume
+
+Twenty-one additional regression cases bring the offline suite to **537 passed**,
+with 12 external tests deselected and **85.36% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% coverage gate pass.
+
+The audit now defaults to locally finished games, paces every HTTP request, honors
+numeric/HTTP-date Retry-After, applies bounded rate-limit backoff and stops on
+persistent throttling. Progress goes to stderr; optional JSONL checkpoints flush
+per game and support resuming without refetching verified games. Unverified games
+are retried; latest results replace previous findings in the final summary.
+
+Tests exercise selection opt-in, stdout/progress separation, request pacing,
+report/JSON rate limits, long cooldowns, interruption and incremental durability,
+resume/retry/deduplication, partial-line recovery, corrupt-file rejection and
+protection against overwriting files or mixing selections. All HTTP responses and
+waits are mocked; application data and live NHL endpoints were not accessed. The
+command still performs no database writes and has no repair mode.
