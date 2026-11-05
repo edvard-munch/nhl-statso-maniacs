@@ -606,33 +606,30 @@ def player_note(request, slug, nhl_id):
     if user.is_authenticated:
         data["authenticated"] = True
         player = utils.get_player(nhl_id, slug)
+        if player is None:
+            raise Http404("Player not found")
         if request.method == "POST":
             form = NoteForm(request.POST)
-            if form.is_valid():
-                text = form.cleaned_data["text"]
-                if text:
-                    defaults = {
-                        "text": text,
-                        "player_name": player.name,
-                    }
-
-                    Note.objects.update_or_create(
-                        object_id=player.pk, author_id=request.user.id, defaults=defaults
-                    )
-                else:
-                    try:
-                        Note.objects.get(object_id=player.pk, author_id=request.user.id).delete()
-                    except Note.DoesNotExist:
-                        pass
-        else:
-            form = NoteForm()
-
+            if not form.is_valid():
+                return JsonResponse(
+                    {"authenticated": True, "errors": form.errors.get_json_data()}, status=400
+                )
+            note = utils.get_object(request, player, Note)
+            text = form.cleaned_data["text"]
+            if text:
+                if note is None:
+                    note = Note(author=user)
+                note.text = text
+                note.player_name = player.name
+                note.content_object = player
+                note.save()
+            elif note is not None:
+                note.delete()
         data["message"] = "Note is saved!"
     else:
         data["authenticated"] = False
         redir = request.META.get("HTTP_REFERER")
         data["message"] = utils.anon_alert(request, redir)
-
     return JsonResponse(data)
 
 
@@ -642,38 +639,32 @@ def player_positions(request, nhl_id, slug):
     if user.is_authenticated:
         data["authenticated"] = True
         player = utils.get_player(nhl_id, slug)
+        if player is None:
+            raise Http404("Player not found")
         if request.method == "POST":
             form = PositionsForm(request.POST)
-            if form.is_valid():
-                checked_data = request.POST.getlist("check")
-                if checked_data:
-                    defaults = {
-                        "data": checked_data,
-                        "player_name": player.name,
-                    }
-
-                    Position.objects.update_or_create(
-                        object_id=player.pk, author_id=request.user.id, defaults=defaults
-                    )
-                else:
-                    try:
-                        Position.objects.get(
-                            object_id=player.pk, author_id=request.user.id
-                        ).delete()
-                    except Position.DoesNotExist:
-                        pass
-        else:
-            form = PositionsForm()
-
+            if not form.is_valid():
+                return JsonResponse(
+                    {"authenticated": True, "errors": form.errors.get_json_data()}, status=400
+                )
+            positions = utils.get_object(request, player, Position)
+            checked_data = list(dict.fromkeys(form.cleaned_data["check"]))
+            if checked_data:
+                if positions is None:
+                    positions = Position(author=user)
+                positions.data = checked_data
+                positions.player_name = player.name
+                positions.content_object = player
+                positions.save()
+            elif positions is not None:
+                positions.delete()
         positions_extra = utils.get_object(request, player, Position)
-        data_add = {
-            "ajax_upd_pos": utils.unpack_list_positions(player, positions_extra),
-            "message": "Positions are saved!",
-        }
-        data = {**data, **data_add}
+        data.update(
+            ajax_upd_pos=utils.unpack_list_positions(player, positions_extra),
+            message="Positions are saved!",
+        )
     else:
         data["authenticated"] = False
         redir = request.META.get("HTTP_REFERER")
         data["message"] = utils.anon_alert(request, redir)
-
     return JsonResponse(data)

@@ -8,6 +8,7 @@ import os
 import functools
 from itertools import chain, zip_longest
 from django.db.models import Max, Min
+from django.contrib.contenttypes.models import ContentType
 
 from . import models
 from zoneinfo import ZoneInfo
@@ -808,13 +809,22 @@ def get_object(request, player, model_name):
       model_name: Name of the model without quotes - Note or Position
     """
     user = request.user
-    if user.is_authenticated:
-        try:
-            return model_name.objects.get(author_id=user.id, object_id=player.pk)
-        except model_name.DoesNotExist:
-            pass
+    if not user.is_authenticated:
+        return None
+    records = model_name.objects.filter(author_id=user.id, object_id=player.pk)
+    content_type = ContentType.objects.get_for_model(player)
+    try:
+        return records.get(content_type=content_type)
+    except model_name.DoesNotExist:
+        pass
 
-    return None
+    # Old commands omitted content_type. Only retain legacy lookup when the
+    # numeric ID identifies exactly one player model; never guess across types.
+    other_model = models.Goalie if isinstance(player, models.Skater) else models.Skater
+    if other_model.objects.filter(pk=player.pk).exists():
+        return None
+    legacy = list(records.filter(content_type__isnull=True)[:2])
+    return legacy[0] if len(legacy) == 1 else None
 
 
 def season_in_prog():

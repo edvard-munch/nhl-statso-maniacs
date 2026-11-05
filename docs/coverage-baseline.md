@@ -454,3 +454,22 @@ encode full-results queries. Literal substring matching and the existing JSON
 shape/grouping remain. All tests block live HTTP and use isolated PostgreSQL;
 no application data or schema changes were involved. Interactive browser behavior
 and user-owned mutation endpoints remain separate batches.
+
+
+## Follow-up: private notes and extra positions
+
+Twenty integration cases bring the offline suite to **686 passed**, with
+12 external tests deselected and **90.00% combined coverage** on disposable
+PostgreSQL 16. Ruff, formatting and the unchanged 35% coverage gate pass.
+
+Tests use colliding skater/goalie primary keys and two users to protect typed
+ownership, forged-ID resistance, repeated updates/clears, note-length validation,
+allowed position choices, missing-player 404s, anonymous no-write behavior, CSRF
+and escaped private note rendering. Legacy untyped rows are retained when ambiguous
+and read/upgraded on edit only when unambiguous. See [compatibility details](private-player-data.md).
+
+Endpoints and profile lookups now include player content type. Positions validate
+the actual submitted checkboxes and notes/positions report form errors with HTTP
+400 instead of claiming success. No schema migration, bulk reassignment, live HTTP
+or application-database access was involved. Concurrency/uniqueness constraints
+and ambiguous legacy-data review remain separate work.
