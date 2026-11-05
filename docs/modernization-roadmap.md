@@ -163,7 +163,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
 | Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
-| Players and core saved-list workflows covered; team controls next | Browser smoke tests | Seven real Chromium cases cover Players season/mode/empty states, goalie-only/empty favorites, totals/averages and comparison modes/removal/reset with season persistence. Cached offline assets and CI execution are implemented. Next cover team joined/split controls and remaining favorites mutations. |
+| Players, core saved lists and team controls covered | Browser smoke tests | Ten real Chromium cases cover Players season/mode/empty states, saved-list controls and team totals/averages/joined/split layouts with season persistence. Traded-player team contributions, historical/empty seasons and unchanged records are checked. Next cover remaining favorites mutations and AJAX failure/recovery. |
 
 The reported `upd_gms` JSON failure now has controlled request handling and
 rollback tests; live endpoint availability is not established by mocked checks.
@@ -276,7 +276,13 @@ The saved-list browser follow-up now passes all seven cases, adding real
 session-authenticated favorites and comparison interactions with database checks.
 It fixes an unavailable-season status label lost outside legacy table-cell markup.
 The offline gate remains 725 passed / 90.13% coverage, with browser tests separate.
-Next implementation batch: team layout controls, then remaining favorites mutations. Hosted CI verification and deployment rehearsal
+The team browser follow-up now passes all ten cases. Three new scenarios reuse
+traded-player fixtures to protect team-specific values, mode/layout switches,
+historical selection and unloaded seasons. Full saved team/player snapshots remain
+unchanged, and every team AJAX request retains the selected season. No application
+changes were needed. The offline gate remains 725 passed / 90.13% coverage.
+Next implementation batch: remaining favorites mutations, then browser AJAX
+failure/recovery contracts. Hosted CI verification and deployment rehearsal
 remain operational priorities; GET-to-POST migration, concurrency policy and
 ambiguous legacy-data review stay separate focused work.
 

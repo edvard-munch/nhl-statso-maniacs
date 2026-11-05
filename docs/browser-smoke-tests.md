@@ -1,12 +1,15 @@
 # Offline Chromium smoke tests
 
-Seven browser cases check real JavaScript, DOM events and Django AJAX responses:
+Ten browser cases check real JavaScript, DOM events and Django AJAX responses:
 
 - Players season selection, totals/averages and goalie modes, and unloaded seasons.
 - Goalie-only and empty favorites, including an old season with no goalie data.
 - Favorites skater totals/averages before and after changing season.
 - Comparison season/career modes, mode preservation across season changes,
   player removal, group reset confirmation and the resulting empty state.
+- Team split/joined layouts and independent totals/averages switches, historical
+  season selection and unloaded-season empty states. Team-specific skater/goalie
+  values must differ correctly from combined totals and stale snapshots.
 
 Conflicting snapshot values ensure displayed assertions use the correct sources.
 Browser JavaScript errors and HTTP errors on AJAX responses fail the tests (normal
@@ -73,7 +76,7 @@ npm --prefix browser exec -- playwright show-trace browser-artifacts/modes.zip
 ## CI and remaining work
 
 The existing push/PR workflow runs the offline coverage gate first, installs the
-locked browser toolchain/assets, then runs all seven browser checks separately
+locked browser toolchain/assets, then runs all ten browser checks separately
 against the ephemeral PostgreSQL service. Failure artifacts are uploaded when
 present. The coverage report remains the offline server-side result; browser runs
 do not inflate it. Hosted execution still needs confirmation after pushing.
@@ -85,6 +88,12 @@ retain the selected season. Missing-season players remain listed with dashes and
 a visible status label. A browser case exposed a status label discarded outside
 legacy table-cell markup; that name/status cell now uses valid HTML fragments.
 
-Team joined/split controls and additional favorites mutations remain later focused
-browser work. Browser login, concurrent quota enforcement and migration of legacy
+Three team cases reuse the existing traded-player fixtures and verify actual
+team contributions, unique joined rows, both split sections returning together,
+mode consistency after splitting and selected-season parameters on every team AJAX
+request. Full saved team/player snapshots stay unchanged. No application-code or
+asset/dependency changes were needed for these scenarios.
+
+Additional favorites mutations and team AJAX failure/recovery interactions remain
+later focused browser work. Browser login, concurrent quota enforcement and migration of legacy
 GET-based mutations to POST are not established by these smoke cases.

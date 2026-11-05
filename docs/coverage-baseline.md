@@ -563,3 +563,22 @@ profile links. No dependency, schema, application-data or workflow changes were
 needed; the existing CI browser selection automatically includes the new cases.
 Hosted execution still needs confirmation after pushing. Team browser controls
 and remaining favorites mutations are separate follow-ups.
+
+
+## Follow-up: team layout browser controls
+
+All **10 Chromium cases** pass through the dedicated isolated runner, including
+three new team scenarios. The offline gate remains **725 passed**, with 12 external
+and 10 browser cases deselected, at **90.13% combined coverage**. Ruff, formatting
+and browser-script syntax checks pass; no application-code changes were needed.
+
+Existing traded-player/season fixtures exercise independent defence/forward
+averages, joined totals/averages, re-splitting into both groups without duplicate
+visible rows, historical-season submission and unloaded-season states. Actual team
+contributions and goalie values must remain distinct from overall totals and
+conflicting snapshot fields. All team AJAX requests retain the selected season,
+and full team/skater/goalie database snapshots remain unchanged after interaction.
+
+The existing offline asset/browser harness and CI selection include these cases
+without new dependencies or setup. No live NHL calls or application data were used.
+Favorites mutations and browser-level AJAX failure/recovery remain separate work.

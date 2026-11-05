@@ -231,9 +231,9 @@ still needs a new hosted run after push.
 
 ## Optional browser smoke tests
 
-Seven Chromium cases exercise Players season/statistics controls and authenticated
-favorites/comparison workflows against the isolated live server. See
+Ten Chromium cases exercise Players, authenticated favorites/comparison and
+team season/layout controls against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 725 passed, 12 external and 7 browser
-cases deselected, at 90.13% combined coverage. The browser runner passes all 7 cases.
+CI runs both. The current offline result is 725 passed, 12 external and 10 browser
+cases deselected, at 90.13% combined coverage. The browser runner passes all 10 cases.
