@@ -65,9 +65,34 @@ team foreign key. Bench goalies with zero TOI are excluded; shared shutouts are 
 awarded as individual shutouts by the existing rule.
 
 Missing database players leave the game/day unfinished and produce a warning;
-loading the missing player and replaying can complete that roster. Follow-up
-contracts should still cover removed participants/gamelog cleanup and malformed
-roster groups. Opposing-player sweater collisions are covered below.
+loading the missing player and replaying can complete that roster. Removed
+participants/gamelog cleanup remains the next focused contract. Opposing-player
+sweater collisions are covered below.
+
+## Malformed supplied rosters
+
+For active/finished games, `upd_gms` validates supplied rosters before fetching
+supplemental reports or updating game/player records. Both sides must contain
+`forwards`, `defense` and `goalies` lists, without additional roster groups. Each
+entry must be an object with a positive player ID and a position compatible with
+its group. Integer and numeric-string IDs share one identity; duplicates within
+or across sides are rejected. A side with all three lists empty is rejected;
+an individual empty list is allowed.
+
+Goalies require a string TOI in the existing minute/second format so missing TOI
+cannot silently mean bench status. Played goalies also require `goalsAgainst`.
+This is a roster structure/identity boundary, not validation of every numeric stat.
+
+A malformed supplied roster raises `CommandError` identifying the gameday, game,
+boxscore URL and invalid roster path. The existing per-day transaction restores
+games, roster links, sides, player gamelogs and completion flags, including updates
+made for earlier games on that day. After fixing the response, replay the same
+command; regression tests check repeated two-game replay without duplicate records.
+
+An absent, null or empty-object roster retains the existing pending-game behavior:
+previous player logs/links stay intact and finished flags clear. The legacy nested
+`boxscore.playerByGameStats` format remains supported. Scheduled/pregame responses
+do not require rosters. No existing games are scanned or changed automatically.
 
 ## Report player identity
 

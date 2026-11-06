@@ -45,6 +45,12 @@ RETRYABLE_HTTP_STATUSES = {408, 429}
 SERVER_ERROR_STATUS = 500
 SCHEDULE_FIELDS = {"gameWeek", "regularSeasonStartDate", "regularSeasonEndDate"}
 BOXSCORE_FIELDS = {"gameState", "awayTeam", "homeTeam"}
+ROSTER_SIDES = ("awayTeam", "homeTeam")
+ROSTER_GROUP_POSITIONS = {
+    "forwards": {"C", "L", "R", "LW", "RW"},
+    "defense": {"D"},
+    "goalies": {"G"},
+}
 
 GAME_REPORT_LINK_KEYS = ["eventSummary", "faceoffSummary", "toiAway", "toiHome"]
 REPORT_STAT_KEYS = [
@@ -204,6 +210,9 @@ def _process_games(day, session):
         game_finished = False
         if regular_season_game(game):
             game_data = get_game_data(game["id"], URL_BOXSCORE, session)
+            rosters_api = None
+            if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
+                rosters_api = get_rosters_api(game_data, game["id"])
 
             team_objects = [
                 Team.objects.get(nhl_id=game_data["awayTeam"]["id"]),
@@ -228,7 +237,6 @@ def _process_games(day, session):
                 report_player_stats = get_game_report_player_stats(
                     game["id"], game_data=game_data, session=session
                 )
-                rosters_api = get_rosters_api(game_data)
                 if rosters_api:
                     rosters_database = prepare_rosters_for_database(
                         rosters_api, team_objects, gameday_obj, report_player_stats
@@ -258,26 +266,63 @@ def _process_games(day, session):
     gameday_obj.save(update_fields=["all_games_uploaded", "all_games_finished"])
 
 
-def get_rosters_api(game_data):
-    rosters_api = game_data.get("playerByGameStats") or game_data.get("boxscore", {}).get(
-        "playerByGameStats"
-    )
-    if not rosters_api:
+def get_rosters_api(game_data, game_id=None):
+    """Validate a supplied roster before reports, filtering or database writes."""
+    game_id = game_id if game_id is not None else game_data.get("id")
+
+    def invalid(path, reason):
+        raise CommandError(
+            "Invalid roster for game {} at {}: {} {}".format(
+                game_id, URL_BOXSCORE.format(game_id), path, reason
+            )
+        )
+
+    rosters_api = game_data.get("playerByGameStats")
+    if rosters_api is None or rosters_api == {}:
+        boxscore = game_data.get("boxscore")
+        if boxscore is not None:
+            if not isinstance(boxscore, dict):
+                invalid("boxscore", "must be an object")
+            rosters_api = boxscore.get("playerByGameStats")
+    if rosters_api is None or rosters_api == {}:
         return None
-
-    away_team = rosters_api.get("awayTeam")
-    home_team = rosters_api.get("homeTeam")
-    if not away_team or not home_team:
-        return None
-
-    rosters_api["awayTeam"]["goalies"] = get_played_goalies(
-        rosters_api["awayTeam"].get("goalies", [])
-    )
-    rosters_api["homeTeam"]["goalies"] = get_played_goalies(
-        rosters_api["homeTeam"].get("goalies", [])
-    )
-
-    return rosters_api
+    if not isinstance(rosters_api, dict):
+        invalid("playerByGameStats", "must be an object")
+    seen = set()
+    for side in ROSTER_SIDES:
+        groups = rosters_api.get(side)
+        path = "playerByGameStats." + side
+        if not isinstance(groups, dict) or set(groups) != set(ROSTER_GROUP_POSITIONS):
+            invalid(path, "must contain forwards, defense and goalies lists only")
+        for group, positions in ROSTER_GROUP_POSITIONS.items():
+            players = groups[group]
+            if not isinstance(players, list):
+                invalid(path + "." + group, "must be a list")
+            for index, player in enumerate(players):
+                entry = "{}.{}[{}]".format(path, group, index)
+                if not isinstance(player, dict):
+                    invalid(entry, "must be an object")
+                player_id = normalize_report_identifier(player.get("playerId"))
+                if player_id is None or player_id <= 0:
+                    invalid(entry, "requires a positive playerId")
+                if player_id in seen:
+                    invalid(entry, "duplicates playerId {}".format(player_id))
+                seen.add(player_id)
+                position = player.get("position")
+                if not isinstance(position, str) or position not in positions:
+                    invalid(entry, "has a missing or incompatible position")
+                if group == "goalies":
+                    toi = player.get("toi")
+                    if not isinstance(toi, str) or not re.fullmatch(TIME_MM_SS_REGEX, toi):
+                        invalid(entry, "requires goalie toi in MM:SS format")
+                    if toi != ZERO_TOI and "goalsAgainst" not in player:
+                        invalid(entry, "requires goalsAgainst for a played goalie")
+        if not any(groups.values()):
+            invalid(path, "must not contain only empty groups")
+    return {
+        side: dict(rosters_api[side], goalies=get_played_goalies(rosters_api[side]["goalies"]))
+        for side in ROSTER_SIDES
+    }
 
 
 def prepare_rosters_for_database(

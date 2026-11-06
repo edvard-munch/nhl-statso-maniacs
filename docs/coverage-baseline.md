@@ -688,3 +688,30 @@ preserving the existing markup for ordinary values. The wrapper computes checked
 state for every option, including explicit empty/None selections that previously
 could leave `check_this` unset and raise an error. No dependencies, migrations or
 application data changed.
+
+## Follow-up: malformed game-roster publication guards
+
+The offline gate passes **811 tests**, with **33 deselected** (12 external and
+21 browser), at **90.46% combined line/branch coverage**, retaining the 35% gate.
+Ruff, formatting and whitespace checks pass. Browser cases were not rerun for
+this loader-only change.
+
+Forty-four database cases reuse the synthetic game/report fixture. Twenty defect
+shapes are tested on both fresh and existing days: malformed roots/sides/groups,
+non-object entries, missing/invalid IDs or positions, duplicate identities,
+missing goalie participation fields and wholly empty sides. Full snapshots protect
+saved games, sides, players, completion flags, roster links and saved memberships.
+The original loader failed 41 of the 44 cases.
+
+Supplied rosters now validate before supplemental report fetching and database
+updates. Shape failures raise contextual `CommandError` with date, game ID,
+boxscore URL and invalid path. Numeric-string IDs retain compatibility; duplicate
+IDs cannot silently collapse M2M roster counts. No fixed roster size is assumed.
+
+A later malformed game rolls back earlier writes on the same day. After correcting
+the response, the same two-game schedule replays twice with stable IDs, unchanged
+older history/memberships and completed flags. Unavailable rosters remain pending
+without erasing previous links/logs, and nested legacy rosters remain supported.
+Validation uses disposable PostgreSQL and mocked HTTP; no application database or
+live NHL calls are involved. Changed-participant/gamelog cleanup is the remaining
+planned testing commit for this phase.

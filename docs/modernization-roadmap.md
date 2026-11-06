@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 767 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 811 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -158,7 +158,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | --- | --- | --- |
 | Completed | `upd_gms` response handling | Shared checked JSON requests, bounded retries, game/date/endpoint errors and per-day transaction rollback. Unavailable future-game JSON remains a controlled failure; a deferral policy is separate. See [game loading](game-loading.md). |
 | Core publication, totals, metadata and career-response contracts covered | Loader orchestration | Real HTTP pagination through `upd_pls` staging/persistence/replay, bios/summary identity/count checks and malformed later-page rejection are covered. Current/full totals now protect command ordering, historical replacement/replay, latest-snapshot precedence and per-player failure preservation for skaters/goalies. Biography refreshes, nationality fallback, draft preservation and local flag attachment/recovery now have real persistence contracts. HTTP-backed career current/full precedence, empty/unavailable data, partial rows and malformed-response rejection now have persistence tests. Numeric validity, aggregate identity/completeness and whole-command rollback remain separate decisions; move to user-facing coverage next. |
-| Core complete; edge cases next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Opposing-player sweater collisions now have ID/team-scoped enrichment contracts. Removed participants and malformed roster groups remain follow-up cases. |
+| Core and malformed-roster contracts covered; changed participants next | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, command/repeat loads, missing/bench players, history preservation and rollback. Opposing-player sweater collisions have ID/team-scoped enrichment contracts. Malformed supplied roster groups/entries now fail before publication; new/existing-day snapshots, later-game rollback and repaired replay are covered. Changed participants/gamelog cleanup remains the final planned testing batch for this phase. |
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
 | Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
@@ -167,8 +167,9 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 
 The reported `upd_gms` JSON failure now has controlled request handling and
 rollback tests; live endpoint availability is not established by mocked checks.
-Future-game deferral, removed participants and malformed roster groups still need
-explicit contracts; shared-sweater identity is now covered. Player-detail season selection is also a separate product change;
+Future-game deferral and removed participants still need explicit contracts;
+malformed supplied rosters and shared-sweater identity are now covered.
+Player-detail season selection is also a separate product change;
 characterize its current behavior before extending the selector there.
 
 The player-publication follow-up passes 456 tests at 83.57% combined coverage.
@@ -304,6 +305,11 @@ The checkbox-rendering follow-up adds twenty-three offline cases, escapes
 labels/tooltips/attributes, handles empty selections and protects literal filter
 values through real AJAX selection/reset. The gate now passes 767 tests at 90.26%
 combined coverage; no stored statistics or dependencies changed.
+The malformed-roster batch adds forty-four database cases and validates supplied
+rosters before reports or writes. Day rollback, repaired two-game replay and legacy/
+unavailable roster compatibility pass. The offline gate now passes 811 tests at
+90.46%; changed-participant cleanup is the one remaining planned testing commit
+before hosted CI verification and deployment rehearsal.
 
 ## 3. Make updates convenient and confirm the data workflow
 
