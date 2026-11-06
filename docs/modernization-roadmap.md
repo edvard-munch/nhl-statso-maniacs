@@ -529,6 +529,11 @@ credential validation is part of command retirement.
 A separate dependency follow-up removes furl and orderedmultidict, whose only
 code consumer was the retired video command. No remaining package versions,
 fixture exports, OAuth files or app behavior change; django-shortcuts stays.
+The next artifact cleanup removes six unused `players/fixtures/*_objects.json`
+exports and the disabled historical `loaddata` block/import. Supported tests use
+their own synthetic fixtures; no application data, models, migrations, active
+test fixtures, OAuth files or dependency settings change. OAuth retention is a
+separate review rather than an implied part of retiring old data exports.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

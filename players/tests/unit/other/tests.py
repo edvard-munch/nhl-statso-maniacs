@@ -4,18 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 # from correct.package import __BASE_URL
-from django.core.management import call_command
 from players.management.commands import upd_pls, upd_pls_tot
-
-
-# @pytest.fixture(scope='session')
-# def django_db_setup(django_db_setup, django_db_blocker):
-#     with django_db_blocker.unblock():
-#         call_command('loaddata', 'team_objects.json')
-#         call_command('loaddata', 'skater_objects.json')
-#         call_command('loaddata', 'goalie_objects.json')
-#         call_command('loaddata', 'gameday_objects.json')
-#         call_command('loaddata', 'games_objects.json')
 
 
 @pytest.mark.parametrize(

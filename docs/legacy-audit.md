@@ -48,7 +48,7 @@ supported commands remain discoverable; Make and Celery orchestration are unchan
 | `upd_pls_proj` (retired) | **Broken API contract.** Concatenates the current `PLAYER_ENDPOINT_URL` template without formatting its `{}` placeholder, appends an ID/hydrate query and expects retired `people/stats/splits` data. Writes `proj_stats`. The former mocked HTTP test covered retry plumbing, not endpoint validity. | Retired. Keep stored projection stats and UI until a separate product decision. |
 | `upd_vids` (retired) | **Unavailable in the locked environment / manual workflow.** Imports `googleapiclient` and `oauth2client`, neither installed nor declared in the lock. Uses browser/input OAuth, credential storage and YouTube API calls, then writes `relevant_video`/`video_link_updated_at`. No Make/task/CI caller or command regression coverage found. | Retired. Preserve stored video fields/UI and the 22 OAuth-related JSON files pending a separate artifact review; credential validity is not established. |
 | `upd_pls_sbs-n` (retired) | **Legacy season experiment / removal candidate.** Still discovered despite the hyphen. Hardcodes 2018–19, builds the same unformatted landing/hydrate URL pattern and expects nested legacy season rows; writes `sbs_stats`. No repository caller/test found. | Retired. Historical SBS data and supported current/full totals loaders are retained. |
-| `json_fixtures_creator` (retired) | **Manual data-export utility / removal candidate.** Reads every team and up to ten records of each other model, overwriting six tracked `players/fixtures/*_objects.json` files. It does not itself mutate DB records. No active test/CI caller or fixture-name consumer found; old `loaddata` examples are commented out. | Retired. Preserve the six exports for separate review; current synthetic `players/tests/fixtures` are distinct and retained. |
+| `json_fixtures_creator` (retired) | **Manual data-export utility / removal candidate.** Reads every team and up to ten records of each other model, overwriting six tracked `players/fixtures/*_objects.json` files. It does not itself mutate DB records. No active test/CI caller or fixture-name consumer found; old `loaddata` examples were commented out. | Retired. The six unused exports are removed in a later artifact cleanup; current synthetic test fixtures are distinct and retained. |
 
 The profile still consumes these data fields: [view context](../players/views.py)
 conditionally supplies `proj_stats`, and the [profile template](../players/templates/players/player_detail.html)
@@ -156,8 +156,8 @@ versions are unchanged; run `make sync` to prune the removed packages locally.
 
 ## Separate reviews after top-level command retirement
 
-Command retirement preserved these artifacts. The explicit dependency follow-up
-below removes only the exclusive URL packages; fixture and OAuth files remain:
+Command retirement initially preserved these artifacts. Later focused cleanups
+remove the exclusive URL packages and unused exports; OAuth files remain:
 
 - **Dependencies:** `furl` had no remaining tracked code import or mandatory
   dependent; `orderedmultidict` was required only by furl. Both are now removed
@@ -165,12 +165,14 @@ below removes only the exclusive URL packages; fixture and OAuth files remain:
   have other consumers and are not exclusive to the video command. The missing
   Google API/OAuth client libraries are not installed and need no uninstallation.
   `django-shortcuts` stays for its confirmed CLI use.
-- **Fixture exports:** six tracked JSON files contain 31 teams, 10 goalies,
-  10 skaters, 6 games, 6 sides and 157 gamedays. Only record counts/model labels
-  were inspected, without exposing record contents. These counts differ from the
-  retired exporter's current ten-record limit for non-teams, so regenerating them
-  would not preserve the existing artifacts. No active test/CI consumer was found;
-  confirm external/manual use before a distinct artifact-removal decision.
+- **Fixture exports:** all six unused `players/fixtures/*_objects.json` files are
+  now removed in a separate artifact cleanup. Before retirement, they contained
+  31 teams, 10 goalies, 10 skaters, 6 games, 6 sides and 157 gamedays. No active
+  test/CI consumer, fixture declaration or FIXTURE_DIRS setting was found. The
+  only remaining filename references were an already-disabled `loaddata` fixture
+  block, now removed with its unused import. The retired exporter is also gone.
+  Historical exports remain recoverable from Git; no application DB records are
+  deleted or reloaded. Synthetic fixtures under `players/tests` are retained.
 - **OAuth artifacts:** 22 tracked JSON files under the former command's
   `credentials/` directory are preserved. No remaining tracked source references
   those filenames/client libraries were found. Contents, token validity and Google
@@ -196,4 +198,13 @@ The exclusive URL dependency cleanup passes a clean 65-package sync, dependency/
 static/export checks, Django/migration checks, 901 offline tests at 91.27% coverage
 and 21 Chromium cases against disposable PostgreSQL. Only furl/orderedmultidict
 leave the graph; no remaining versions change. Run `make sync` to prune them
-locally. Fixture-export and OAuth-file retention decisions remain separate.
+locally. The later fixture-export cleanup is separate; OAuth-file retention remains open.
+
+
+Legacy export retirement removes exactly six JSON exports and the disabled
+loaddata block/import, with active synthetic test fixtures preserved. Normal
+collection still selects 901 tests. Django/migration checks, 901 offline tests
+at 91.27% coverage, the 35% gate, XML export and all 21 Chromium cases pass against
+disposable PostgreSQL without the old exports. Static/export/whitespace checks
+pass. No application database is queried or changed; OAuth files, schemas,
+commands, dependencies and installed Git hooks are unchanged.

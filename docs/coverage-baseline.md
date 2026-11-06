@@ -1156,3 +1156,21 @@ and XML export pass. All **21 Chromium cases pass** (**923 deselected**). Whites
 checks pass. No app code, schema, fixture exports, OAuth files, task/CI/hook
 behavior or stored data change; no live NHL calls. Run `make sync` to prune the two
 packages from an existing uv environment.
+
+
+## Follow-up: retire unused legacy fixture exports
+
+Remove the six `players/fixtures/*_objects.json` exports left by the retired
+json_fixtures_creator command. The only remaining filename references were in
+an already-disabled session database-loading fixture, now removed with its unused
+call_command import. No active consumers, fixture declarations or FIXTURE_DIRS
+setting were found. Current synthetic test fixtures remain; no application data,
+models/migrations, OAuth files, commands, task/hook/CI behavior or dependency
+metadata changes. Historical export contents remain in Git history.
+
+Collection still selects **901 of 944 cases**, with **43 deselected**. Against
+disposable PostgreSQL 16, system/migration checks, **901 offline tests** at
+**91.27% combined coverage**, the unchanged 35% gate and XML export pass without
+the old exports. All **21 Chromium cases pass**, with **923 deselected**. Static,
+requirements drift and whitespace checks pass. No application database or live
+NHL service is accessed; no fixtures are loaded into application records.
