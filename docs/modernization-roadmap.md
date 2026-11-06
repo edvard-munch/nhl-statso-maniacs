@@ -163,7 +163,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
 | Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
 | Next | Model/util/template logic | Cover substantive rules and escaping/formatting contracts rather than tests that duplicate implementation. |
-| Core Players/saved-list/team workflows and failure recovery covered | Browser smoke tests | Seventeen Chromium cases cover season/mode/layout controls, favorites last-member/final-member removal, empty transitions, comparison removal/reset and AJAX failures with explicit retries. Season retention, team contributions, reload persistence and ownership are checked. Broader filtered/paginated removal remains separate. |
+| Core Players/saved-list/team workflows and failure recovery covered | Browser smoke tests | Twenty-one Chromium cases cover season/mode/layout controls, favorites last-member/final-member removal, empty transitions, comparison removal/reset and AJAX failures with explicit retries. Season retention, team contributions, reload persistence and ownership are checked. Filtered/paginated favorites removal now protects global counts, sorting, season, valid paging and ownership for both player types. |
 
 The reported `upd_gms` JSON failure now has controlled request handling and
 rollback tests; live endpoint availability is not established by mocked checks.
@@ -290,7 +290,10 @@ the template/controller now handle both. The offline gate remains 725 passed /
 six injected failures preserve visible data and modes before explicit retries,
 including partial failure of a two-request team split. Other memberships and
 stored player columns remain intact; no application changes were needed.
-Broader filtered/paginated removal remains a separate case set. Hosted CI verification and deployment rehearsal
+The filtered/paginated removal follow-up adds four Chromium cases for skaters and
+goalies, protecting global counts, filter/sort/season retention, return to a valid
+page and deletion after reload. All twenty-one browser cases pass; application
+behavior is unchanged. Hosted CI verification and deployment rehearsal
 remain operational priorities; GET-to-POST migration, concurrency policy and
 ambiguous legacy-data review stay separate focused work.
 

@@ -627,3 +627,23 @@ The offline gate passes **725 tests**, with **29 deselected** (12 external and
 17 browser), at **90.13% combined line/branch coverage**, retaining the 35% gate.
 Ruff, formatting, JavaScript syntax and whitespace checks pass. Both suites use
 disposable PostgreSQL clusters; no application database or live NHL calls are used.
+
+## Follow-up: filtered and paginated favorites removal
+
+All **21 Chromium cases** pass. Four new cases cover skaters and goalies with
+26 synthetic favorites: remove the sole name-filter match without hiding the
+remaining favorites, or remove the only row on page two and return to page one.
+Filters, ascending name sorting, selected season and global counts survive
+removal. The no-match message clears after removing the filter, and the pager
+hides when only one page remains. Fresh renders confirm deletion persists;
+filters are explicitly reapplied after reload rather than assumed persistent.
+
+Other users' memberships, the owner's opposite-type favorites and comparison
+lists, and all stored player columns remain unchanged. The existing controller
+passes these regressions without application changes or new dependencies.
+
+The offline coverage gate remains **725 passed**, with **33 deselected**
+(12 external and 21 browser), at **90.13% combined coverage** against the 35% gate.
+Ruff, formatting, JavaScript syntax and whitespace checks pass. Validation uses
+disposable PostgreSQL clusters and real Chromium with cached assets; no
+application database or live NHL services are involved.

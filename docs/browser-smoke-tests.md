@@ -1,6 +1,6 @@
 # Offline Chromium smoke tests
 
-Seventeen browser cases check real JavaScript, DOM events and Django AJAX responses:
+Twenty-one browser cases check real JavaScript, DOM events and Django AJAX responses:
 
 - Players season selection, totals/averages and goalie modes, and unloaded seasons.
 - Goalie-only and empty favorites, including an old season with no goalie data.
@@ -8,6 +8,9 @@ Seventeen browser cases check real JavaScript, DOM events and Django AJAX respon
 - Removing the last skater or goalie from a mixed list and removing either type
   as the final favorite: updated counts, remaining-group activation, final empty
   state, season retention and persistence after reloading.
+- Removing a sole name-filter match while other favorites remain, and removing
+  the only row on page two: both skaters and goalies preserve filters, name sorting,
+  season and global counts, with valid paging and deletion confirmed after reload.
 - Comparison season/career modes, mode preservation across season changes,
   player removal, group reset confirmation and the resulting empty state.
 - Team split/joined layouts and independent totals/averages switches, historical
@@ -82,7 +85,7 @@ npm --prefix browser exec -- playwright show-trace browser-artifacts/modes.zip
 ## CI and remaining work
 
 The existing push/PR workflow runs the offline coverage gate first, installs the
-locked browser toolchain/assets, then runs all seventeen browser checks separately
+locked browser toolchain/assets, then runs all twenty-one browser checks separately
 against the ephemeral PostgreSQL service. Failure artifacts are uploaded when
 present. The coverage report remains the offline server-side result; browser runs
 do not inflate it. Hosted execution still needs confirmation after pushing.
@@ -117,6 +120,12 @@ protected. Retries use real Django responses. These cases do not establish safe
 retry after a mutation commits but its response is lost: the legacy GET/toggle
 API still needs a separate design decision.
 
-Broader filtered/paginated removal remains later focused work.
+Four filtered/paginated removal cases use 26 synthetic favorites per player type,
+plus an opposite-type favorite. Filtered empty results must show the no-match
+status while retaining the group; clearing the filter restores remaining players.
+Removing page two's final row returns to page one and hides the unneeded pager.
+Reload checks reapply filters explicitly; filters are not persisted across reloads.
+Database assertions protect other memberships, comparison lists and player fields.
+
 Browser login, concurrent quota enforcement and migration of legacy
 GET-based mutations to POST are not established by these smoke cases.

@@ -231,10 +231,10 @@ still needs a new hosted run after push.
 
 ## Optional browser smoke tests
 
-Seventeen Chromium cases exercise Players, authenticated saved-list controls,
-favorites removal/empty transitions, team layouts and AJAX failure/retry recovery
-against the isolated live server. See
+Twenty-one Chromium cases exercise Players, authenticated saved-list controls,
+favorites removal with filters/pagination, empty transitions, team layouts and
+AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 725 passed, 12 external and 17 browser
-cases deselected, at 90.13% combined coverage. The browser runner passes all 17 cases.
+CI runs both. The current offline result is 725 passed, 12 external and 21 browser
+cases deselected, at 90.13% combined coverage. The browser runner passes all 21 cases.
