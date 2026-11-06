@@ -71,7 +71,7 @@ of the shared AJAX endpoint keeps its existing data source in this commit.
 Run the focused PostgreSQL tests using real migrations:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_players_season_table.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_players_season_table.py
 ```
 
 They cover stale and contradictory snapshots, sorting before pagination,

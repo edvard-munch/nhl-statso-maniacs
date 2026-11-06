@@ -41,8 +41,8 @@ Allow the service to recover before rerunning. When players already completed
 and current totals failed, rerun just the remaining stages:
 
 ```bash
-python manage.py upd_pls_tot --mode=current &&
-python manage.py upd_gms
+uv run --locked python manage.py upd_pls_tot --mode=current &&
+uv run --locked python manage.py upd_gms
 ```
 
 Current totals starts at the beginning; it does not resume at the failed progress

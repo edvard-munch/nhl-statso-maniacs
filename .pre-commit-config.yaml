@@ -13,16 +13,16 @@ repos:
     hooks:
       - id: offline-tests
         name: Full offline regression tests
-        entry: python scripts/run_hook_tests.py
-        language: python
+        entry: uv run --locked python scripts/run_hook_tests.py
+        language: system
         pass_filenames: false
         always_run: true
         require_serial: true
         stages: [commit]
       - id: offline-coverage
         name: Full offline tests and coverage gate
-        entry: python scripts/run_hook_tests.py --coverage
-        language: python
+        entry: uv run --locked python scripts/run_hook_tests.py --coverage
+        language: system
         pass_filenames: false
         always_run: true
         require_serial: true

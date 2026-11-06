@@ -43,7 +43,7 @@ or application-database changes were performed by this implementation.
 Using the [isolated test database setup](testing.md):
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_owned_player_data_db.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_owned_player_data_db.py
 ```
 
 Twenty cases cover colliding skater/goalie primary keys, different users, forged

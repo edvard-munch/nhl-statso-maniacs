@@ -2,7 +2,6 @@
 
 import json
 import os
-from pathlib import Path
 
 import pytest
 
@@ -31,7 +30,7 @@ def test_runner_uses_explicit_test_credentials_and_preserves_exit_code(
     monkeypatch.setenv("POSTGRES_DB_PASSWORD", "application-secret")
     monkeypatch.setenv("PYTEST_ADDOPTS", "--nomigrations -m external --lf")
     monkeypatch.setenv("DJANGO_SETTINGS_MODULE", "unrelated_settings")
-    monkeypatch.setattr(runner, "project_python", lambda: "selected-python")
+    monkeypatch.setenv("VIRTUAL_ENV", "/old/venv")
     calls = []
 
     def run(command, cwd, env):
@@ -45,11 +44,11 @@ def test_runner_uses_explicit_test_credentials_and_preserves_exit_code(
         assert env["DJANGO_SETTINGS_MODULE"] == runner.SETTINGS_MODULE
         assert "PYTEST_ADDOPTS" not in env
         assert "--ds=" + runner.SETTINGS_MODULE in command
-        assert command[command.index("-m", 2) + 1] == (
+        assert command[command.index("-m", len(runner.UV_COMMAND) + 1) + 1] == (
             "browser and not external" if mode == "browser" else "not external and not browser"
         )
         assert command[-1] == str(runner.ROOT / "players/tests")
-        assert command[0] == "selected-python"
+        assert command[:4] == ["uv", "run", "--locked", "python"]
         assert ("--cov-fail-under=35" in command) is (mode == "coverage")
         return 7
 
@@ -98,23 +97,31 @@ def test_missing_configuration_does_not_fall_back_to_application(monkeypatch, tm
     assert "test-database.example.json" in capsys.readouterr().err
 
 
-def test_project_python_finds_repository_venv_without_activation(monkeypatch, tmp_path):
-    monkeypatch.delenv("VIRTUAL_ENV", raising=False)
+def test_runner_does_not_fall_back_to_old_venv(monkeypatch, tmp_path, database_config):
+    monkeypatch.setenv(runner.CONFIG_VARIABLE, str(database_config))
     monkeypatch.setattr(runner, "ROOT", tmp_path)
-    executable = Path("Scripts/python.exe" if runner.os.name == "nt" else "bin/python")
-    python = tmp_path / "venv" / executable
-    python.parent.mkdir(parents=True)
-    python.touch()
-    assert runner.project_python() == str(python)
+    legacy = tmp_path / "venv" / "bin" / "python"
+    legacy.parent.mkdir(parents=True)
+    legacy.touch()
+    monkeypatch.setenv("VIRTUAL_ENV", str(tmp_path / "venv"))
+    calls = []
+
+    def failed(command, **kwargs):
+        calls.append(command)
+        return 2  # A stale lock or failed sync must block the hook.
+
+    monkeypatch.setattr(runner.subprocess, "call", failed)
+    assert runner.main([]) == 2
+    assert len(calls) == 1
+    assert calls[0][:4] == ["uv", "run", "--locked", "python"]
 
 
-def test_project_python_ignores_managed_hook_environment(monkeypatch, tmp_path):
-    monkeypatch.setattr(runner, "ROOT", tmp_path)
-    executable = Path("Scripts/python.exe" if runner.os.name == "nt" else "bin/python")
-    project = tmp_path / "venv" / executable
-    managed = tmp_path / "managed-hook" / executable
-    for path in (project, managed):
-        path.parent.mkdir(parents=True)
-        path.touch()
-    monkeypatch.setenv("VIRTUAL_ENV", str(tmp_path / "managed-hook"))
-    assert runner.project_python() == str(project)
+def test_missing_uv_fails_clearly_without_python_fallback(monkeypatch, database_config, capsys):
+    monkeypatch.setenv(runner.CONFIG_VARIABLE, str(database_config))
+
+    def missing(*args, **kwargs):
+        raise FileNotFoundError("uv")
+
+    monkeypatch.setattr(runner.subprocess, "call", missing)
+    assert runner.main([]) == runner.EXECUTABLE_ERROR_EXIT
+    assert "uv is required on PATH" in capsys.readouterr().err

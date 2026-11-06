@@ -59,7 +59,7 @@ Run the focused suite against Django's isolated PostgreSQL test database using
 real migrations:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_team_season_tables.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_team_season_tables.py
 ```
 
 It covers initial/AJAX parity, traded skaters and goalies, historical and empty

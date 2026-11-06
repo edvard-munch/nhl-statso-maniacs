@@ -9,7 +9,7 @@ an additional deep copy when the original response is needed for comparison.
 Run the focused tests from the project root with the virtual environment active:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_stats_fixtures.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_stats_fixtures.py
 ```
 
 These tests use the existing season parser, average calculator, and mocked

@@ -98,7 +98,7 @@ Regression tests cover the old Utah contribution, duplicate registry order,
 successor-season selection, ambiguous/missing splits and request failures.
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_loading.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_loading.py
 ```
 
 Persistence tests use Django's normal isolated PostgreSQL test database and real
@@ -106,7 +106,7 @@ migrations. They cover new seasons, new goalies, team contributions, repeat runs
 favorites/comparison preservation, failed requests and transaction rollback:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_season_loading_db.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_season_loading_db.py
 ```
 
 These checks mock report responses and media-file decisions. They do not load
@@ -146,5 +146,5 @@ Structural validation does not validate every numeric field or establish aggrega
 identity/completeness. Those remain separate hardening decisions.
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_career_enrichment_db.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/integration/tests_career_enrichment_db.py
 ```

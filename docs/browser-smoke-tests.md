@@ -33,13 +33,13 @@ with synthetic fixtures. Never start them against your application database.
 
 ## Setup
 
-Activate the project venv and configure the dedicated test role/configuration in
+Run `uv sync --locked` and configure the dedicated test role/configuration in
 [testing.md](testing.md), including ignored `test-database.local.json`. Then run
 from the repository root:
 
 ```bash
 npm --prefix browser ci --ignore-scripts
-python scripts/prepare_browser_assets.py
+uv run --locked python scripts/prepare_browser_assets.py
 PLAYWRIGHT_BROWSERS_PATH="$PWD/.browser-cache/browsers" \
   npm --prefix browser exec -- playwright install --no-shell chromium
 make test-browser

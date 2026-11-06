@@ -1,82 +1,132 @@
-# uv migration: metadata and lockfile checkpoint
+# Locked uv workflow
 
-This first checkpoint adds project metadata and `uv.lock` alongside the working
-pip workflow. README setup, Make targets, CI and commit/push hooks still use the
-existing requirements files and project venv. Do not replace that environment yet.
+`pyproject.toml` and `uv.lock` are the source of truth for Python dependencies.
+Local commands, hooks and CI use `uv run --locked` / `uv sync --locked` so a stale
+lockfile fails instead of silently resolving different versions. The first
+metadata checkpoint preserved all 64 existing unique pins; the workflow switch
+changes no dependency versions or supported Python versions.
 
-## Dependency layout
+## Setup and existing environments
 
-`pyproject.toml` describes a private checkout-based application, not an installable
-distribution (`tool.uv.package = false`). Its `0.0.0` version is a metadata
-placeholder, not an application release. Python support is limited to the validated
-3.12 minor (`>=3.12,<3.13`); `.python-version` selects 3.12.16. Other interpreters
-and operating systems have not been validated by this checkpoint.
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/). CI pins
+**uv 0.10.10** via `astral-sh/setup-uv`; project metadata requires at least that
+version. From the checkout root:
+
+```bash
+uv python install 3.12.16
+make sync
+make lock-check requirements-check check
+uv pip check
+```
+
+uv creates `.venv/` with the interpreter in `.python-version`. Activation is
+optional. If the old `venv/` is active, deactivate it first to avoid uv's mismatch
+warning; project commands select `.venv/` regardless. Keep the old environment
+until the replacement is verified; no command here deletes it or changes `.env`,
+media or PostgreSQL data. Restart running app/worker processes with the new
+interpreter. A shell alias that runs Django must also select it, for example:
+
+```bash
+alias django='uv run --locked python manage.py'
+uv run --locked python manage.py runserver
+make update-daily
+```
+
+Loader Make targets still support an intentional `PYTHON=/path/to/python` override;
+the default is `uv run --locked python`. Ordered execution and stop-on-failure
+behavior are unchanged. Python support stays at `>=3.12,<3.13`; patch selection is
+3.12.16. Other platforms/interpreters are not validated by this migration.
+
+## Dependency groups
+
+The project is a private checkout application (`package = false`), without a build
+or editable install of the app itself. Version `0.0.0` is a metadata placeholder,
+not an application release.
 
 | Selection | Contents |
 | --- | --- |
-| Project dependencies | Existing application/loader dependencies, including their pinned transitive dependencies. Debug toolbar and Django extensions remain here because settings load them unconditionally. |
-| `test` group | pytest, Django/coverage/request plugins and the retained test compatibility pins. |
-| `hooks` group | The existing pre-commit pin. |
-| `dev` group (default) | Includes `test` and `hooks`, Ruff, retained legacy lint tools and the validated pip/setuptools/wheel/packaging tools. |
+| Project dependencies | Existing runtime/loader dependencies and retained transitive pins. Debug toolbar and Django extensions remain because settings load them unconditionally. |
+| `test` | pytest, Django/coverage/request plugins and retained compatibility pins. |
+| `hooks` | pre-commit. |
+| `dev` (default) | Includes `test`, `hooks`, Ruff, retained legacy lint tools and the validated packaging tools. |
 
-All 64 unique pins from `requirements.txt`, `requirements-hooks.txt` and
-`requirements-bootstrap.txt` are preserved exactly. Grouping is not a removal
-audit: legacy compatibility/tool pins remain for a separate review. Until the
-workflow switches, dependency edits must keep those files and the metadata in
-agreement, then regenerate/check the lockfile. The lock records transitive
-versions, platform markers and artifact hashes from public PyPI. Isolated source
-builds constrain setuptools, wheel and packaging to the validated bootstrap pins;
-build isolation remains enabled.
-
-## Opt-in validation
-
-Validated with uv 0.10.10 and Python 3.12.16 on Linux/PostgreSQL 16. The metadata
-requires uv 0.10.10 or newer. Follow the [official uv installation guide](https://docs.astral.sh/uv/getting-started/installation/)
-if needed. From the project root, check the lock without changing the project venv:
+For an isolated trial, set `UV_PROJECT_ENVIRONMENT` to a dedicated absolute path.
+For runtime-only deployment preparation in a separate environment:
 
 ```bash
-uv --version
-uv lock --check --python 3.12.16
+UV_PROJECT_ENVIRONMENT=/absolute/path/to/runtime-env uv sync --locked --no-default-groups
+uv pip check --python /absolute/path/to/runtime-env/bin/python
 ```
 
-Use a separate temporary environment for a trial sync:
+Use `--no-default-groups` with subsequent `uv run` commands for that runtime-only
+environment too; otherwise default development tools are synced back in. Do not
+point `UV_PROJECT_ENVIRONMENT` at shared/system Python: exact sync removes extra
+packages. Isolated dependency builds remain enabled, with setuptools, wheel and
+packaging constrained to the validated versions in `pyproject.toml`.
+
+## Updating dependencies and compatibility export
+
+Edit the appropriate dependency/group in `pyproject.toml` and regenerate the lock,
+or use uv's group-aware dependency commands. Review version changes explicitly:
 
 ```bash
-(
-  uv_trial_dir="$(mktemp -d)"
-  export UV_PROJECT_ENVIRONMENT="$uv_trial_dir/venv"
-  uv sync --locked --python 3.12.16
-  uv run --locked --no-sync python -m pip check
-  uv sync --locked --check
-)
+uv lock
+uv sync --locked
+make requirements
+make requirements-check check
 ```
 
-The temporary directory may be removed after the trial. `--locked` fails rather
-than silently updating a stale lockfile; do not substitute `--frozen` for this
-check. To select runtime dependencies alone, use a different temporary environment
-with `uv sync --locked --no-default-groups`. This environment intentionally lacks
-pytest, pre-commit, Ruff and pip; use `uv pip check --python /path/to/venv/bin/python`
-for its dependency check. Default `.venv/` is ignored, but the explicit temporary
-path above avoids creating it during this checkpoint.
+Commit metadata, lockfile and generated export together. Run Django system and
+migration checks, offline coverage and Chromium with test-only credentials as
+specified in [testing](testing.md). Do not run application loaders as a test.
 
-Existing hook runner interpreter selection prefers `venv` over `.venv` and the
-active environment. Calling it through `uv run` does not yet switch its tests to
-the uv interpreter. The migration validation explicitly selected each temporary
-interpreter and dedicated PostgreSQL configuration, without changing that runner
-or connecting to application data. Continue using the normal setup and hooks.
+`requirements.txt` is now a generated, hashed export of the default development
+selection, including transitive/platform-conditional packages. It is retained for
+pip compatibility and dependency scanners; do not edit it by hand. `make
+requirements` regenerates it only after uv successfully exports the locked graph.
+`make requirements-check` checks exact agreement without writing the file, and CI
+runs this check. `requirements-bootstrap.txt` and `requirements-hooks.txt` are
+retired; older checkpoint instructions mentioning them describe historical setups.
+The uv lockfile and its build constraints are authoritative for supported installs.
 
-## Verification and next commit
+## Hooks and CI
 
-The clean default sync installs the same 74 package versions as the validated
-pip environment; a separate runtime-only sync installs 45 packages without test,
-hook or lint tools. Both pass dependency and offline lock/sync consistency checks.
-Runtime-only Django system/migration checks and WSGI/Celery startup pass against
-disposable PostgreSQL. The default environment passes Django checks, **902 offline
-tests** at **90.86% combined coverage** (35% gate unchanged), and **21 Chromium
-tests**, without warnings. No application data or live NHL services are accessed.
-Node/Playwright assets remain outside this Python lockfile.
+After configuring `test-database.local.json` with a dedicated test role, reinstall
+hooks in each clone:
 
-Next: switch environment/interpreter selection, Make commands, hooks and CI to the
-locked workflow; update normal setup instructions and reconcile the transitional
-requirements files. Validate that change separately. Interpreter, dependency
-upgrades, optional live API repairs and legacy removal remain separate work.
+```bash
+make hooks
+make hooks-run
+make hooks-run-push
+```
+
+`make hooks` installs launchers using the locked pre-commit environment. Local test
+hooks use `language: system`; uv must be on PATH for terminal and GUI Git clients.
+The runner invokes uv directly for pytest, without searching old/active venvs or
+falling back if uv/sync fails. Ruff retains its pinned managed hook environment.
+Only the dedicated JSON configuration supplies test credentials; application
+credentials and inherited pytest selection flags cannot override it.
+
+CI installs Python from `.python-version`, pins uv 0.10.10, caches by `uv.lock`,
+syncs with `--locked`, checks dependencies/export drift and runs existing lint,
+JavaScript, Django/migration, offline coverage and Chromium checks. Coverage XML
+and browser failure artifacts keep their existing conditional uploads. Node and
+Playwright remain managed separately in `browser/package-lock.json`.
+
+## Validation
+
+The metadata checkpoint verified identical pip/uv versions for 74 installed
+packages and runtime-only startup with 45 packages. The workflow checkpoint
+validates a clean sync, the actual Make commands, generated export checks and
+real commit/push test hooks installed in a temporary Git checkout. An activated
+legacy venv cannot select the test interpreter. Synthetic fixtures and disposable
+PostgreSQL isolate all data; no actual commit/push or application loader is run.
+Both installed test hooks pass, as do the Make coverage target (**902 offline
+tests**, **90.86% combined coverage**, unchanged 35% gate), **21 Chromium cases**
+and coverage XML export. Missing-uv/legacy-venv regressions, a PATH without a
+`python` command, stale-lock blocking, export drift/failure preservation and loader
+order/stop-on-failure checks pass. Workflow/hook YAML, action inputs, shell syntax,
+Ruff and JavaScript syntax are checked locally.
+Hosted Actions verification still requires pushing this commit. Deployment
+backup/restore rehearsal, optional live API repairs and legacy cleanup remain
+separate work.

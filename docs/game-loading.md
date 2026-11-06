@@ -40,7 +40,7 @@ does not introduce a policy for skipping/deferring those games. A failed day is 
 marked complete. Once the endpoint is available, rerun:
 
 ```bash
-python manage.py upd_gms
+uv run --locked python manage.py upd_gms
 ```
 
 Existing command orchestration may revisit earlier days. Regression tests verify
@@ -155,10 +155,10 @@ The parser fix does not change saved data. Audit a single known game first, then
 expand to a season or an inclusive date range:
 
 ```bash
-python manage.py audit_game_toi --game-id 2026020232
-python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl
-python manage.py audit_game_toi --start-date 2026-10-01 --end-date 2026-11-05
-python manage.py audit_game_toi --season 20262027 --json > /tmp/game-toi-audit.json
+uv run --locked python manage.py audit_game_toi --game-id 2026020232
+uv run --locked python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl
+uv run --locked python manage.py audit_game_toi --start-date 2026-10-01 --end-date 2026-11-05
+uv run --locked python manage.py audit_game_toi --season 20262027 --json > /tmp/game-toi-audit.json
 ```
 
 Use your normal application database configuration: this command deliberately
@@ -228,11 +228,11 @@ process termination. Existing files are never overwritten by a new audit.
 
 ```bash
 # Start a new report; progress remains visible in the terminal.
-python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl
+uv run --locked python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl
 
 # After interruption or rate limiting, resume with exactly the same selection.
 # Request pacing can be changed without invalidating the checkpoint.
-python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl \
+uv run --locked python manage.py audit_game_toi --season 20262027 --output /tmp/game-toi-audit.jsonl \
   --resume --request-delay 2 --json > /tmp/game-toi-audit.json
 ```
 
@@ -267,14 +267,14 @@ database writes; without it the command remains read-only. Start with the known
 game, then cover the range you reviewed. Keep a database backup before a bulk repair.
 
 ```bash
-python manage.py audit_game_toi --game-id 2026020232 --repair \
+uv run --locked python manage.py audit_game_toi --game-id 2026020232 --repair \
   --output /tmp/game-toi-repair-2026020232.jsonl
 
-python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 --repair \
+uv run --locked python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 --repair \
   --output /tmp/game-toi-repair-season.jsonl --request-delay 2
 
 # Resume the repair, retaining exactly the same selectors and repair mode.
-python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 --repair \
+uv run --locked python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 --repair \
   --output /tmp/game-toi-repair-season.jsonl --request-delay 2 --resume
 ```
 
@@ -314,7 +314,7 @@ fresh audit sees the already-correct fields and does not patch them again.
 Finally, verify with a **new read-only audit**, without `--resume`:
 
 ```bash
-python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 \
+uv run --locked python manage.py audit_game_toi --season 20262027 --end-date 2026-11-02 \
   --output /tmp/game-toi-verification.jsonl --request-delay 2 \
   --json > /tmp/game-toi-verification.json
 ```
@@ -345,7 +345,7 @@ The normal updater may skip completed historical days; this fix does not perform
 a historical backfill.
 
 ```bash
-python -m pytest -c players/tests/pytest.ini \
+uv run --locked python -m pytest -c players/tests/pytest.ini \
   players/tests/unit/other/tests_upd_gms_requests.py \
   players/tests/unit/other/tests_upd_gms_reports.py \
   players/tests/unit/other/tests_upd_gms_identity.py
@@ -354,7 +354,7 @@ python -m pytest -c players/tests/pytest.ini \
 Using the [isolated PostgreSQL test setup](testing.md), also run:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini \
+uv run --locked python -m pytest -c players/tests/pytest.ini \
   players/tests/integration/tests_upd_gms_failures_db.py \
   players/tests/integration/tests_upd_gms_rosters_db.py \
   players/tests/integration/tests_upd_gms_report_identity_db.py

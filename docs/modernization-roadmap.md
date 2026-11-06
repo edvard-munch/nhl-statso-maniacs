@@ -425,8 +425,17 @@ has the same 74 installed versions as the validated pip environment. Runtime-onl
 sync, dependency checks, Django/migration/WSGI/Celery checks, 902 offline tests at
 90.86% combined coverage and 21 Chromium cases pass using disposable environments
 and PostgreSQL. Existing venv, requirements, Make commands, hooks and CI are
-unchanged. Next switch those workflows to the lockfile and validate interpreter
-selection before retiring or generating transitional requirements files.
+unchanged in that first checkpoint.
+The workflow follow-up now runs Make, hooks and CI through `uv run --locked`.
+Hooks invoke uv directly instead of searching legacy/active venvs; missing uv,
+lock/sync failures and invalid test configuration block execution without fallback.
+CI pins uv 0.10.10 and caches by the lockfile. `requirements.txt` is generated from
+that graph with artifact hashes and a CI drift check; redundant bootstrap/hook
+requirements files are retired. All package versions and the lockfile are unchanged.
+Clean sync, stale-lock/export guards, loader sequencing, both real test hooks in a
+temporary Git checkout, 902 offline tests at 90.86% coverage, 21 Chromium cases and
+XML export pass locally. Reinstall hooks in each clone with `make hooks`; uv must
+be on terminal/GUI PATH. Hosted Actions still needs verification after push.
 
 Correction to the earlier chat advice: current uv documentation lists Python
 3.7 as Tier 2, rather than universally excluding it. That does **not** prove this
@@ -435,9 +444,10 @@ Validate the exact uv version and workflow in a fresh environment before changin
 the standard setup. See [uv Python support](https://docs.astral.sh/uv/reference/policies/python/).
 
 The baseline, Python/Django bridge and metadata/lockfile validation are complete
-locally. Next update Make targets, hooks, CI and normal setup documentation
-together. Keep tool migration and dependency/framework upgrades in separate
-commits, preserving a working setup until the replacement is proven.
+locally, including the Make/hook/CI workflow switch. Next verify hosted CI and
+Dependabot's uv/dependency graph after push, then return to the separately queued
+optional live checks, legacy audit and behavior changes. Deployment backup/restore
+rehearsal remains deferred. Keep dependency/framework upgrades in separate commits.
 
 The separate Dependabot dependency-graph run rejected Python 3.7.17
 (`tool_version_not_supported`). The validated Python 3.12.16 bridge now updates

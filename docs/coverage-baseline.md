@@ -1008,3 +1008,41 @@ application data and live NHL services are untouched. The project venv is unchan
 install updated requirements before using the existing hooks. Closing the final
 currently open alert still requires a default-branch push and GitHub rescan;
 no alerts were dismissed or modified.
+
+
+## Follow-up: switch Make, hooks and CI to the locked uv workflow
+
+Keep `pyproject.toml`, `uv.lock` and all resolved versions unchanged. Make commands
+now use `uv run --locked`; new sync, lock-check and requirements generation/check
+commands expose the locked workflow. Loader targets retain sequential execution,
+stop-on-failure and intentional interpreter overrides; bare `make` still formats.
+The standard-library test runner invokes uv directly instead of searching old or
+active venvs. Local test hooks use system entries backed by uv and retain dedicated
+credentials, selection isolation and exit propagation. Missing uv fails clearly;
+stale locks and sync failures never fall back to an old interpreter.
+
+CI pins uv 0.10.10 via setup-uv v10.3.3, caches by `uv.lock`, performs a locked sync,
+checks dependencies/export drift, and runs existing checks and artifact exports
+through uv. `requirements.txt` becomes a generated, hashed compatibility export;
+the redundant bootstrap/hook requirement files are removed. Export failure leaves
+the existing file intact. Current setup, loader, test and hook docs use uv; historical
+upgrade checkpoint instructions are retained as history.
+
+A fresh 74-package environment passes `make sync lock-check requirements-check
+check` and dependency checks. With disposable PostgreSQL 16, actual Make-based
+Django/migration checks, **902 offline tests** (**33 deselected**), **90.86% combined
+coverage**, the unchanged 35% gate and coverage XML export pass. The actual Make
+browser target passes all **21 Chromium tests** (**914 deselected**). Real commit
+and push test hooks are installed and pass in a temporary Git checkout while a
+legacy venv is marked active; the user's installed hooks and Git index are untouched.
+The 14 hook-runner regressions also pass with no `python` command on PATH.
+
+Separate temporary checks confirm stale locks block execution without changing the
+lockfile, export drift is detected without overwriting files, and failed exports
+preserve the previous file. Mocked Make loader checks verify order and failure
+stopping under `-j4`, without invoking any NHL loader. Workflow/hook YAML, pinned
+action inputs, shell syntax, Ruff/format, JavaScript and whitespace checks pass.
+No application database, live NHL services, actual commit/push, application code,
+schema or browser dependency changes are involved. The user's old venv is preserved;
+run `make sync` and reinstall local launchers with `make hooks`. Hosted Actions
+and Dependabot graph verification remain pending push.

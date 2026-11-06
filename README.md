@@ -18,22 +18,23 @@ Django 5.2 is the planned LTS endpoint of the staged upgrade. See
 
 ## Local Setup
 
-From the project root:
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) (CI uses
+0.10.10; the project requires at least that version). From the project root:
 
 ```bash
-python3.12 -m venv venv
-source venv/bin/activate
-python -m pip install -r requirements-bootstrap.txt
-pip install -r requirements.txt
+uv python install 3.12.16
+uv sync --locked
+uv run --locked python --version
 ```
 
-If you use pyenv, this repo includes `.python-version` pinned to `3.12.16`.
-When changing Python versions, recreate the venv; follow the
-[Python bridge instructions](docs/django-upgrade-checkpoints.md#checkpoint-5-python-31022-to-31216).
+uv creates `.venv/` using `.python-version`. Activation is optional: Make targets
+and `uv run --locked` select it even if an old `venv/` is activated. Keep uv on
+PATH in terminal and Git GUI environments. Restart app/worker processes using the
+new environment. Existing `.env` and PostgreSQL data are retained.
 
-Project metadata and `uv.lock` are available as the first
-[uv migration checkpoint](docs/uv-migration.md). The setup above, Make targets,
-CI and hooks still use the existing pip workflow until the next migration step.
+`pyproject.toml` and `uv.lock` are authoritative; `requirements.txt` is a generated
+pip compatibility export. See the [uv workflow](docs/uv-migration.md) for dependency
+updates, runtime-only installs and migration from the old environment.
 
 ## Code Quality
 
@@ -49,7 +50,7 @@ Local commit/push hooks run formatting/lint and the offline tests before a
 commit, then lint and the coverage gate before a push. One-time setup per clone:
 
 ```bash
-python -m pip install -r requirements-hooks.txt
+uv sync --locked
 cp test-database.example.json test-database.local.json
 # Edit test-database.local.json with your dedicated test-role credentials.
 make hooks
@@ -74,7 +75,7 @@ cp -n .env.example .env
 If `.env` already exists but is empty, copy the example's contents into it.
 Set `SECRET_KEY` to a random value and replace the PostgreSQL values with your
 local database name, role, and password. For example, generate a secret with
-`python -c 'import secrets; print(secrets.token_urlsafe(50))'`.
+`uv run --locked python -c 'import secrets; print(secrets.token_urlsafe(50))'`.
 The example uses `ALLOWED_HOSTS=localhost,127.0.0.1,[::1]` and sends development
 email to the console, so email credentials can be empty.
 
@@ -99,13 +100,13 @@ The supported keys are:
 ## Database Setup
 
 ```bash
-python manage.py migrate
-python manage.py createsuperuser
+uv run --locked python manage.py migrate
+uv run --locked python manage.py createsuperuser
 ```
 
 ## Populate NHL Data
 
-From the project root, with your venv activated, run the daily sequence with:
+From the project root, run the daily sequence in the locked environment with:
 
 ```bash
 make update-daily
@@ -124,19 +125,20 @@ loaders remain committed; the sequence is not a single database transaction.
 After resolving a failure, rerun the target. Terminal output includes each command
 and its existing progress output. Historical full mode remains separate below.
 
-To select the interpreter without activating your venv:
+The default loader interpreter is `uv run --locked python`. For an intentional
+interpreter override:
 
 ```bash
-make update-daily PYTHON=venv/bin/python
+make update-daily PYTHON=/path/to/python
 ```
 
 Run update commands in this order for regular updates:
 
 ```bash
-python manage.py upd_tms
-python manage.py upd_pls
-python manage.py upd_pls_tot --mode=current
-python manage.py upd_gms
+uv run --locked python manage.py upd_tms
+uv run --locked python manage.py upd_pls
+uv run --locked python manage.py upd_pls_tot --mode=current
+uv run --locked python manage.py upd_gms
 ```
 
 `upd_pls` updates player metadata, ordinary statistics columns, and the current
@@ -148,7 +150,7 @@ from the season's reports keep their historical data.
 Run a full player totals rebuild only when needed:
 
 ```bash
-python manage.py upd_pls_tot --mode=full
+uv run --locked python manage.py upd_pls_tot --mode=full
 ```
 
 Current mode also creates or refreshes season rows directly from NHL reports,
@@ -159,7 +161,7 @@ for traded players. See [season loader behavior and tests](docs/season-statistic
 Optional projection update:
 
 ```bash
-python manage.py upd_pls_proj
+uv run --locked python manage.py upd_pls_proj
 ```
 
 For game-response failures and safe reruns, see [game-loader behavior](docs/game-loading.md).
@@ -176,7 +178,7 @@ limits stop the sequence. See [shared HTTP policy and reruns](docs/loader-http.m
 ## Run Development Server
 
 ```bash
-python manage.py runserver
+uv run --locked python manage.py runserver
 ```
 
 Use Python's `breakpoint()` or pytest's `--pdb` for debugging. The obsolete
@@ -198,7 +200,7 @@ of the season, and Favorites gamelog covers all stored seasons. See the
 
 ## Tests
 
-Use the active Python 3.12 environment and a PostgreSQL role dedicated to tests.
+Use the locked Python 3.12 environment and a PostgreSQL role dedicated to tests.
 See [test environment setup](docs/testing.md) before the first database test run.
 
 ```bash
@@ -218,5 +220,5 @@ browser checks; CI is configured to run both suites.
 Run live external API tests explicitly (for example in nightly jobs):
 
 ```bash
-python -m pytest -c players/tests/pytest.ini -m external players/tests/integration
+uv run --locked python -m pytest -c players/tests/pytest.ini -m external players/tests/integration
 ```

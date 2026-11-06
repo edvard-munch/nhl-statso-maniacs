@@ -77,5 +77,5 @@ explicit team abbreviation for initial rendering and AJAX switches.
 Run the reader tests using the current project virtual environment:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_stats_reader.py
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests/unit/other/tests_season_stats_reader.py
 ```

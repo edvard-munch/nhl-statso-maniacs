@@ -1,119 +1,41 @@
 # Running deterministic tests
 
-The opt-in [uv metadata/lockfile checkpoint](uv-migration.md) is validated in
-separate environments. Normal commands and hook interpreter selection below
-remain on the existing pip workflow until the next migration commit.
-
-Run commands from the repository root. The current baseline is Python 3.12.16,
-Django 5.2.18 and PostgreSQL 14+ (validated on 16). The planned LTS endpoint is
-validated locally; hosted CI, deployment checks and uv follow separately, as
-recorded in the roadmap.
+Run commands from the repository root. The supported baseline is Python 3.12.16,
+Django 5.2.18 and PostgreSQL 14+ (validated on 16). The
+[uv workflow](uv-migration.md) describes dependency maintenance and the migration
+from pip. Hosted CI and deployment verification remain separate operational checks.
 
 ## Python environment
 
-Use `venv` as the documented environment directory. If the working environment
-already exists under `.venv`, activate that instead; there is no need to recreate
-it just to change its name.
+Install uv (CI pins 0.10.10), then create the locked environment:
 
 ```bash
-source venv/bin/activate
-python --version
-python -m django --version
-python -m pip check
+uv python install 3.12.16
+uv sync --locked
+uv run --locked python --version
+uv run --locked python -m django --version
+uv pip check
+make lock-check requirements-check
 ```
 
-For an environment that does not yet exist:
+The default `dev` group includes tests, hooks and lint tools. uv manages `.venv/`;
+activation is optional. Existing `venv/` and `VIRTUAL_ENV` do not select the test
+interpreter. For isolated validation, set `UV_PROJECT_ENVIRONMENT` to a dedicated
+absolute path; relative values are resolved from the project root. Do not point
+it at a shared or system Python environment, because sync removes extra packages.
+Restart app/worker processes after switching environments.
 
-```bash
-python3.12 -m venv venv
-source venv/bin/activate
-python -m pip install -r requirements-bootstrap.txt
-python -m pip install -r requirements.txt
-python -m pip check
-```
+`pyproject.toml` and `uv.lock` replace hand-maintained requirements. The remaining
+`requirements.txt` is generated from the lockfile; `make requirements` regenerates
+it and `make requirements-check` detects drift. The old bootstrap and hook files
+are retired. Security checkpoints and prior pip validation are recorded in
+[coverage history](coverage-baseline.md); the current locked suite retains the 35%
+coverage gate. Exact sync removes unused packages from the selected uv environment;
+the old `venv/` is untouched and is no longer used by project commands.
 
-The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
-The HTTP/TLS security checkpoint pins certifi 2026.10.18, Requests 2.33.0,
-urllib3 2.8.0 and idna 3.15. Clean-install validation includes `pip check`, the
-offline coverage gate, all Chromium cases and local HTTPS certificate validation.
-The Pillow checkpoint pins 13.0.0. The profile-upload cases in
-`tests_auth_upgrade.py` decode PNG/JPEG/WebP and verify saved format, dimensions
-and original bytes. Corrupt, truncated, disguised SVG and pixel-limit-exceeding
-uploads must return form errors without changing account settings or a stored
-avatar. The pixel-limit check uses a tiny generated image and a temporary lower
-threshold; production Pillow safeguards are unchanged.
-After updating requirements, reinstall them in your venv and restart existing
-app processes to use the updated packages; validation used a separate temporary venv.
-PyMySQL is no longer required: application/test settings use PostgreSQL, and the
-legacy `install_as_MySQLdb()` startup shim has been removed. After applying this
-code change, remove the leftover package from an existing project venv explicitly:
-
-```bash
-python -m pip uninstall PyMySQL
-python -m pip check
-```
-
-Installing requirements alone does not remove unlisted packages. Restart app and
-worker processes after updating. The clean-startup regression blocks MySQL-driver
-imports while initializing Django, WSGI, the PostgreSQL backend and the Celery app;
-fresh-install validation confirms both `pymysql` and `MySQLdb` are absent.
-The SQL/progress checkpoint pins sqlparse 0.6.1 and tqdm 4.70.1. Clean-install
-validation includes PostgreSQL system/migration checks, both test suites and
-separate SQL splitting/formatting and progress API/CLI smoke checks. The latter
-also verifies that a non-literal CLI expression is rejected. See the roadmap for
-sqlparse's upstream end-of-maintenance announcement.
-The packaging security checkpoint pins pip 26.3, setuptools 84.2.1 and wheel
-0.48.0 in `requirements-bootstrap.txt`. Wheel requires `packaging>=24.0`, so
-packaging 26.3 is pinned in both requirements files to keep bootstrap and project
-installs consistent. Update an existing activated venv in this order:
-
-```bash
-python -m pip install -r requirements-bootstrap.txt
-python -m pip install -r requirements.txt -r requirements-hooks.txt
-python -m pip check
-```
-
-Clean-install validation includes the hook dependencies, local wheel build/unpack/
-install, uncached builds of the existing MarkupSafe/docopt/django-shortcuts source
-distributions, Django checks and both regression suites.
-
-The target Python 3.12.16 environment passes `pip check`, Ruff and all 902 offline
-tests with the 35% coverage gate (90.86% combined coverage). The bootstrap file
-pins packaging tools, including setuptools compatible with Python 3.12. This
-validates the current install
-procedure, not a full transitive lockfile; uv remains separate work.
-
-The obsolete Sphinx toolchain and unused Python metadata backports are no longer
-installed. Documentation is maintained as Markdown; no documentation build step
-is required. Existing venvs retain removed packages after `pip install -r`, so
-either recreate the venv using the setup above or remove the old chain explicitly:
-
-```bash
-python -m pip uninstall -y Sphinx alabaster Babel docutils imagesize Jinja2 MarkupSafe \
-  snowballstemmer sphinxcontrib-applehelp sphinxcontrib-devhelp \
-  sphinxcontrib-htmlhelp sphinxcontrib-jsmath sphinxcontrib-napoleon \
-  sphinxcontrib-qthelp sphinxcontrib-serializinghtml pockets importlib-metadata zipp
-python -m pip check
-```
-
-These backports are unnecessary for the supported Python 3.12 environment. This
-cleanup is scoped to the project's dedicated venv; restart app/worker processes
-after updating it.
-
-The pytest security checkpoint pins pytest 9.2.0 and Pluggy 1.7.0. Pytest now
-requires Pygments for terminal highlighting, so Pygments returns as a patched
-2.21.0 pin; keep it installed even though the old documentation chain is removed.
-The existing pytest-cov 4.1.0, coverage 7.6.12 and pytest-django 4.11.1 pins remain.
-Update using the bootstrap/project/hook installation commands above. Commit and
-push hooks continue to use the same test runner and 35% coverage gate.
-The requests-mock follow-up pins 1.12.1 instead of 1.8.0. Its pytest plugin uses
-numeric version comparison rather than deprecated `distutils.version.StrictVersion`,
-removing the three startup warnings without warning filters or fixture changes.
-
-Configure the project's `.env` as described in the README. Django loads the normal
-application settings, which require database, allowed-host and email values even
-when tests do not use email or the application database. Never commit real secrets.
-The test-specific database overrides below take precedence over `.env` values.
+Configure `.env` as described in the README. Normal settings require database,
+allowed-host and email values even when tests do not use the application database.
+Never commit real secrets. The test-specific overrides below take precedence.
 
 ## PostgreSQL test role and databases
 
@@ -132,7 +54,7 @@ is `nhl_test_base`; pytest-django creates and migrates `test_nhl_test_base`, run
 the tests there, and drops it afterward. Keep both databases dedicated to tests.
 Default application settings use PostgreSQL at localhost:5432.
 
-Activate the venv and run this block from the repository root. Enter the password
+Run this block from the repository root. Enter the password
 you chose when creating the test role:
 
 ```bash
@@ -165,23 +87,24 @@ Within the same test-only subshell, replace `make test` as needed:
 make test
 
 # Focused request tests, which do not need database access
-python -m pytest -c players/tests/pytest.ini \
+uv run --locked python -m pytest -c players/tests/pytest.ini \
   players/tests/unit/other/tests_requests_mock.py
 
 # Isolated legacy view/lookup tests and utilities
-python -m pytest -c players/tests/pytest.ini \
+uv run --locked python -m pytest -c players/tests/pytest.ini \
   players/tests/unit/tests_readonly_db \
   players/tests/unit/other/tests_utils.py
 
 # Collection without executing test bodies
-python -m pytest -c players/tests/pytest.ini players/tests --collect-only
+uv run --locked python -m pytest -c players/tests/pytest.ini players/tests --collect-only
 
 # Coverage baseline and the agreed initial 35% gate
 make test-cov
 make test-ci
 ```
 
-All test Make targets call `python -m pytest` through the activated interpreter.
+All test Make targets call `uv run --locked python -m pytest` in the project
+environment. A stale lockfile blocks the run instead of silently resolving it.
 The current targets select `players/tests`; include `users` deliberately when
 adding user-app tests. Unit/integration markers describe test boundaries; the
 legacy `unit/tests_readonly_db` folder now contains marked integration tests.
@@ -191,7 +114,7 @@ loader tests are mocked, and view/lookup tests explicitly block live HTTP.
 Optional live tests can be collected separately without contacting NHL:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini -m external \
+uv run --locked python -m pytest -c players/tests/pytest.ini -m external \
   players/tests/integration --collect-only
 ```
 
@@ -201,11 +124,10 @@ does not establish that they pass against NHL today.
 
 ## Local commit and push hooks
 
-Install the pinned hook tool in the project venv:
+Sync the locked hook tool and ensure uv is on PATH (including in Git GUIs):
 
 ```bash
-source venv/bin/activate
-python -m pip install -r requirements-hooks.txt
+uv sync --locked
 ```
 
 Use the dedicated PostgreSQL role/database created above. Copy the example once:
@@ -233,8 +155,8 @@ narrow the intended run.
 Check the setup before installing hooks:
 
 ```bash
-python scripts/run_hook_tests.py
-python scripts/run_hook_tests.py --coverage
+uv run --locked python scripts/run_hook_tests.py
+uv run --locked python scripts/run_hook_tests.py --coverage
 make hooks
 ```
 
@@ -264,16 +186,17 @@ These all-file commands also check existing files outside the current change;
 `hooks-run` can format them. To run only a test hook during troubleshooting:
 
 ```bash
-python -m pre_commit run offline-tests --all-files --hook-stage commit
-python -m pre_commit run offline-coverage --all-files --hook-stage push
+uv run --locked python -m pre_commit run offline-tests --all-files --hook-stage commit
+uv run --locked python -m pre_commit run offline-coverage --all-files --hook-stage push
 ```
 
-The `commit`/`push` stage names match the pinned pre-commit 2.21 tool; upgrading
-that tool belongs with the Python transition. Pre-commit supplies a managed Python to launch the standard-library runner,
-so a GUI does not need `python` on PATH. The runner uses the repository's
-`venv`/`.venv` before any active environment; the managed hook environment does
-not need Django installed. Git still needs access to the local PostgreSQL server
-and config file. The first run initializes the managed hook environment.
+The `commit`/`push` stage names match pre-commit 2.21. Local test hooks use
+`language: system` with `uv run --locked`; the standard-library runner also invokes
+uv directly for pytest. No Python command needs to be on PATH, and a legacy venv
+cannot override the locked interpreter. Missing uv, stale lockfiles, sync failures
+or missing test credentials block the hook without fallback. Ruff keeps its pinned
+managed hook environment. Git needs access to uv, PostgreSQL and the test config.
+Run `make hooks` again after this migration so installed launchers use `.venv/`.
 
 Hooks can be bypassed locally; GitHub CI is the independent check of pushed code.
 A push can contain several commits and CI checks its latest snapshot. Required
@@ -282,16 +205,16 @@ when CI fails; this change does not modify repository settings.
 
 ## Validation status
 
-The [measured baseline](coverage-baseline.md) is 74.65% combined line/branch
+The initial [measured baseline](coverage-baseline.md) was 74.65% combined line/branch
 coverage, and both coverage targets pass the unchanged 35% gate with 336 tests.
-The same gate passes in a fresh Python 3.7.17 environment. After adding hook-runner
+That historical gate also passed in a fresh Python 3.7.17 environment. After adding hook-runner
 regression tests, both hook stages pass all 349 offline tests, with the same 74.65%
 coverage and 12 external checks deselected. `.coverage` and `coverage.xml` are
 generated and ignored by Git. Both stages also passed with no `python` command on PATH. Hook validation used a disposable PostgreSQL cluster
 and temporary credential file; no application database or real commit/push was used.
 
 The workflow in `.github/workflows/tests.yml` runs on pushes, pull requests and
-manual dispatch. It installs the bootstrap tools and requirements on Python
+manual dispatch. It installs pinned uv and runs `uv sync --locked` on Python
 3.12.16 / Ubuntu 22.04, checks dependencies and lint/JavaScript syntax, then runs
 `make test-ci` with a PostgreSQL 16 service and real test migrations. Its disposable
 database credentials come from the workflow, without application secrets or `.env`.

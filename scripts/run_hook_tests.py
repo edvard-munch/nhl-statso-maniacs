@@ -19,6 +19,8 @@ MAX_PORT = 65535
 REQUIRED_FIELDS = {"name", "user", "password"}
 DEFAULT_FIELDS = {"host": "localhost", "port": "5432"}
 SETTINGS_MODULE = "nhl_web_app.hook_test_settings"
+UV_COMMAND = ("uv", "run", "--locked", "python")
+EXECUTABLE_ERROR_EXIT = 127
 
 
 def load_database(config_path):
@@ -43,16 +45,6 @@ def load_database(config_path):
     if not MIN_PORT <= int(database["port"]) <= MAX_PORT:
         raise ValueError("Invalid test database port.")
     return database
-
-
-def project_python():
-    executable = Path("Scripts/python.exe" if os.name == "nt" else "bin/python")
-    # Pre-commit's managed Python only launches this standard-library runner.
-    # Tests must use the project environment, not the managed hook environment.
-    candidates = [ROOT / directory / executable for directory in ("venv", ".venv")]
-    if os.environ.get("VIRTUAL_ENV"):
-        candidates.append(Path(os.environ["VIRTUAL_ENV"]) / executable)
-    return str(next((path for path in candidates if path.is_file()), Path(sys.executable)))
 
 
 def main(argv=None):
@@ -86,7 +78,7 @@ def main(argv=None):
     # Inherited flags must not narrow the suite, enable live tests, or bypass migrations.
     env.pop("PYTEST_ADDOPTS", None)
     command = [
-        project_python(),
+        *UV_COMMAND,
         "-m",
         "pytest",
         "-c",
@@ -105,7 +97,11 @@ def main(argv=None):
             ]
         )
     command.append(str(ROOT / "players/tests"))
-    return subprocess.call(command, cwd=str(ROOT), env=env)
+    try:
+        return subprocess.call(command, cwd=str(ROOT), env=env)
+    except FileNotFoundError:
+        print("uv is required on PATH. Install uv and run uv sync --locked.", file=sys.stderr)
+        return EXECUTABLE_ERROR_EXIT
 
 
 if __name__ == "__main__":

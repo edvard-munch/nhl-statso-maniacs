@@ -37,16 +37,16 @@ or modifies player statistics. No schema migration is required.
 From the repository root, activate the existing environment:
 
 ```bash
-source venv/bin/activate
+uv sync --locked
 ```
 
 For a regular refresh:
 
 ```bash
-python manage.py upd_tms
-python manage.py upd_pls
-python manage.py upd_pls_tot --mode=current
-python manage.py upd_gms
+uv run --locked python manage.py upd_tms
+uv run --locked python manage.py upd_pls
+uv run --locked python manage.py upd_pls_tot --mode=current
+uv run --locked python manage.py upd_gms
 ```
 
 Run `upd_tms` weekly; run the other commands frequently, typically daily.
@@ -61,7 +61,7 @@ refreshes current season rows and career aggregates without player landing calls
 For historical refresh/backfill, run occasionally:
 
 ```bash
-python manage.py upd_pls_tot --mode=full
+uv run --locked python manage.py upd_pls_tot --mode=full
 ```
 
 Full mode refreshes profile/career data through landing responses and historical
@@ -71,14 +71,14 @@ Do not clear saved lists or zero historical player statistics at season rollover
 After loading, select the new season and verify Players, a team, Favorites and
 Comparison. A saved player absent from the new season should retain their identity
 and display unavailable statistics. Career modes should still show career data.
-Start the app with `python manage.py runserver`.
+Start the app with `uv run --locked python manage.py runserver`.
 
 ## Regression checks
 
 Use Django's isolated PostgreSQL test database and real migrations:
 
 ```bash
-python -m pytest -c players/tests/pytest.ini \
+uv run --locked python -m pytest -c players/tests/pytest.ini \
   players/tests/integration/tests_saved_season_tables.py \
   players/tests/integration/tests_players_season_table.py \
   players/tests/integration/tests_team_season_tables.py
