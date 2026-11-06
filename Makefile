@@ -1,4 +1,4 @@
-.PHONY: sync lock-check requirements requirements-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser update-daily update-all
+.PHONY: sync lock-check requirements requirements-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser update-daily update-all update-history
 
 .DEFAULT_GOAL := format
 
@@ -62,3 +62,7 @@ update-all:
 	$(PYTHON) manage.py upd_pls
 	$(PYTHON) manage.py upd_pls_tot --mode=current
 	$(PYTHON) manage.py upd_gms
+
+# Occasional historical refresh; keep heavier landing calls out of routine updates.
+update-history:
+	$(PYTHON) manage.py upd_pls_tot --mode=full

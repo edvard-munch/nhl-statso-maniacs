@@ -50,7 +50,7 @@ uv run --locked python manage.py upd_gms
 ```
 
 Run `upd_tms` weekly; run the other commands frequently, typically daily.
-From an activated project venv, `make update-daily` runs players → current totals →
+In the locked uv environment, `make update-daily` runs players → current totals →
 games; `make update-all` runs teams first and then the same sequence. Both stop
 on the first failed command, retaining earlier completed loader updates. Full
 historical refresh remains a separate explicit command.
@@ -61,7 +61,7 @@ refreshes current season rows and career aggregates without player landing calls
 For historical refresh/backfill, run occasionally:
 
 ```bash
-uv run --locked python manage.py upd_pls_tot --mode=full
+make update-history
 ```
 
 Full mode refreshes profile/career data through landing responses and historical

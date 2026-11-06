@@ -150,8 +150,11 @@ from the season's reports keep their historical data.
 Run a full player totals rebuild only when needed:
 
 ```bash
-uv run --locked python manage.py upd_pls_tot --mode=full
+make update-history
 ```
+
+This runs `upd_pls_tot --mode=full` for occasional historical refreshes/backfills.
+It makes heavier player landing calls and stays separate from routine update targets.
 
 Current mode also creates or refreshes season rows directly from NHL reports,
 without player landing calls. Full mode refreshes profile/career data from landing
