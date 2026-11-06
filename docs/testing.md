@@ -102,6 +102,9 @@ requires Pygments for terminal highlighting, so Pygments returns as a patched
 The existing pytest-cov 4.1.0, coverage 7.6.12 and pytest-django 4.11.1 pins remain.
 Update using the bootstrap/project/hook installation commands above. Commit and
 push hooks continue to use the same test runner and 35% coverage gate.
+The requests-mock follow-up pins 1.12.1 instead of 1.8.0. Its pytest plugin uses
+numeric version comparison rather than deprecated `distutils.version.StrictVersion`,
+removing the three startup warnings without warning filters or fixture changes.
 
 Configure the project's `.env` as described in the README. Django loads the normal
 application settings, which require database, allowed-host and email values even

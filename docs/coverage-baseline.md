@@ -872,6 +872,25 @@ change. The existing project venv is unchanged; reinstall requirements and resta
 running app/worker processes. Alert closure awaits default-branch push/rescanning;
 no alerts were dismissed or modified.
 
+## Follow-up: requests-mock plugin deprecation cleanup
+
+Update **requests-mock 1.8.0 → 1.12.1**, a published, non-yanked release compatible
+with Python 3.12 and Requests 2.33.0. The plugin now compares numeric version tuples
+instead of using `distutils.version.StrictVersion`, removing the three warnings
+surfaced by pytest 9.2. No warnings are suppressed and no test fixtures change.
+
+The disposable pytest validation environment installs the updated requirements
+and passes `pip check`. A separate Python process imports the plugin with
+`DeprecationWarning` treated as an error. Against disposable PostgreSQL 16,
+Django system checks pass and migration checks report no changes. **902 offline
+tests pass**, with **33 deselected**, at **90.86% combined coverage**, retaining
+the 35% gate. All **21 Chromium tests pass**, with **914 deselected**. Neither
+suite reports warnings. Ruff, formatting and whitespace checks pass.
+
+The existing project venv remains unchanged; install updated requirements to use
+the new plugin. Application data and live NHL services are untouched. No app code,
+schema, test selection, hook/CI commands, warning filters or uv files change.
+
 ## Follow-up: packaging tools security checkpoint
 
 Bootstrap pins change from **pip 24.0 → 26.3**, **setuptools 75.8.0 → 84.2.1**

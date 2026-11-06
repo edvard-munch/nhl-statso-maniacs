@@ -409,8 +409,11 @@ terminal highlighting; the obsolete Sphinx chain remains retired. Existing Djang
 and coverage plugin pins, test selection and hook commands remain unchanged.
 Fresh-install dependency and Django checks pass, as do both 902-test hook modes
 and all 21 Chromium cases, retaining 90.86% combined coverage. Three existing
-requests-mock deprecation warnings are visible at plugin startup; updating that
-plugin is separate maintenance.
+requests-mock deprecation warnings were visible at plugin startup. The follow-up
+updates requests-mock 1.8.0 to 1.12.1, replacing the plugin's deprecated distutils
+version comparison with numeric tuple comparison; no warnings are suppressed.
+Both suites pass without warnings: 902 offline tests at 90.86% combined coverage
+and 21 Chromium cases; dependency and Django checks also pass.
 Alert closure still requires a default-branch push/rescan; uv has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
