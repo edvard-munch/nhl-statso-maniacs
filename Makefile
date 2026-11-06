@@ -1,4 +1,6 @@
-.PHONY: format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser
+.PHONY: format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser update-daily update-all
+
+PYTHON ?= python
 
 format:
 	python -m ruff format .
@@ -31,3 +33,16 @@ test-ci:
 # Uses the same dedicated test configuration as local hooks.
 test-browser:
 	python scripts/run_hook_tests.py --browser
+
+# Keep stages in one recipe so even make -j runs each loader in order and stops on error.
+update-daily:
+	$(PYTHON) manage.py upd_pls
+	$(PYTHON) manage.py upd_pls_tot --mode=current
+	$(PYTHON) manage.py upd_gms
+
+# All routine stages, including weekly team metadata; historical backfill stays explicit.
+update-all:
+	$(PYTHON) manage.py upd_tms
+	$(PYTHON) manage.py upd_pls
+	$(PYTHON) manage.py upd_pls_tot --mode=current
+	$(PYTHON) manage.py upd_gms

@@ -332,9 +332,13 @@ python manage.py upd_gms
 team metadata is already current; run it weekly. Full totals mode remains an
 explicit occasional refresh/backfill, not part of the daily sequence.
 
-A follow-up convenience commit can add `make update-daily` and `make update-all`
-with this fail-fast ordering. These targets are **not implemented yet**. Keep full
-historical refresh explicit. Do not add scheduling until manual runs are reliable.
+Implemented: `make update-daily` runs players, current totals and games;
+`make update-all` prepends team metadata. Each target uses sequential recipe lines,
+so `make -j` retains stage order and a failure prevents subsequent stages from
+running. Earlier successful loaders are not rolled back across command boundaries.
+`PYTHON=venv/bin/python` can override the interpreter without activating the venv.
+Full historical refresh remains explicit. Scheduling remains deferred until manual
+runs are reliable.
 After a successful refresh verify the new season on Players, teams and saved
 lists; absence of a season row must not display an older snapshot as current.
 

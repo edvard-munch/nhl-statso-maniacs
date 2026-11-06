@@ -99,6 +99,31 @@ python manage.py createsuperuser
 
 ## Populate NHL Data
 
+From the project root, with your venv activated, run the daily sequence with:
+
+```bash
+make update-daily
+```
+
+This runs `upd_pls` → `upd_pls_tot --mode=current` → `upd_gms` in order.
+For a routine refresh that also updates team metadata (typically weekly), use:
+
+```bash
+make update-all
+```
+
+`update-all` runs `upd_tms` first, then the daily sequence. Both targets stop at
+the first failed command, including when using `make -j`. Earlier successful
+loaders remain committed; the sequence is not a single database transaction.
+After resolving a failure, rerun the target. Terminal output includes each command
+and its existing progress output. Historical full mode remains separate below.
+
+To select the interpreter without activating your venv:
+
+```bash
+make update-daily PYTHON=venv/bin/python
+```
+
 Run update commands in this order for regular updates:
 
 ```bash

@@ -50,6 +50,10 @@ python manage.py upd_gms
 ```
 
 Run `upd_tms` weekly; run the other commands frequently, typically daily.
+From an activated project venv, `make update-daily` runs players → current totals →
+games; `make update-all` runs teams first and then the same sequence. Both stop
+on the first failed command, retaining earlier completed loader updates. Full
+historical refresh remains a separate explicit command.
 `upd_pls` refreshes profile metadata and current season rows. Current totals mode
 refreshes current season rows and career aggregates without player landing calls.
 `upd_gms` supplies game logs; it is not the source of season table statistics.
