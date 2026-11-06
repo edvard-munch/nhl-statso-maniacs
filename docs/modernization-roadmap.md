@@ -166,7 +166,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Planned phase complete locally | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, missing/bench players, identity, malformed-response rejection, history preservation, rollback and replay. Corrected participants now reconcile roster links and verified date entries, with game-ID markers, guarded legacy cleanup, typed skater/goalie identity and retention of ambiguous data. |
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
-| Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and CSRF contracts are covered. Favorites/comparison toggles and resets now require POST with CSRF protection. Sequential quotas, missing-target 404s, anonymous no-writes and reset isolation have persistence tests; concurrent quotas remain separate work. |
+| Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and CSRF contracts are covered. Favorites/comparison toggles and resets require POST with CSRF protection and serialize per account using a database row lock. Sequential/concurrent quotas, missing-target 404s, anonymous no-writes, rollback and reset isolation have persistence tests. |
 | Table cells and filter checkboxes covered; other substantive rules remain | Model/util/template logic | Shared player links/tooltips and filter checkboxes escape dynamic text/attributes. Unit and real AJAX regressions protect numeric precision, missing values, checkbox selection/reset, literal value round-trips and unchanged stored records. Remaining model/template rules should be chosen by behavior and risk. |
 | Core Players/saved-list/team workflows and failure recovery covered | Browser smoke tests | Twenty-one Chromium cases cover season/mode/layout controls, favorites last-member/final-member removal, empty transitions, comparison removal/reset and AJAX failures with explicit retries. Season retention, team contributions, reload persistence and ownership are checked. Filtered/paginated favorites removal now protects global counts, sorting, season, valid paging and ownership for both player types. |
 
@@ -584,5 +584,21 @@ redirects. Eighteen new offline cases and one new Chromium case verify rejection
 persistence and actual request headers. Disposable PostgreSQL checks pass:
 919 offline tests at 91.28% coverage and all 22 Chromium cases. See
 [saved-list request contracts](saved-player-season-tables.md#saved-list-requests).
-Concurrent quota enforcement and ambiguous legacy-data decisions remain separate
-behavior changes; deployment rehearsal remains deferred.
+The concurrency follow-up below completes quota enforcement. Ambiguous legacy-data
+decisions remain separate behavior changes; deployment rehearsal remains deferred.
+
+## Concurrent saved-list quotas
+
+Favorites/comparison toggles and comparison resets now share an atomic user-row
+lock before reading membership or quota usage. It covers empty lists and mixed
+skater/goalie favorites across requests and workers, without serializing unrelated
+accounts. Quotas remain 100 favorites combined and five comparisons per player
+type; no schema migration or automatic trimming of existing data is introduced.
+Comparison payload failures roll back membership changes.
+
+Twenty-three PostgreSQL transaction cases verify actual lock waits on independent
+connections, final-slot contention, same-player toggles, removal/addition, both
+reset/toggle orders, independent accounts and rollback. The full offline suite
+passes 942 tests at 91.30% coverage, with all 22 Chromium cases passing. See
+[concurrency behavior and writer requirements](saved-player-season-tables.md#concurrent-changes).
+Ambiguous legacy-data review and deployment rehearsal remain separate work.

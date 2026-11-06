@@ -261,3 +261,240 @@ def test_saved_mutations_require_csrf_and_trusted_origin(actions, kind, route):
     relation = ("favorite_" if route == "player_favorite" else "comparable_") + kind
     expected[actions.owner.pk][relation] = [] if route == "reset_comparison" else [players[1].pk]
     assert state([actions.owner, actions.other]) == expected
+
+
+def concurrent_posts(first_client, first_url, second_client, second_url, *, same_user=True):
+    """Hold the first request's real row lock and observe the second DB connection."""
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+    from time import monotonic, sleep
+
+    from django.db import connection, connections
+
+    acquired, release, second_connected = Event(), Event(), Event()
+    pids = {}
+
+    def post(client, url, first):
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SET statement_timeout = '10s'")
+                cursor.execute("SELECT pg_backend_pid()")
+                pids[first] = cursor.fetchone()[0]
+            if not first:
+                second_connected.set()
+
+            def hold_lock(execute, sql, params, many, context):
+                result = execute(sql, params, many, context)
+                if first and "FOR UPDATE" in sql:
+                    acquired.set()
+                    assert release.wait(10), "First request was not released"
+                return result
+
+            with connection.execute_wrapper(hold_lock):
+                response = client.post(url, query_params={"season": "20262027"})
+            assert response.status_code == 200, response.content
+            return response.json()
+        finally:
+            connections.close_all()
+
+    with ThreadPoolExecutor(max_workers=2) as workers:
+        first = workers.submit(post, first_client, first_url, True)
+        try:
+            assert acquired.wait(5), "Mutation never acquired its account lock"
+            second = workers.submit(post, second_client, second_url, False)
+            assert second_connected.wait(5)
+            if same_user:
+                deadline = monotonic() + 5
+                while True:
+                    with connection.cursor() as cursor:
+                        cursor.execute(
+                            "SELECT %s = ANY(pg_blocking_pids(%s))", [pids[True], pids[False]]
+                        )
+                        blocked = cursor.fetchone()[0]
+                    if blocked:
+                        break
+                    assert not second.done(), "Second mutation bypassed the account lock"
+                    assert monotonic() < deadline, "Second mutation did not wait on the first"
+                    sleep(0.01)
+            else:
+                # A different account must finish while the first account remains locked.
+                second.result(timeout=5)
+        finally:
+            release.set()
+        return first.result(timeout=10), second.result(timeout=10)
+
+
+@pytest.mark.django_db(transaction=True)
+class TestConcurrentSavedActions:
+    @pytest.fixture
+    def clients(self, actions):
+        from django.test import Client
+
+        clients = [Client(), Client()]
+        for client in clients:
+            client.force_login(actions.owner)
+        return clients
+
+    @staticmethod
+    def url(route, player):
+        return reverse(route, args=[player.slug, player.nhl_id])
+
+    @pytest.mark.parametrize(
+        "kinds", [("skaters", "skaters"), ("goalies", "goalies"), ("skaters", "goalies")]
+    )
+    def test_favorites_compete_for_one_shared_slot(self, actions, clients, kinds):
+        actions.owner.favorite_skaters.add(*actions.create("skaters", utils.FAVORITES_QUOTA - 2))
+        actions.owner.favorite_goalies.add(*actions.create("goalies"))
+        candidates = [actions.create(kind)[0] for kind in kinds]
+        for player in candidates:
+            player.favoriting.add(actions.other)
+            player.comparing.add(actions.owner, actions.other)
+        before = state([actions.other])
+        responses = concurrent_posts(
+            clients[0],
+            self.url("player_favorite", candidates[0]),
+            clients[1],
+            self.url("player_favorite", candidates[1]),
+        )
+        assert "fav_quota_reached" not in responses[0]
+        assert responses[1]["fav_quota_reached"] == 1
+        assert candidates[0].favoriting.filter(pk=actions.owner.pk).exists()
+        assert not candidates[1].favoriting.filter(pk=actions.owner.pk).exists()
+        assert (
+            actions.owner.favorite_skaters.count() + actions.owner.favorite_goalies.count() == 100
+        )
+        assert state([actions.other]) == before
+        assert (
+            actions.owner.comparable_skaters.count() + actions.owner.comparable_goalies.count() == 2
+        )
+
+    @pytest.mark.parametrize("kind", ["skaters", "goalies"])
+    def test_comparison_contenders_respect_group_limit(self, actions, clients, kind):
+        opposite = "goalies" if kind == "skaters" else "skaters"
+        getattr(actions.owner, "comparable_" + kind).add(
+            *actions.create(kind, utils.COMPARISON_QUOTA - 1)
+        )
+        getattr(actions.owner, "comparable_" + opposite).add(
+            *actions.create(opposite, utils.COMPARISON_QUOTA)
+        )
+        candidates = actions.create(kind, 2)
+        responses = concurrent_posts(
+            clients[0],
+            self.url("player_compare", candidates[0]),
+            clients[1],
+            self.url("player_compare", candidates[1]),
+        )
+        assert "comp_quota_reached" not in responses[0]
+        assert responses[1]["comp_quota_reached"] == 1
+        assert responses[0][kind + "_count"] == responses[1][kind + "_count"] == 5
+        assert getattr(actions.owner, "comparable_" + kind).count() == 5
+        assert getattr(actions.owner, "comparable_" + opposite).count() == 5
+        assert candidates[0].comparing.filter(pk=actions.owner.pk).exists()
+        assert not candidates[1].comparing.filter(pk=actions.owner.pk).exists()
+
+    @pytest.mark.parametrize("kind", ["skaters", "goalies"])
+    @pytest.mark.parametrize(
+        "route,relation", [("player_favorite", "favoriting"), ("player_compare", "comparing")]
+    )
+    def test_same_player_toggles_run_in_order(self, actions, clients, kind, route, relation):
+        player = actions.create(kind)[0]
+        getattr(player, relation).add(actions.other)
+        before = state([actions.owner, actions.other])
+        before_player = type(player).objects.values().get(pk=player.pk)
+        responses = concurrent_posts(
+            clients[0], self.url(route, player), clients[1], self.url(route, player)
+        )
+        assert "successfully added" in responses[0]["message"]
+        assert "successfully removed" in responses[1]["message"]
+        assert state([actions.owner, actions.other]) == before
+        assert type(player).objects.values().get(pk=player.pk) == before_player
+
+    @pytest.mark.parametrize("kind", ["skaters", "goalies"])
+    @pytest.mark.parametrize("reset_first", [True, False])
+    def test_reset_and_toggle_share_the_lock(self, actions, clients, kind, reset_first):
+        players = actions.create(kind, utils.COMPARISON_QUOTA)
+        getattr(actions.owner, "comparable_" + kind).add(*players)
+        candidate = actions.create(kind)[0]
+        candidate.favoriting.add(actions.owner, actions.other)
+        candidate.comparing.add(actions.other)
+        before_other = state([actions.other])
+        reset = reverse("reset_comparison", args=[kind])
+        add = self.url("player_compare", candidate)
+        urls = [reset, add] if reset_first else [add, reset]
+        responses = concurrent_posts(clients[0], urls[0], clients[1], urls[1])
+        assert responses[0][kind + "_count"] == (0 if reset_first else 5)
+        assert responses[1][kind + "_count"] == (1 if reset_first else 0)
+        assert list(getattr(actions.owner, "comparable_" + kind).values_list("pk", flat=True)) == (
+            [candidate.pk] if reset_first else []
+        )
+        assert candidate.favoriting.filter(pk=actions.owner.pk).exists()
+        assert state([actions.other]) == before_other
+
+    @pytest.mark.parametrize("kind", ["skaters", "goalies"])
+    @pytest.mark.parametrize(
+        "route,relation,limit",
+        [
+            ("player_favorite", "favorite_", utils.FAVORITES_QUOTA),
+            ("player_compare", "comparable_", utils.COMPARISON_QUOTA),
+        ],
+    )
+    def test_removal_frees_slot_for_waiting_add(
+        self, actions, clients, kind, route, relation, limit
+    ):
+        players = actions.create(kind, limit)
+        manager = getattr(actions.owner, relation + kind)
+        manager.add(*players)
+        candidate = actions.create(kind)[0]
+        responses = concurrent_posts(
+            clients[0], self.url(route, players[0]), clients[1], self.url(route, candidate)
+        )
+        assert "successfully removed" in responses[0]["message"]
+        assert "successfully added" in responses[1]["message"]
+        assert manager.count() == limit
+        assert not manager.filter(pk=players[0].pk).exists()
+        assert manager.filter(pk=candidate.pk).exists()
+
+    @pytest.mark.parametrize(
+        "route,relation", [("player_favorite", "favoriting"), ("player_compare", "comparing")]
+    )
+    def test_different_accounts_do_not_block_each_other(self, actions, clients, route, relation):
+        clients[1].force_login(actions.other)
+        player = actions.create("skaters")[0]
+        concurrent_posts(
+            clients[0],
+            self.url(route, player),
+            clients[1],
+            self.url(route, player),
+            same_user=False,
+        )
+        assert set(getattr(player, relation).values_list("pk", flat=True)) == {
+            actions.owner.pk,
+            actions.other.pk,
+        }
+
+    @pytest.mark.parametrize("kind", ["skaters", "goalies"])
+    @pytest.mark.parametrize("route", ["player_compare", "reset_comparison"])
+    def test_failure_rolls_back_membership_and_releases_lock(
+        self, actions, clients, kind, route, monkeypatch
+    ):
+        from players import saved_players
+
+        player = actions.create(kind)[0]
+        player.comparing.add(actions.owner, actions.other)
+        before = state([actions.owner, actions.other])
+        url = (
+            reverse(route, args=[kind]) if route == "reset_comparison" else self.url(route, player)
+        )
+        original = saved_players.comparison_payload
+
+        def fail(*args):
+            raise RuntimeError("Payload rendering failed")
+
+        monkeypatch.setattr(saved_players, "comparison_payload", fail)
+        with pytest.raises(RuntimeError, match="Payload rendering failed"):
+            clients[0].post(url, query_params={"season": "20262027"})
+        assert state([actions.owner, actions.other]) == before
+        monkeypatch.setattr(saved_players, "comparison_payload", original)
+        assert clients[1].post(url, query_params={"season": "20262027"}).status_code == 200
+        assert not player.comparing.filter(pk=actions.owner.pk).exists()
+        assert player.comparing.filter(pk=actions.other.pk).exists()

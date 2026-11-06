@@ -1199,3 +1199,28 @@ XML export pass. All **22 Chromium cases pass**, with **941 deselected**. Ruff,
 format, JavaScript syntax, workflow YAML, requirements drift and whitespace checks
 pass. No application database or live NHL calls are used. No schema or dependency
 changes are needed. Concurrent quota enforcement remains separate work.
+
+## Follow-up: serialize concurrent saved-list mutations
+
+All favorite/comparison toggles and comparison resets now take the same user-row
+lock inside an atomic transaction before membership checks, quota counts and
+writes. One existing account row coordinates empty lists and favorites across
+both player tables. Comparison payload rendering stays in the transaction so a
+failure rolls back its mutation. Other users can proceed independently. Existing
+POST/CSRF, response, selection and sequential quota contracts remain intact.
+
+Twenty-three added transaction cases use real PostgreSQL connections and
+authenticated POST requests. The first request is paused after acquiring its
+lock; `pg_blocking_pids` must identify it as blocking the second request before
+release. Cases cover shared favorites' final slot (including mixed player types),
+per-type comparison limits, same-player toggles, removal/addition at capacity,
+reset/toggle ordering, independent accounts and rollback after rendering failure.
+Limits are not mocked. Worker waits are bounded and connections are closed.
+
+Against disposable PostgreSQL 16, system/migration checks and **942 offline tests**
+pass (**44 deselected**) at **91.30% combined coverage**; the unchanged 35% gate
+and XML export pass. All **22 Chromium cases pass** (**964 deselected**), as do
+Ruff/format, requirements drift and whitespace checks. No schema/dependency
+changes, application database access or live NHL requests are involved. Existing
+over-quota data is retained; all future application writers must follow the same
+locking protocol. Arbitrary direct ORM/admin writes are not a database quota constraint.

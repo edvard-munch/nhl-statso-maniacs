@@ -270,7 +270,17 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 919 passed, 22 external and 22 browser
-cases deselected, at 91.28% combined coverage. Saved-list mutations are POST-only,
+CI runs both. The current offline result is 942 passed, 22 external and 22 browser
+cases deselected, at 91.30% combined coverage. Saved-list mutations are POST-only,
 with CSRF rejection and persistence checks in the offline suite and real CSRF
 headers checked in Chromium. See [saved-list requests](saved-player-season-tables.md#saved-list-requests).
+
+`TestConcurrentSavedActions` runs 23 PostgreSQL transaction cases. Separate
+authenticated clients use independent thread-local connections; events hold the
+first request's account lock while `pg_blocking_pids` verifies the second request
+is waiting on it. These protect shared favorites capacity, per-type comparison
+capacity, repeated toggles, removal/addition, both reset/toggle orders and
+independent accounts. Rendering-failure cases check rollback and subsequent use.
+No sleep is used as proof of locking: polling observes PostgreSQL's actual lock
+wait, with bounded waits and closed worker connections. These cases are part of
+the ordinary offline suite and CI; no browser or live NHL access is required.

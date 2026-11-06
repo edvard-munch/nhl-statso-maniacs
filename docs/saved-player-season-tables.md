@@ -37,7 +37,7 @@ or modifies player statistics. No schema migration is required.
 Favorite toggles (`player_favorite`), comparison toggles (`player_compare`) and
 comparison resets (`reset_comparison`) require **POST**. GET and HEAD return 405
 without changing memberships. Existing authentication responses, per-type limits
-and ownership rules still apply; concurrent quota enforcement remains separate work.
+and ownership rules still apply.
 
 The shared AJAX setup reads Django's masked CSRF token from the base template
 and sends `X-CSRFToken` only to the same origin. Django rejects missing/invalid
@@ -49,6 +49,30 @@ Season and statistics-mode selections remain URL query parameters on POST, so
 removal/reset responses retain the selected table. Table reads, filtering and
 statistics-mode switches remain GET requests. Favorite links generated for the
 Players table use the canonical trailing-slash route to avoid POST redirects.
+
+### Concurrent changes
+
+Every saved-list toggle and comparison reset locks the account's user row inside
+a database transaction before reading membership or counting quota usage. This
+serializes changes for that account across requests and server workers, including
+an initially empty list and favorites split across skaters/goalies. Other accounts
+use different rows and can proceed independently. The transaction includes
+comparison payload rendering, so a rendering failure rolls back the change.
+See Django's [row-locking contract](https://docs.djangoproject.com/en/5.2/ref/models/querysets/#select-for-update).
+
+Favorites retain one shared 100-player limit; comparison retains separate
+five-skater and five-goalie limits. Two additions competing for the final slot
+produce one addition and one existing quota response. Removal remains allowed at
+capacity. Two concurrent toggles of the same player run in order (add, then remove
+if initially absent); toggles are not idempotent. Reset and toggle outcomes follow
+their database lock order. Network responses can arrive in a different order.
+
+New saved-list writers must use `players.saved_actions.locked_user` and perform
+all membership reads and writes inside its transaction. Direct ORM/admin writes
+can bypass this application-level quota policy. Existing over-limit data is not
+trimmed automatically; additions are blocked until there is room, and removals
+remain available. No migration is needed. Concurrency tests require PostgreSQL
+and real committed transactions, rather than SQLite or a wrapping test transaction.
 
 ## Running updates
 

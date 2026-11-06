@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.views.decorators.http import require_POST
 
-from . import player_table, saved_players, team_tables, utils
+from . import player_table, saved_actions, saved_players, team_tables, utils
 from .forms import NoteForm, PositionsForm
 from .models import Game, Gameday, Goalie, Note, Position, Skater, Team
 
@@ -533,26 +533,27 @@ def player_compare(request, slug, nhl_id):
         player = utils.get_player(nhl_id, slug)
         if player is None:
             raise Http404("Player not found")
-        if isinstance(player, Goalie):
-            quota = user.comparable_goalies.count()
-        else:
-            quota = user.comparable_skaters.count()
-
-        if player.comparing.filter(id=user.id).exists():
-            player.comparing.remove(user)
-            data["message"] = f"{player.name} successfully removed from the comparison"
-            utils.pop_key(data, "comp_quota_reached")
-        else:
-            if quota < utils.COMPARISON_QUOTA:
-                player.comparing.add(user)
-                data["message"] = f"{player.name} successfully added to the comparison"
-                utils.pop_key(data, "comp_quota_reached")
-
+        with saved_actions.locked_user(user) as user:
+            if isinstance(player, Goalie):
+                quota = user.comparable_goalies.count()
             else:
-                data["message"] = f"Comparison quota reached ({utils.COMPARISON_QUOTA} players)"
-                data["comp_quota_reached"] = 1
-        context = saved_players.comparison_context(user, season, skater_mode, goalie_mode)
-        data.update(saved_players.comparison_payload(context, request))
+                quota = user.comparable_skaters.count()
+
+            if player.comparing.filter(id=user.id).exists():
+                player.comparing.remove(user)
+                data["message"] = f"{player.name} successfully removed from the comparison"
+                utils.pop_key(data, "comp_quota_reached")
+            else:
+                if quota < utils.COMPARISON_QUOTA:
+                    player.comparing.add(user)
+                    data["message"] = f"{player.name} successfully added to the comparison"
+                    utils.pop_key(data, "comp_quota_reached")
+
+                else:
+                    data["message"] = f"Comparison quota reached ({utils.COMPARISON_QUOTA} players)"
+                    data["comp_quota_reached"] = 1
+            context = saved_players.comparison_context(user, season, skater_mode, goalie_mode)
+            data.update(saved_players.comparison_payload(context, request))
     else:
         data["authenticated"] = False
         redir = request.META.get("HTTP_REFERER")
@@ -571,9 +572,10 @@ def reset_comparison(request, player_type):
         season, skater_mode, goalie_mode = saved_players.selection(request)
     except ValueError as error:
         return JsonResponse({"error": str(error)}, status=400)
-    getattr(request.user, "comparable_" + player_type).clear()
-    context = saved_players.comparison_context(request.user, season, skater_mode, goalie_mode)
-    return JsonResponse(saved_players.comparison_payload(context, request))
+    with saved_actions.locked_user(request.user) as user:
+        getattr(user, "comparable_" + player_type).clear()
+        context = saved_players.comparison_context(user, season, skater_mode, goalie_mode)
+        return JsonResponse(saved_players.comparison_payload(context, request))
 
 
 @require_POST
@@ -582,24 +584,25 @@ def player_favorite(request, slug, nhl_id):
     user = request.user
     if user.is_authenticated:
         data["authenticated"] = True
-        quota = user.favorite_skaters.count() + user.favorite_goalies.count()
         player = utils.get_player(nhl_id, slug)
         if player is None:
             raise Http404("Player not found")
-        if player.favoriting.filter(id=user.id).exists():
-            player.favoriting.remove(user)
-            data["message"] = f"{player.name} successfully removed from the favorites"
-            utils.pop_key(data, "fav_quota_reached")
-            data["skaters_count"] = user.favorite_skaters.count()
-            data["goalies_count"] = user.favorite_goalies.count()
-        else:
-            if quota < utils.FAVORITES_QUOTA:
-                player.favoriting.add(user)
-                data["message"] = f"{player.name} successfully added to the favorites"
+        with saved_actions.locked_user(user) as user:
+            quota = user.favorite_skaters.count() + user.favorite_goalies.count()
+            if player.favoriting.filter(id=user.id).exists():
+                player.favoriting.remove(user)
+                data["message"] = f"{player.name} successfully removed from the favorites"
                 utils.pop_key(data, "fav_quota_reached")
+                data["skaters_count"] = user.favorite_skaters.count()
+                data["goalies_count"] = user.favorite_goalies.count()
             else:
-                data["message"] = f"Favorites quota reached ({utils.FAVORITES_QUOTA} players)"
-                data["fav_quota_reached"] = 1
+                if quota < utils.FAVORITES_QUOTA:
+                    player.favoriting.add(user)
+                    data["message"] = f"{player.name} successfully added to the favorites"
+                    utils.pop_key(data, "fav_quota_reached")
+                else:
+                    data["message"] = f"Favorites quota reached ({utils.FAVORITES_QUOTA} players)"
+                    data["fav_quota_reached"] = 1
     else:
         data["authenticated"] = False
         redir = request.META.get("HTTP_REFERER")
