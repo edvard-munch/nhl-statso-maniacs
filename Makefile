@@ -1,4 +1,4 @@
-.PHONY: sync lock-check requirements requirements-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser update-daily update-all update-history
+.PHONY: sync lock-check requirements requirements-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
 
 .DEFAULT_GOAL := format
 
@@ -49,6 +49,10 @@ test-ci:
 # Uses the same dedicated test configuration as local hooks.
 test-browser:
 	$(UV_RUN) python scripts/run_hook_tests.py --browser
+
+# Opt-in read-only NHL contracts; never part of normal tests, hooks or CI.
+test-external:
+	$(UV_RUN) python -m pytest -c players/tests/pytest.ini -m "external and not browser" --maxfail=1 players/tests/integration/tests_external_api_*.py
 
 # Keep stages in one recipe so even make -j runs each loader in order and stops on error.
 update-daily:

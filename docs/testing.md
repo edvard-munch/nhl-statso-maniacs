@@ -118,9 +118,11 @@ uv run --locked python -m pytest -c players/tests/pytest.ini -m external \
   players/tests/integration --collect-only
 ```
 
-Actual live checks require dropping `--collect-only`. Some still describe retired
-API contracts and need the deferred maintenance in the roadmap; collecting them
-does not establish that they pass against NHL today.
+Run the live suite with `make test-external`. These read-only, paced contracts
+cover supported loader sources using a completed season/game, with no database
+fixtures or publication commands. They are not added to normal CI or hooks.
+See [scope and failure handling](live-api-checks.md). Collection alone does not
+establish live availability; HTTP outages and schema drift fail the live run.
 
 ## Local commit and push hooks
 
@@ -268,5 +270,5 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 902 passed, 12 external and 21 browser
+CI runs both. The current offline result is 902 passed, 22 external and 21 browser
 cases deselected, at 90.86% combined coverage. The browser runner passes all 21 cases.

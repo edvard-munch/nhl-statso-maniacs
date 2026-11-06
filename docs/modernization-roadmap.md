@@ -493,10 +493,15 @@ Avoid mixing destructive data cleanup with framework/schema transitions.
 
 ## 6. Deferred maintenance
 
-Repair optional live API tests against the new command paths and response
-contracts; do not assert key order or unstable player counts unnecessarily.
-Run them separately after deterministic equivalents exist. Audit unused scripts
-and dependencies by checking callers, docs and scheduled jobs before removal.
+The [optional live API contracts](live-api-checks.md) are repaired and pass all
+22 cases against current sources. They use production readers/parsers, a completed
+reference season/game and a paced read-only session, without key-order or mutable
+count assumptions. `make test-external` runs them explicitly and stops on the first
+failure; normal tests, hooks and CI remain offline. The default suite still passes
+902 tests at 90.86% coverage, now deselecting 22 external and 21 browser cases.
+Next audit unused scripts and dependencies by checking callers, docs and scheduled
+jobs before removal. Include the still-legacy `upd_pls_proj` command in that review;
+removing its obsolete live response assertion does not repair the command itself.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

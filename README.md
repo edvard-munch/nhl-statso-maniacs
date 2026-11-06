@@ -161,11 +161,8 @@ without player landing calls. Full mode refreshes profile/career data from landi
 responses and season statistics from reports, including separate team contributions
 for traded players. See [season loader behavior and tests](docs/season-statistics-loaders.md).
 
-Optional projection update:
-
-```bash
-uv run --locked python manage.py upd_pls_proj
-```
+The legacy `upd_pls_proj` projection command still needs an API/usage audit; it
+is not part of the supported update sequence or the repaired live contracts.
 
 For game-response failures and safe reruns, see [game-loader behavior](docs/game-loading.md).
 Supported loader GETs use bounded retries with `Retry-After` cooldowns; persistent rate
@@ -220,8 +217,12 @@ Twenty-one optional Chromium smoke checks run separately with `make test-browser
 [browser setup](docs/browser-smoke-tests.md). Default tests and local hooks exclude
 browser checks; CI is configured to run both suites.
 
-Run live external API tests explicitly (for example in nightly jobs):
+Run the optional read-only live NHL contracts explicitly:
 
 ```bash
-uv run --locked python -m pytest -c players/tests/pytest.ini -m external players/tests/integration
+make test-external
 ```
+
+These paced checks use a completed reference season/game, never load application
+data, and stop on the first failure. They remain outside normal tests, hooks and
+CI. See [live check scope and failure handling](docs/live-api-checks.md).

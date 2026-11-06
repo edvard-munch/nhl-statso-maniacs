@@ -1046,3 +1046,38 @@ No application database, live NHL services, actual commit/push, application code
 schema or browser dependency changes are involved. The user's old venv is preserved;
 run `make sync` and reinstall local launchers with `make hooks`. Hosted Actions
 and Dependabot graph verification remain pending push.
+
+
+## Follow-up: repair optional live NHL API contracts
+
+Replace the 12 legacy external checks with **22 read-only contracts** for supported
+loader sources. Retire exact ordered-key comparisons, old statsapi schedule/
+boxscore/linescore contracts, the malformed legacy projection request assertion
+and implicit hardcoded-current-season report calls. Keep the files marked both
+`integration` and `external`, with no database fixtures or publication commands.
+The legacy projection command itself is unchanged and flagged for the next audit.
+
+Use completed regular season 2023–24, game 2023020001 / 2023-10-10 and representative
+skater/goalie IDs through a lazy, shared session fixture. Request starts are paced
+one second apart, including retries; the production HTTP helpers retain bounded
+retries/timeouts and Retry-After behavior. Cover current team/calendar/registry,
+schedule, boxscore/roster validation, both landing types, seven season report
+combinations, four career report combinations, faceoff/TOI HTML parsers and
+play-by-play PP/SH points. Event Summary is checked for a reachable report/table,
+not nonexistent player PP/SH columns; those points come from play-by-play.
+
+`make test-external` selects only these modules/markers, excludes browser tests
+and stops on the first failure. Missing data and HTTP errors fail rather than
+skip/xfail. Neither normal Make tests, hooks nor CI add live calls. Documentation
+records references, scope, pacing and failure investigation.
+
+The repaired Make live target passes **22 tests** against actual NHL sources.
+Collection alone makes no HTTP requests. Normal offline collection selects **902
+of 945 cases**, with **43 deselected** (22 external, 21 browser). The full offline
+Make coverage workflow passes **902 tests**, **90.86% combined line/branch coverage**
+and the unchanged 35% gate against disposable PostgreSQL 16. Django system/
+migration checks and XML export pass. Ruff/format, requirements drift and whitespace
+checks pass. Application records are untouched; only the explicit live validation
+contacts NHL. No application code, schema, lockfile/dependency, hook or CI changes
+are part of this batch. Live success is point-in-time availability/schema evidence,
+not verification of all current-season players or production persistence.
