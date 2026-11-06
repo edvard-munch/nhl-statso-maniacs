@@ -170,10 +170,6 @@ filelock==4.2.9 \
     # via
     #   python-discovery
     #   virtualenv
-furl==2.1.0 \
-    --hash=sha256:c0e0231a1feee2acd256574b7033df3144775451c610cb587060d6a0d7e0b621 \
-    --hash=sha256:f4d6f1e5479c376a5b7bdc62795d736d8c1b2a754f366a2ad2816e46e946e22e
-    # via nhl-web-app
 gevent==24.11.1 \
     --hash=sha256:68bee86b6e1c041a187347ef84cf03a792f0b6c7238378bf6ba4118af11feaae \
     --hash=sha256:816b3883fa6842c1cf9d2786722014a0fd31b6312cca1f749890b9803000bad6 \
@@ -227,12 +223,6 @@ num2words==0.5.10 \
     --hash=sha256:0b6e5f53f11d3005787e206d9c03382f459ef048a43c544e3db3b1e05a961548 \
     --hash=sha256:37cd4f60678f7e1045cdc3adf6acf93c8b41bf732da860f97d301f04e611cc57
     # via nhl-web-app
-orderedmultidict==1.0.1 \
-    --hash=sha256:04070bbb5e87291cc9bfa51df413677faf2141c73c61d2a5f7b26bea3cd882ad \
-    --hash=sha256:43c839a17ee3cdd62234c47deca1a8508a3f2ca1d0678a3bf791c87cf84adbf3
-    # via
-    #   furl
-    #   nhl-web-app
 packaging==26.3 \
     --hash=sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79 \
     --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
@@ -378,9 +368,7 @@ six==1.17.0 \
     --hash=sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81
     # via
     #   click-repl
-    #   furl
     #   nhl-web-app
-    #   orderedmultidict
     #   python-dateutil
 sqlparse==0.6.1 \
     --hash=sha256:3be5a72d04c873d690d7c6dedd33d6fae2ef82759881ceec02fc2efd0cba564f \

@@ -103,7 +103,7 @@ start in `pyproject.toml` and regenerate the lock/export.
 | `mccabe 0.7.0`, `pycodestyle 2.9.1`, `pyflakes 2.5.0` | No tracked imports/commands or active mandatory reverse edges. Make, hooks and CI use Ruff; no flake8 command/config found. | Removed in the first focused cleanup follow-up. Ruff and its configuration are retained; other package versions are unchanged. |
 | `attrs 19.3.0`, `more-itertools 7.2.0`, `py 1.11.0`, `pyparsing 2.4.2` | Legacy compatibility pins with no tracked direct imports or active mandatory reverse edges in the locked Python 3.12 installation. | Removed in the separate test-tool cleanup follow-up. All retained versions, including django-shortcuts, are unchanged. |
 | `django-shortcuts 1.6` | Provides the `django` console command, including `r` → `runserver`, `m` → `migrate` and `mm` → `makemigrations`. The user confirmed using these shortcuts. No app import is needed for this CLI consumer. `django.shortcuts` is a separate Django module. | Keep: confirmed developer workflow dependency. Use `uv run --locked django ...` to select the locked interpreter. |
-| `furl 2.1.0` → `orderedmultidict 1.0.1` | The only tracked `furl` import was the retired `upd_vids` OAuth URL parser. No code caller remains; `orderedmultidict` is required by furl. | Review/remove the now-exclusive chain in a separate dependency commit; both pins are retained in this retirement batch. `six` has other consumers and is not part of that removal assumption. |
+| `furl 2.1.0` → `orderedmultidict 1.0.1` | The only tracked `furl` import was the retired `upd_vids` OAuth URL parser. No code caller remains; `orderedmultidict` was its required dependency. | Removed in a separate dependency cleanup after command retirement. `six`, python-dateutil and django-shortcuts are retained; all remaining versions are unchanged. |
 | `gevent 24.11.1` → `greenlet 3.1.1`, `zope.event 5.0`, `zope.interface 7.2` | No direct application imports. The child packages have active gevent reverse edges; Celery can select an optional gevent worker pool externally. No tracked worker launch/pool config found. | Confirm real worker/deployment pool settings before deciding. Eager Celery tests do not prove worker-pool compatibility or disuse. |
 | `chardet 3.0.4` | No mandatory reverse edge or direct app import, **but Requests currently selects it as `requests.compat.chardet`**. | Not unused in current behavior. Retain until a deliberate encoding change is tested against JSON/HTML/image/network paths. |
 | HTTP/TLS, Pillow, PostgreSQL, Celery/results, Django integrations and pinned build tools | Supported code/config, dependency edges or existing validation require them. | Retain in this audit. Do not remove whole transitive chains based on an import search. |
@@ -156,12 +156,12 @@ versions are unchanged; run `make sync` to prune the removed packages locally.
 
 ## Separate reviews after top-level command retirement
 
-These artifacts are deliberately retained; command removal does not delete or
-regenerate any of them:
+Command retirement preserved these artifacts. The explicit dependency follow-up
+below removes only the exclusive URL packages; fixture and OAuth files remain:
 
-- **Dependencies:** `furl` has no remaining tracked code import or mandatory
-  dependent; `orderedmultidict` is required by furl. Both stay in metadata/lock/
-  export for a separate removal and validation batch. `six` and python-dateutil
+- **Dependencies:** `furl` had no remaining tracked code import or mandatory
+  dependent; `orderedmultidict` was required only by furl. Both are now removed
+  from metadata/lock/export in a separate cleanup. `six` and python-dateutil
   have other consumers and are not exclusive to the video command. The missing
   Google API/OAuth client libraries are not installed and need no uninstallation.
   `django-shortcuts` stays for its confirmed CLI use.
@@ -190,3 +190,10 @@ reflects retired legacy code rather than newly tested behavior. Django/migration
 checks, the unchanged 35% gate, XML export and **21 Chromium tests** pass against
 disposable PostgreSQL. Static/export/link/whitespace checks pass. No application
 loader or authenticated OAuth request is run.
+
+
+The exclusive URL dependency cleanup passes a clean 65-package sync, dependency/
+static/export checks, Django/migration checks, 901 offline tests at 91.27% coverage
+and 21 Chromium cases against disposable PostgreSQL. Only furl/orderedmultidict
+leave the graph; no remaining versions change. Run `make sync` to prune them
+locally. Fixture-export and OAuth-file retention decisions remain separate.

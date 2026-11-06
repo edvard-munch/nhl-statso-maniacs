@@ -1139,3 +1139,20 @@ cases pass**, with **923 deselected**. Ruff/format, requirements drift, source/
 command-discovery preservation, documentation links and whitespace checks pass.
 No application records, exported fixture contents or OAuth files are changed;
 no live loader, authenticated request, actual Git commit or push is performed.
+
+
+## Follow-up: remove the retired video command's exclusive URL dependencies
+
+Remove only **furl 2.1.0** and **orderedmultidict 1.0.1** from project metadata,
+lockfile and generated requirements. No tracked code consumer remains following
+upd_vids retirement; orderedmultidict was required only by furl. Lock comparison
+confirms exactly those removals, no additions and unchanged retained versions.
+A fresh 65-package sync confirms both are absent while six, python-dateutil and
+django-shortcuts remain. Dependency, lock/export and Ruff/format checks pass.
+
+Against disposable PostgreSQL 16, Django system/migration checks, **901 offline
+tests** (**43 deselected**) at **91.27% combined coverage**, the unchanged 35% gate
+and XML export pass. All **21 Chromium cases pass** (**923 deselected**). Whitespace
+checks pass. No app code, schema, fixture exports, OAuth files, task/CI/hook
+behavior or stored data change; no live NHL calls. Run `make sync` to prune the two
+packages from an existing uv environment.

@@ -329,19 +329,6 @@ wheels = [
 ]
 
 [[package]]
-name = "furl"
-version = "2.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "orderedmultidict" },
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9c/7d/98f583acd3f5edac3d79476bddb8b643c4ff17c14c8fdadb436964445dc3/furl-2.1.0.tar.gz", hash = "sha256:c0e0231a1feee2acd256574b7033df3144775451c610cb587060d6a0d7e0b621", size = 43765, upload-time = "2019-09-20T20:58:32.884Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/9f/c7/e9dc30914bf048bcd06284bb93d9650d318ecac8668b684fc41e975558ff/furl-2.1.0-py2.py3-none-any.whl", hash = "sha256:f4d6f1e5479c376a5b7bdc62795d736d8c1b2a754f366a2ad2816e46e946e22e", size = 20484, upload-time = "2019-09-20T20:58:30.995Z" },
-]
-
-[[package]]
 name = "gevent"
 version = "24.11.1"
 source = { registry = "https://pypi.org/simple" }
@@ -446,13 +433,11 @@ dependencies = [
     { name = "django-shortcuts" },
     { name = "django-storages" },
     { name = "docopt" },
-    { name = "furl" },
     { name = "gevent" },
     { name = "greenlet" },
     { name = "idna" },
     { name = "kombu" },
     { name = "num2words" },
-    { name = "orderedmultidict" },
     { name = "pillow" },
     { name = "prompt-toolkit" },
     { name = "psycopg2-binary" },
@@ -523,13 +508,11 @@ requires-dist = [
     { name = "django-shortcuts", specifier = "==1.6" },
     { name = "django-storages", specifier = "==1.14.6" },
     { name = "docopt", specifier = "==0.6.2" },
-    { name = "furl", specifier = "==2.1.0" },
     { name = "gevent", specifier = "==24.11.1" },
     { name = "greenlet", specifier = "==3.1.1" },
     { name = "idna", specifier = "==3.15" },
     { name = "kombu", specifier = "==5.3.7" },
     { name = "num2words", specifier = "==0.5.10" },
-    { name = "orderedmultidict", specifier = "==1.0.1" },
     { name = "pillow", specifier = "==13.0.0" },
     { name = "prompt-toolkit", specifier = "==3.0.38" },
     { name = "psycopg2-binary", specifier = "==2.9.10" },
@@ -594,18 +577,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/33/db/76f1151a1b0cfad532d41021b77cd231495bf72c47618166f92dcdff2ebe/num2words-0.5.10.tar.gz", hash = "sha256:37cd4f60678f7e1045cdc3adf6acf93c8b41bf732da860f97d301f04e611cc57", size = 114781, upload-time = "2019-05-12T17:41:09.328Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/a2/ea800689730732e27711c41beed4b2a129b34974435bdc450377ec407738/num2words-0.5.10-py3-none-any.whl", hash = "sha256:0b6e5f53f11d3005787e206d9c03382f459ef048a43c544e3db3b1e05a961548", size = 101576, upload-time = "2019-05-12T17:41:07.411Z" },
-]
-
-[[package]]
-name = "orderedmultidict"
-version = "1.0.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "six" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/53/4e/3823a27d764bb8388711f4cb6f24e58453e92d6928f4163fdb01e3a3789f/orderedmultidict-1.0.1.tar.gz", hash = "sha256:04070bbb5e87291cc9bfa51df413677faf2141c73c61d2a5f7b26bea3cd882ad", size = 20706, upload-time = "2019-07-10T20:11:47.305Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/04/16/5e95c70bda8fe6ea715005c0db8e602400bdba50ae3c72cb380eba551289/orderedmultidict-1.0.1-py2.py3-none-any.whl", hash = "sha256:43c839a17ee3cdd62234c47deca1a8508a3f2ca1d0678a3bf791c87cf84adbf3", size = 11699, upload-time = "2019-07-10T20:11:45.622Z" },
 ]
 
 [[package]]

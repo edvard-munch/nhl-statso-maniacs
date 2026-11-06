@@ -526,6 +526,9 @@ fields/UI, fixture exports, OAuth files, task/Make orchestration and all depende
 pins remain. The audit records separate review decisions for furl/orderedmultidict,
 six legacy exports and 22 OAuth-related JSON files; no authenticated request or
 credential validation is part of command retirement.
+A separate dependency follow-up removes furl and orderedmultidict, whose only
+code consumer was the retired video command. No remaining package versions,
+fixture exports, OAuth files or app behavior change; django-shortcuts stays.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 
