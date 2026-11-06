@@ -534,6 +534,12 @@ exports and the disabled historical `loaddata` block/import. Supported tests use
 their own synthetic fixtures; no application data, models, migrations, active
 test fixtures, OAuth files or dependency settings change. OAuth retention is a
 separate review rather than an implied part of retiring old data exports.
+The [OAuth artifact review](oauth-file-review.md) is now documented without secret
+values. The public repository contains eleven web-client configurations with
+secrets, ten access/refresh-token stores and one empty file. Access-token expiry
+dates alone do not establish that refresh grants are revoked. Next the owner
+must verify project/account usage and revoke/rotate the retired credentials;
+file deletion/ignore rules and any coordinated history cleanup remain separate.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

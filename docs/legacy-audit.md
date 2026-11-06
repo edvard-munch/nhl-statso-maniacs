@@ -174,10 +174,13 @@ remove the exclusive URL packages and unused exports; OAuth files remain:
   Historical exports remain recoverable from Git; no application DB records are
   deleted or reloaded. Synthetic fixtures under `players/tests` are retained.
 - **OAuth artifacts:** 22 tracked JSON files under the former command's
-  `credentials/` directory are preserved. No remaining tracked source references
-  those filenames/client libraries were found. Contents, token validity and Google
-  project/consent ownership were not inspected; no credential was used or revoked.
-  Review retention/ownership separately before deleting files or changing access.
+  `credentials/` directory are preserved. The later [sanitized review](oauth-file-review.md)
+  identifies eleven web-client configurations with secrets, ten saved access/
+  refresh-token stores and one empty file. Recorded access-token expiry dates
+  are in 2019; current refresh-token validity is unverified. The repository is
+  public, so treat this material as exposed and have the owner revoke grants and
+  rotate/delete client secrets before declaring remediation complete. No
+  credential was used, revoked or deleted during the review.
 - **Related application code/data:** projection/video fields, rendering and the
   OAuth callback route/view remain. Their removal would be a separate behavior/
   schema decision, not part of retiring command entry points.
