@@ -58,6 +58,21 @@ validation includes PostgreSQL system/migration checks, both test suites and
 separate SQL splitting/formatting and progress API/CLI smoke checks. The latter
 also verifies that a non-literal CLI expression is rejected. See the roadmap for
 sqlparse's upstream end-of-maintenance announcement.
+The packaging security checkpoint pins pip 26.3, setuptools 84.2.1 and wheel
+0.48.0 in `requirements-bootstrap.txt`. Wheel requires `packaging>=24.0`, so
+packaging 26.3 is pinned in both requirements files to keep bootstrap and project
+installs consistent. Update an existing activated venv in this order:
+
+```bash
+python -m pip install -r requirements-bootstrap.txt
+python -m pip install -r requirements.txt -r requirements-hooks.txt
+python -m pip check
+```
+
+Clean-install validation includes the hook dependencies, local wheel build/unpack/
+install, uncached builds of the existing MarkupSafe/docopt/django-shortcuts source
+distributions, Django checks and both regression suites.
+
 The target Python 3.12.16 environment passes `pip check`, Ruff and all 902 offline
 tests with the 35% coverage gate (90.86% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This

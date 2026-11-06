@@ -1,4 +1,6 @@
-# Packaging tools for Python 3.12 (older setuptools used removed import APIs).
-pip==24.0
-setuptools==75.8.0
-wheel==0.42.0
+# Security-patched packaging tools for Python 3.12.
+pip==26.3
+setuptools==84.2.1
+wheel==0.48.0
+# Required by wheel; keep synchronized with requirements.txt.
+packaging==26.3

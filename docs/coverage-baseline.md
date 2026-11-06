@@ -871,3 +871,32 @@ No application behavior, schema, permanent tests, other package pins or uv files
 change. The existing project venv is unchanged; reinstall requirements and restart
 running app/worker processes. Alert closure awaits default-branch push/rescanning;
 no alerts were dismissed or modified.
+
+## Follow-up: packaging tools security checkpoint
+
+Bootstrap pins change from **pip 24.0 → 26.3**, **setuptools 75.8.0 → 84.2.1**
+and **wheel 0.42.0 → 0.48.0**. PyPI metadata confirms published, non-yanked
+releases compatible with Python 3.12.16. Their versions fall outside all ten
+current affected ranges: **#142–#151**. Wheel 0.48.0 also includes an additional
+`wheel convert` path-traversal fix beyond the minimum version in alert #144;
+see the [upstream release notes](https://wheel.readthedocs.io/en/stable/news.html).
+Wheel now requires `packaging>=24.0`; **packaging 23.2 → 26.3** is therefore
+pinned consistently in bootstrap and project requirements.
+
+A fresh temporary venv installs bootstrap, full project and hook requirements,
+then passes `pip check` and pre-commit configuration validation. Temporary smoke
+checks build a synthetic local package using the installed setuptools backend,
+unpack its wheel, install it without an index, import it and uninstall it.
+Uncached source builds of MarkupSafe 1.1.1, docopt 0.6.2 and django-shortcuts 1.6
+also pass using the patched tools with build isolation disabled, establishing
+compatibility beyond previously cached wheels.
+
+Against disposable PostgreSQL 16, Django system checks report no issues and
+migration consistency checks report no changes. **902 offline tests pass**, with
+**33 deselected**, at **90.86% combined line/branch coverage**; the gate remains
+35%. All **21 Chromium tests pass**, with **914 deselected**. Ruff, format and
+whitespace checks pass. Application databases and live NHL services are untouched.
+No application code, migrations, permanent tests, CI commands or uv files change.
+The existing project venv remains unchanged; install bootstrap requirements before
+project/hook requirements as documented in [testing](testing.md#python-environment).
+Alert closure awaits default-branch push/rescanning; no alerts were dismissed.

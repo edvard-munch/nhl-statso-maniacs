@@ -383,7 +383,18 @@ additional security fixes beyond 0.6.0. Its maintainer also announced
 [end of maintenance](https://sqlparse.readthedocs.io/en/latest/changes.html#release-0-6-1-nov-01-2026);
 track Django's dependency guidance and future security implications separately.
 Django still requires sqlparse, so removing its explicit pin would not remove the
-dependency. Other tooling/docs dependencies remain separate work; uv has not started.
+dependency.
+The packaging security batch updates pip 24.0 to 26.3, setuptools 75.8.0 to
+84.2.1 and wheel 0.42.0 to 0.48.0. These published, non-yanked Python 3.12-compatible
+pins cover all ten current packaging-tool alerts. Wheel's new runtime dependency
+requires raising packaging 23.2 to 26.3 in both bootstrap and project requirements.
+A fresh bootstrap/project/hook install passes dependency, PostgreSQL system/
+migration, 902 offline and 21 Chromium checks, retaining 90.86% combined coverage.
+Local wheel build/unpack/install and uncached legacy source builds also pass.
+No CI command changes are needed: it already installs bootstrap requirements first.
+See [environment update commands](testing.md#python-environment). Alert closure
+still requires a default-branch push and rescan. Remaining docs/tooling dependency
+alerts are separate work; uv has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working
