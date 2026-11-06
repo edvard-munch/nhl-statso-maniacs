@@ -6,6 +6,7 @@ from time import sleep
 import requests
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
+from django.db.models import Q
 from django.utils.text import slugify
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
 from zoneinfo import ZoneInfo
@@ -51,6 +52,11 @@ ROSTER_GROUP_POSITIONS = {
     "defense": {"D"},
     "goalies": {"G"},
 }
+GAME_ID_FIELD = "gameId"
+ROSTER_RELATIONS = (
+    (Skater, ("away_defencemen", "away_forwards", "home_defencemen", "home_forwards")),
+    (Goalie, ("away_goalies", "home_goalies")),
+)
 
 GAME_REPORT_LINK_KEYS = ["eventSummary", "faceoffSummary", "toiAway", "toiHome"]
 REPORT_STAT_KEYS = [
@@ -238,8 +244,14 @@ def _process_games(day, session):
                     game["id"], game_data=game_data, session=session
                 )
                 if rosters_api:
+                    if not created:
+                        remove_departed_gamelogs(game_obj, rosters_api)
                     rosters_database = prepare_rosters_for_database(
-                        rosters_api, team_objects, gameday_obj, report_player_stats
+                        rosters_api,
+                        team_objects,
+                        gameday_obj,
+                        report_player_stats,
+                        game_id=game_obj.nhl_id,
                     )
 
                     if game_data["gameState"] in FINAL_GAME_STATES and rosters_equal(
@@ -326,7 +338,7 @@ def get_rosters_api(game_data, game_id=None):
 
 
 def prepare_rosters_for_database(
-    rosters_api, team_objects, gameday_object, report_player_stats=None
+    rosters_api, team_objects, gameday_object, report_player_stats=None, game_id=None
 ):
     away_goalies_count = len(rosters_api["awayTeam"]["goalies"])
     home_goalies_count = len(rosters_api["homeTeam"]["goalies"])
@@ -347,6 +359,7 @@ def prepare_rosters_for_database(
         home_team,
         away_goalies_count,
         report_player_stats,
+        game_id,
     )
     iterate_players(
         gameday_object,
@@ -357,6 +370,7 @@ def prepare_rosters_for_database(
         away_team,
         home_goalies_count,
         report_player_stats,
+        game_id,
     )
 
     rosters_database = {
@@ -365,6 +379,73 @@ def prepare_rosters_for_database(
     }
 
     return rosters_database
+
+
+def remove_departed_gamelogs(game, rosters):
+    """Delete only verified appearances of participants absent from this refresh."""
+    current_ids = {
+        normalize_report_identifier(player["playerId"])
+        for side in rosters.values()
+        for players in side.values()
+        for player in players
+    }
+    day = str(game.gameday.day)
+    team_abbrs = set(game.teams.values_list("abbr", flat=True))
+    for model, fields in ROSTER_RELATIONS:
+        departed = {}
+        for field in fields:
+            for player in getattr(game, field).exclude(nhl_id__in=current_ids):
+                departed[player.pk] = player
+        for player in departed.values():
+            logs = player.gamelog_stats
+            if not isinstance(logs, dict) or day not in logs:
+                continue
+            if not gamelog_belongs_to_game(logs[day], player, game, fields, team_abbrs):
+                logger.warning(
+                    "Retaining unverified gamelog for %s %s on %s when removing from game %s",
+                    model.__name__,
+                    player.nhl_id,
+                    day,
+                    game.nhl_id,
+                )
+                continue
+            logs = dict(logs)
+            del logs[day]
+            player.gamelog_stats = logs
+            player.save(update_fields=["gamelog_stats"])
+
+
+def gamelog_belongs_to_game(entry, player, game, fields, team_abbrs):
+    if not isinstance(entry, dict):
+        return False
+    identity = entry.get("player")
+    if (
+        not isinstance(identity, dict)
+        or normalize_report_identifier(identity.get("nhl_id")) != player.nhl_id
+    ):
+        return False
+    if GAME_ID_FIELD in entry:
+        return normalize_report_identifier(entry[GAME_ID_FIELD]) == game.nhl_id
+    team = entry.get("team")
+    opponent = entry.get("opponent")
+    if not all(
+        isinstance(value, dict) and isinstance(value.get("abbr"), str) for value in (team, opponent)
+    ):
+        return False
+    if (
+        len(team_abbrs) != len(ROSTER_SIDES)
+        or {team.get("abbr"), opponent.get("abbr")} != team_abbrs
+    ):
+        return False
+    appearances = Q()
+    for field in fields:
+        appearances |= Q(**{field: player.pk})
+    return (
+        not Game.objects.filter(gameday=game.gameday)
+        .exclude(pk=game.pk)
+        .filter(appearances)
+        .exists()
+    )
 
 
 def save_rosters_to_database(rosters, game_object):
@@ -426,6 +507,7 @@ def iterate_players(
     opponent,
     goalies_count,
     report_player_stats=None,
+    game_id=None,
 ):
     for _, value in roster.items():
         for player_data in value:
@@ -447,6 +529,8 @@ def iterate_players(
                 # chek if not 'Scratched'
                 if game_stats:
                     game_stats["format_date"] = format_date
+                    if game_id is not None:
+                        game_stats[GAME_ID_FIELD] = game_id
                     player.gamelog_stats[str(gameday_obj.day)] = game_stats
                     player.save(update_fields=["gamelog_stats"])
             else:

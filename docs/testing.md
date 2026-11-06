@@ -29,8 +29,8 @@ python -m pip check
 ```
 
 The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
-The target Python 3.12.16 environment passes `pip check`, Ruff and all 811 offline
-tests with the 35% coverage gate (90.46% combined coverage). The bootstrap file
+The target Python 3.12.16 environment passes `pip check`, Ruff and all 849 offline
+tests with the 35% coverage gate (90.55% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
 validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.
@@ -250,6 +250,12 @@ It reuses the existing synthetic game/report fixture, snapshots saved player/gam
 data and relationships, and preserves unavailable-roster and nested-format behavior.
 See [game-loading contracts](game-loading.md#malformed-supplied-rosters).
 
+`tests_upd_gms_changed_participants_db.py` covers removed/replaced participants in
+all six roster groups, bench-goalie corrections, position/side changes, game-ID and
+legacy cleanup safeguards, shared skater/goalie database IDs, repeat loads and
+rollback after cleanup. Ambiguous legacy entries are retained with a warning;
+older history, unrelated players and saved memberships remain protected.
+
 ## Optional browser smoke tests
 
 Twenty-one Chromium cases exercise Players, authenticated saved-list controls,
@@ -257,5 +263,5 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 811 passed, 12 external and 21 browser
-cases deselected, at 90.46% combined coverage. The browser runner passes all 21 cases.
+CI runs both. The current offline result is 849 passed, 12 external and 21 browser
+cases deselected, at 90.55% combined coverage. The browser runner passes all 21 cases.

@@ -715,3 +715,29 @@ without erasing previous links/logs, and nested legacy rosters remain supported.
 Validation uses disposable PostgreSQL and mocked HTTP; no application database or
 live NHL calls are involved. Changed-participant/gamelog cleanup is the remaining
 planned testing commit for this phase.
+
+## Follow-up: changed participants and verified gamelog cleanup
+
+The offline gate passes **849 tests**, with **33 deselected** (12 external and
+21 browser), at **90.55% combined line/branch coverage**, retaining the 35% gate.
+Ruff, formatting and whitespace checks pass. Browser cases were not rerun for
+this loader-only change.
+
+Thirty-eight new database cases protect removal/replacement across all six roster
+groups with tagged and legacy entries, goalie bench corrections, position/side
+changes, typed skater/goalie IDs, missing replacement players, repeated reloads
+and rollback after cleanup. The first 33 cases all failed against the prior loader.
+Older history, unrelated player fields and favorites/comparison memberships stay
+intact; a later malformed game restores removed gamelogs and roster links.
+
+Newly loaded date entries include `gameId`. Cleanup considers only previous roster
+members absent from the refreshed played roster and verifies both game and player
+identity. Legacy entries require matching player/team/opponent metadata and no
+other same-date game appearance. Conflicting or malformed entries are retained
+with a warning; roster links still reconcile to the supplied response. No schema
+migration, automatic historical sweep or live NHL calls are involved. Fixtures use
+disposable PostgreSQL; application data is untouched.
+
+This completes the agreed testing phase. Hosted CI/dependency-graph verification
+and deployment/migration rehearsal on a disposable representative database copy
+are next; optional edge cases remain separate work rather than extending this phase.

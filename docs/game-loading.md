@@ -65,9 +65,9 @@ team foreign key. Bench goalies with zero TOI are excluded; shared shutouts are 
 awarded as individual shutouts by the existing rule.
 
 Missing database players leave the game/day unfinished and produce a warning;
-loading the missing player and replaying can complete that roster. Removed
-participants/gamelog cleanup remains the next focused contract. Opposing-player
-sweater collisions are covered below.
+loading the missing player and replaying can complete that roster. Corrected
+participants and conservative gamelog cleanup are covered below, along with
+opposing-player sweater collisions.
 
 ## Malformed supplied rosters
 
@@ -93,6 +93,33 @@ An absent, null or empty-object roster retains the existing pending-game behavio
 previous player logs/links stay intact and finished flags clear. The legacy nested
 `boxscore.playerByGameStats` format remains supported. Scheduled/pregame responses
 do not require rosters. No existing games are scanned or changed automatically.
+
+## Corrected participants and gamelog cleanup
+
+Reloading a valid supplied roster reconciles all six roster groups. A removed or
+replaced skater/goalie loses only the verified gamelog entry for that game/date.
+A goalie corrected to zero TOI loses the played appearance; a player moving
+position or side retains an updated appearance. Older history, season/career
+fields and favorites/comparison memberships remain intact. An unknown replacement
+still leaves the game pending under the existing missing-player rule.
+
+Newly loaded gamelog entries include `gameId` alongside their existing player,
+team and opponent metadata. Cleanup considers only players previously linked to
+this game who are absent from the refreshed played roster. A tagged entry must
+match both game and player IDs. For legacy entries without a game ID, cleanup
+requires matching player identity and both stored game teams, with no other
+same-date game linking that player. Skater and goalie database IDs remain separate.
+
+Conflicting IDs, malformed metadata and ambiguous same-date entries are retained
+with a `Retaining unverified gamelog` warning. The game roster links still update
+to the supplied roster. Missing/unavailable rosters preserve existing links/logs;
+malformed supplied rosters fail before cleanup. Cleanup and new player writes
+share the gameday transaction, so a later failure restores removed logs and links.
+Repeated successful reloads preserve IDs and history.
+
+This behavior takes effect when a game is reloaded; it does not scan historical
+data or recover orphaned logs whose game links were already removed by earlier
+loader runs. No database schema migration is required for the JSON marker.
 
 ## Report player identity
 
