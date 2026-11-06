@@ -1118,3 +1118,24 @@ environment's interpreter; no real server or migration is started by that check.
 No application code, schema, hook/CI behavior, other dependency versions, user Git
 hooks or application data change; no live NHL calls. Run `make sync` to prune the
 old packages from an existing uv environment. Whitespace checks pass.
+
+
+## Follow-up: retire four top-level legacy commands
+
+Remove upd_pls_proj, upd_vids, upd_pls_sbs-n and json_fixtures_creator after user
+approval. Remove the projection import/parameter branch from the shared HTTP test;
+remaining retry and supported-loader contracts stay intact. Five supported commands
+remain discoverable. Make/Celery sequencing, models, profile rendering, dependency
+metadata/lock/export, six old fixture exports and 22 OAuth-related JSON files are
+unchanged. Separate dependency/artifact review is recorded in the legacy audit;
+furl/orderedmultidict remain installed, and no OAuth contents/validity are inspected.
+
+Collection selects **901 of 944 tests**, with **43 deselected**. Against disposable
+PostgreSQL 16, system/migration checks and **901 offline tests** pass at **91.27%
+combined coverage**, retaining the 35% gate; XML export succeeds. The count drops
+by the one retired projection-only parameter case, and coverage rises because
+legacy source is removed, not because new behavior is covered. All **21 Chromium
+cases pass**, with **923 deselected**. Ruff/format, requirements drift, source/
+command-discovery preservation, documentation links and whitespace checks pass.
+No application records, exported fixture contents or OAuth files are changed;
+no live loader, authenticated request, actual Git commit or push is performed.

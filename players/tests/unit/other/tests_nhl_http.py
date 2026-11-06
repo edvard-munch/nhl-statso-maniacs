@@ -11,7 +11,7 @@ import requests
 import requests_mock as http_mock
 
 from players import nhl_http, season_loading
-from players.management.commands import upd_gms, upd_pls, upd_pls_proj, upd_pls_tot, upd_tms
+from players.management.commands import upd_gms, upd_pls, upd_pls_tot, upd_tms
 
 pytestmark = pytest.mark.unit
 URL = "https://api.nhle.com/stats/rest/en/skater/summary"
@@ -176,7 +176,6 @@ def test_http_and_json_failures_share_one_attempt_budget(requests_mock, waits):
         "career-goalie",
         "game-json",
         "html",
-        "projection",
         "logo",
         "profile-image",
     ],
@@ -209,8 +208,6 @@ def test_loader_entrypoints_share_rate_limit_recovery(
         assert upd_gms.fetch_json(URL, "test game") == payload
     elif kind == "html":
         assert upd_gms.fetch_report_html(URL)
-    elif kind == "projection":
-        assert upd_pls_proj.player_ind_stats(42).json() == payload
     else:
         image = Mock()
         player = SimpleNamespace(abbr="BUF", nhl_id=42, name="Player", image=image)

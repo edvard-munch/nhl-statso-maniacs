@@ -3,8 +3,8 @@
 `make update-daily` / `make update-all` keep their sequential, stop-on-failure
 behavior. Loaders share `players/nhl_http.py` for team/player reports, season
 detection, current/full totals, player landing responses, game JSON/HTML reports,
-optional projections and team/profile image downloads. The legacy season command's
-request helper also uses this policy; its old parsing/API assumptions are unchanged.
+and team/profile image downloads. Legacy projection/season command entry points
+have been retired; their command-specific transport check is removed.
 The six obsolete `_new/` experiments have been retired; supported loader behavior
 is unchanged. See the [legacy inventory](legacy-audit.md).
 
@@ -58,6 +58,6 @@ cooldowns, missing/malformed/past headers, long-wait refusal, exponential backof
 bounded exhaustion, permanent HTTP errors, transport recovery, response cleanup,
 session/parameter preservation and a combined HTTP/JSON retry budget. Loader-entry
 checks cover teams, season detection, season reports, landing/career endpoints,
-games, HTML, projections and images. Existing persistence tests protect rollback
+games, HTML and images. Existing persistence tests protect rollback
 and optional-career preservation; persistent 429 leaves the current player unchanged.
 Offline tests replace waits; explicitly marked live API tests retain real waits.

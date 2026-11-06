@@ -35,17 +35,20 @@ Sources: [Makefile](../Makefile), [tasks](../players/tasks.py),
 Celery is imported at package startup and its Django result app/backend is configured;
 absence of a visible scheduler is not a reason to remove Celery/results dependencies.
 
-## Discoverable legacy commands
+## Retired top-level legacy commands
 
-These are still discoverable Django commands in a clean checkout. They are not
-part of the supported Make update sequence or the configured Celery update task.
+The four commands below are now removed following explicit user approval. Their
+source-review findings are retained here as history; implementations remain in
+Git history. The projection-only HTTP retry parameter case/import is also removed.
+Stored fields, profile rendering, fixtures and OAuth files are preserved. The five
+supported commands remain discoverable; Make and Celery orchestration are unchanged.
 
-| Command | Classification and evidence | Decision needed before cleanup |
+| Command | Historical classification and evidence | Disposition |
 | --- | --- | --- |
-| [`upd_pls_proj`](../players/management/commands/upd_pls_proj.py) | **Broken API contract.** Concatenates the current `PLAYER_ENDPOINT_URL` template without formatting its `{}` placeholder, appends an ID/hydrate query and expects retired `people/stats/splits` data. Writes `proj_stats`. The remaining mocked HTTP test covers retry plumbing, not endpoint validity. | Confirm whether projections are wanted and whether any machine runs this command. Choose repair or retirement separately; keep stored stats and UI until a product decision. |
-| [`upd_vids`](../players/management/commands/upd_vids.py) | **Unavailable in the locked environment / manual workflow.** Imports `googleapiclient` and `oauth2client`, neither installed nor declared in the lock. Uses browser/input OAuth, credential storage and YouTube API calls, then writes `relevant_video`/`video_link_updated_at`. No Make/task/CI caller or command regression coverage found. | Confirm whether video refresh is used and who owns its OAuth setup before choosing repair or retirement. The credential directory contains 22 tracked JSON filenames; this audit did not inspect their contents or validity. Do not add missing dependencies merely to make an unused command import. |
-| [`upd_pls_sbs-n`](../players/management/commands/upd_pls_sbs-n.py) | **Legacy season experiment / removal candidate.** Still discovered despite the hyphen. Hardcodes 2018–19, builds the same unformatted landing/hydrate URL pattern and expects nested legacy season rows; writes `sbs_stats`. No repository caller/test found. | Confirm no external/manual use; compare any unique repair intent with supported current/full totals before retiring. |
-| [`json_fixtures_creator`](../players/management/commands/json_fixtures_creator.py) | **Manual data-export utility / removal candidate.** Reads every team and up to ten records of each other model, overwriting six tracked `players/fixtures/*_objects.json` files. It does not itself mutate DB records. No active test/CI caller or fixture-name consumer found; old `loaddata` examples are commented out. | Confirm whether anyone still exports those fixtures. Current synthetic test fixtures are different files under `players/tests/fixtures` and must be retained. Do not regenerate legacy exports as validation. |
+| `upd_pls_proj` (retired) | **Broken API contract.** Concatenates the current `PLAYER_ENDPOINT_URL` template without formatting its `{}` placeholder, appends an ID/hydrate query and expects retired `people/stats/splits` data. Writes `proj_stats`. The former mocked HTTP test covered retry plumbing, not endpoint validity. | Retired. Keep stored projection stats and UI until a separate product decision. |
+| `upd_vids` (retired) | **Unavailable in the locked environment / manual workflow.** Imports `googleapiclient` and `oauth2client`, neither installed nor declared in the lock. Uses browser/input OAuth, credential storage and YouTube API calls, then writes `relevant_video`/`video_link_updated_at`. No Make/task/CI caller or command regression coverage found. | Retired. Preserve stored video fields/UI and the 22 OAuth-related JSON files pending a separate artifact review; credential validity is not established. |
+| `upd_pls_sbs-n` (retired) | **Legacy season experiment / removal candidate.** Still discovered despite the hyphen. Hardcodes 2018–19, builds the same unformatted landing/hydrate URL pattern and expects nested legacy season rows; writes `sbs_stats`. No repository caller/test found. | Retired. Historical SBS data and supported current/full totals loaders are retained. |
+| `json_fixtures_creator` (retired) | **Manual data-export utility / removal candidate.** Reads every team and up to ten records of each other model, overwriting six tracked `players/fixtures/*_objects.json` files. It does not itself mutate DB records. No active test/CI caller or fixture-name consumer found; old `loaddata` examples are commented out. | Retired. Preserve the six exports for separate review; current synthetic `players/tests/fixtures` are distinct and retained. |
 
 The profile still consumes these data fields: [view context](../players/views.py)
 conditionally supplies `proj_stats`, and the [profile template](../players/templates/players/player_detail.html)
@@ -100,7 +103,7 @@ start in `pyproject.toml` and regenerate the lock/export.
 | `mccabe 0.7.0`, `pycodestyle 2.9.1`, `pyflakes 2.5.0` | No tracked imports/commands or active mandatory reverse edges. Make, hooks and CI use Ruff; no flake8 command/config found. | Removed in the first focused cleanup follow-up. Ruff and its configuration are retained; other package versions are unchanged. |
 | `attrs 19.3.0`, `more-itertools 7.2.0`, `py 1.11.0`, `pyparsing 2.4.2` | Legacy compatibility pins with no tracked direct imports or active mandatory reverse edges in the locked Python 3.12 installation. | Removed in the separate test-tool cleanup follow-up. All retained versions, including django-shortcuts, are unchanged. |
 | `django-shortcuts 1.6` | Provides the `django` console command, including `r` → `runserver`, `m` → `migrate` and `mm` → `makemigrations`. The user confirmed using these shortcuts. No app import is needed for this CLI consumer. `django.shortcuts` is a separate Django module. | Keep: confirmed developer workflow dependency. Use `uv run --locked django ...` to select the locked interpreter. |
-| `furl 2.1.0` → `orderedmultidict 1.0.1` | Only tracked `furl` import is `upd_vids` OAuth URL parsing. `orderedmultidict` is required by furl. | Decide the video command first; review/remove the chain together only if that consumer is retired. `six` has other consumers and is not part of that removal assumption. |
+| `furl 2.1.0` → `orderedmultidict 1.0.1` | The only tracked `furl` import was the retired `upd_vids` OAuth URL parser. No code caller remains; `orderedmultidict` is required by furl. | Review/remove the now-exclusive chain in a separate dependency commit; both pins are retained in this retirement batch. `six` has other consumers and is not part of that removal assumption. |
 | `gevent 24.11.1` → `greenlet 3.1.1`, `zope.event 5.0`, `zope.interface 7.2` | No direct application imports. The child packages have active gevent reverse edges; Celery can select an optional gevent worker pool externally. No tracked worker launch/pool config found. | Confirm real worker/deployment pool settings before deciding. Eager Celery tests do not prove worker-pool compatibility or disuse. |
 | `chardet 3.0.4` | No mandatory reverse edge or direct app import, **but Requests currently selects it as `requests.compat.chardet`**. | Not unused in current behavior. Retain until a deliberate encoding change is tested against JSON/HTML/image/network paths. |
 | HTTP/TLS, Pillow, PostgreSQL, Celery/results, Django integrations and pinned build tools | Supported code/config, dependency edges or existing validation require them. | Retain in this audit. Do not remove whole transitive chains based on an import search. |
@@ -122,10 +125,10 @@ checks validate that executable or the host's process setup.
 2. Completed: remove the unused legacy lint pins in a focused dependency
    follow-up, regenerating lock/export. The old test-helper pins are removed in a
    separate follow-up. Retain django-shortcuts: its CLI use is confirmed.
-3. Completed: retire the six confirmed unused `_new` experiments. Resolve the
-   four top-level legacy command decisions before removing those writers or
-   their supporting dependencies. Preserve stored fields/UI unless a
-   separate product/data migration is agreed.
+3. Completed: retire the six `_new` experiments and, in a separate batch, the four
+   top-level legacy commands. Review exclusive dependencies, fixture exports and
+   OAuth files separately; preserve stored fields/UI unless a separate product/
+   data migration is agreed.
 4. Decide whether the Celery update task should match the Make sequence. This
    changes behavior and existing task-order tests, so keep it separate from cleanup.
 5. Resolve the Procfile/server gap as part of the previously deferred deployment
@@ -149,3 +152,41 @@ pyparsing. A clean 67-package sync, both real test hooks in a temporary checkout
 remains installed; stub CLI checks preserve r/m/mm mappings and interpreter
 selection without starting the application or running migrations. Other dependency
 versions are unchanged; run `make sync` to prune the removed packages locally.
+
+
+## Separate reviews after top-level command retirement
+
+These artifacts are deliberately retained; command removal does not delete or
+regenerate any of them:
+
+- **Dependencies:** `furl` has no remaining tracked code import or mandatory
+  dependent; `orderedmultidict` is required by furl. Both stay in metadata/lock/
+  export for a separate removal and validation batch. `six` and python-dateutil
+  have other consumers and are not exclusive to the video command. The missing
+  Google API/OAuth client libraries are not installed and need no uninstallation.
+  `django-shortcuts` stays for its confirmed CLI use.
+- **Fixture exports:** six tracked JSON files contain 31 teams, 10 goalies,
+  10 skaters, 6 games, 6 sides and 157 gamedays. Only record counts/model labels
+  were inspected, without exposing record contents. These counts differ from the
+  retired exporter's current ten-record limit for non-teams, so regenerating them
+  would not preserve the existing artifacts. No active test/CI consumer was found;
+  confirm external/manual use before a distinct artifact-removal decision.
+- **OAuth artifacts:** 22 tracked JSON files under the former command's
+  `credentials/` directory are preserved. No remaining tracked source references
+  those filenames/client libraries were found. Contents, token validity and Google
+  project/consent ownership were not inspected; no credential was used or revoked.
+  Review retention/ownership separately before deleting files or changing access.
+- **Related application code/data:** projection/video fields, rendering and the
+  OAuth callback route/view remain. Their removal would be a separate behavior/
+  schema decision, not part of retiring command entry points.
+
+
+Command-retirement validation finds exactly five supported top-level commands,
+no remaining code caller/import for the four removed commands and unchanged
+artifact/model/UI/task/Make/dependency files. Removing the obsolete projection-only
+transport parameter case reduces the offline count by one: **901 tests pass**,
+with **43 deselected**, at **91.27% combined coverage**. The coverage increase
+reflects retired legacy code rather than newly tested behavior. Django/migration
+checks, the unchanged 35% gate, XML export and **21 Chromium tests** pass against
+disposable PostgreSQL. Static/export/link/whitespace checks pass. No application
+loader or authenticated OAuth request is run.

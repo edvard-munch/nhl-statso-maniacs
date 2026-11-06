@@ -48,9 +48,9 @@ checked for an available report/table; PP/SH points are checked through the
 production play-by-play parser. TOI/faceoff checks require nonempty parsed rows.
 
 The retired `statsapi.web.nhl.com` schedule/boxscore/linescore and projection
-response checks are removed. `upd_pls_proj` still implements a legacy request;
-this batch does not modernize that command or imply it works. Review it in the
-separate legacy audit before running it against saved players.
+response checks are removed. The later legacy retirement also removes
+`upd_pls_proj` itself, preserving stored projection data and UI. See the
+[legacy audit](legacy-audit.md) for the separate artifact/dependency review.
 
 ## Pacing and failures
 

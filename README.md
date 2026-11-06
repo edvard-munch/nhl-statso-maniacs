@@ -163,8 +163,9 @@ without player landing calls. Full mode refreshes profile/career data from landi
 responses and season statistics from reports, including separate team contributions
 for traded players. See [season loader behavior and tests](docs/season-statistics-loaders.md).
 
-The legacy `upd_pls_proj` projection command still needs an API/usage audit; it
-is not part of the supported update sequence or the repaired live contracts.
+The legacy projection, video, season experiment and fixture-export commands are
+retired. Existing projection/video data and profile display are preserved; see
+the [artifact/dependency follow-up review](docs/legacy-audit.md#separate-reviews-after-top-level-command-retirement).
 
 For game-response failures and safe reruns, see [game-loader behavior](docs/game-loading.md).
 Supported loader GETs use bounded retries with `Retry-After` cooldowns; persistent rate
@@ -211,7 +212,7 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **902 tests at 90.86% combined line/branch
+The current offline suite passes **901 tests at 91.27% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 

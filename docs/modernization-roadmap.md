@@ -520,6 +520,12 @@ callers and were excluded from normal Django command discovery; several containe
 legacy data writes and unusable sampled endpoints. The inventory retains their
 purpose and findings as history. No top-level commands, stored fields/data,
 fixtures, OAuth files or dependencies are removed in this retirement batch.
+The following batch retires `upd_pls_proj`, `upd_vids`, `upd_pls_sbs-n` and
+`json_fixtures_creator`, plus the projection-only mocked transport case. Stored
+fields/UI, fixture exports, OAuth files, task/Make orchestration and all dependency
+pins remain. The audit records separate review decisions for furl/orderedmultidict,
+six legacy exports and 22 OAuth-related JSON files; no authenticated request or
+credential validation is part of command retirement.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

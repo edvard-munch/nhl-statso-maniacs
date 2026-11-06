@@ -270,5 +270,5 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 902 passed, 22 external and 21 browser
-cases deselected, at 90.86% combined coverage. The browser runner passes all 21 cases.
+CI runs both. The current offline result is 901 passed, 22 external and 21 browser
+cases deselected, at 91.27% combined coverage. The browser runner passes all 21 cases.
