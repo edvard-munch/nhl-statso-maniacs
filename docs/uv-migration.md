@@ -32,6 +32,15 @@ uv run --locked python manage.py runserver
 make update-daily
 ```
 
+The retained `django-shortcuts` package also supplies the `django` command with
+short aliases. If using that package, no shell alias is needed:
+
+```bash
+uv run --locked django r   # runserver
+uv run --locked django m   # migrate
+uv run --locked django mm  # makemigrations
+```
+
 Loader Make targets still support an intentional `PYTHON=/path/to/python` override;
 the default is `uv run --locked python`. Ordered execution and stop-on-failure
 behavior are unchanged. Python support stays at `>=3.12,<3.13`; patch selection is

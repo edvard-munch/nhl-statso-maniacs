@@ -87,7 +87,7 @@ start in `pyproject.toml` and regenerate the lock/export.
 | --- | --- | --- |
 | `mccabe 0.7.0`, `pycodestyle 2.9.1`, `pyflakes 2.5.0` | No tracked imports/commands or active mandatory reverse edges. Make, hooks and CI use Ruff; no flake8 command/config found. | Removed in the first focused cleanup follow-up. Ruff and its configuration are retained; other package versions are unchanged. |
 | `attrs 19.3.0`, `more-itertools 7.2.0`, `py 1.11.0`, `pyparsing 2.4.2` | Retained compatibility pins in the `test` group; no tracked direct imports or active mandatory reverse edges in the locked Python 3.12 installation. | Separate test-tool cleanup candidate. Verify pytest/plugins, legacy path fixtures, hooks, offline coverage and browser tests after removal. |
-| `django-shortcuts 1.6` | Exposes `django_shortcuts`; no tracked import or active mandatory dependent found. `from django.shortcuts ...` uses Django itself, not this distribution. | Candidate for a separate removal/clean-startup check, without removing Django or rewriting its imports. |
+| `django-shortcuts 1.6` | Provides the `django` console command, including `r` → `runserver`, `m` → `migrate` and `mm` → `makemigrations`. The user confirmed using these shortcuts. No app import is needed for this CLI consumer. `django.shortcuts` is a separate Django module. | Keep: confirmed developer workflow dependency. Use `uv run --locked django ...` to select the locked interpreter. |
 | `furl 2.1.0` → `orderedmultidict 1.0.1` | Only tracked `furl` import is `upd_vids` OAuth URL parsing. `orderedmultidict` is required by furl. | Decide the video command first; review/remove the chain together only if that consumer is retired. `six` has other consumers and is not part of that removal assumption. |
 | `gevent 24.11.1` → `greenlet 3.1.1`, `zope.event 5.0`, `zope.interface 7.2` | No direct application imports. The child packages have active gevent reverse edges; Celery can select an optional gevent worker pool externally. No tracked worker launch/pool config found. | Confirm real worker/deployment pool settings before deciding. Eager Celery tests do not prove worker-pool compatibility or disuse. |
 | `chardet 3.0.4` | No mandatory reverse edge or direct app import, **but Requests currently selects it as `requests.compat.chardet`**. | Not unused in current behavior. Retain until a deliberate encoding change is tested against JSON/HTML/image/network paths. |
@@ -108,8 +108,8 @@ checks validate that executable or the host's process setup.
    whether the Procfile is used. Record command arguments and interpreter, without
    copying credentials into documentation.
 2. Completed: remove the unused legacy lint pins in a focused dependency
-   follow-up, regenerating lock/export. Treat the old test-helper pins
-   and django-shortcuts as separate reviewable batches.
+   follow-up, regenerating lock/export. Treat the old test-helper pins as a
+   separate reviewable batch. Retain django-shortcuts: its CLI use is confirmed.
 3. Resolve the video/projection and `_new` retention decisions before removing
    writers or their supporting dependencies. Preserve stored fields/UI unless a
    separate product/data migration is agreed.
