@@ -178,6 +178,11 @@ limits stop the sequence. See [shared HTTP policy and reruns](docs/loader-http.m
 - `upd_pls_tot --mode=current`: run frequently to refresh current-season and career aggregates without heavy landing calls.
 - `upd_pls_tot --mode=full`: run occasionally for historical refresh/backfill.
 
+For the planned always-on server, see the [scheduling policy and server
+requirements](docs/loader-scheduling.md). It separates frequent targeted live-game
+refreshes from daily season/career work and weekly team updates. The schedule is
+not enabled yet; the current Celery task is not equivalent to `make update-all`.
+
 ## Run Development Server
 
 ```bash

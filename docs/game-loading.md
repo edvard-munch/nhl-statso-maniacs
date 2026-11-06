@@ -4,6 +4,10 @@
 right-rail report links and play-by-play. The reported empty/HTML response no
 longer escapes as a raw `JSONDecodeError`.
 
+For proposed targeted live/final refreshes and always-on automation, see the
+[scheduling policy](loader-scheduling.md). Those scopes and periodic jobs are
+planned work; the existing broad command behavior below remains in effect.
+
 ## Request behavior
 
 - Each request uses the supplied session and a 10-second timeout.

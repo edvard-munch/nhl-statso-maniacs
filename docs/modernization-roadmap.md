@@ -9,9 +9,11 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: confirm legacy usage and make focused cleanup decisions.** The
-[legacy inventory](legacy-audit.md) records repository callers, dependency
-candidates and external scheduling questions. Hosted uv CI and dependency-graph
+**Next: targeted game refreshes before enabling server scheduling.** The
+[scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
+cadences, current loader limitations and always-on server requirements. The
+[legacy inventory](legacy-audit.md) retains deployment/worker usage questions.
+Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 now passes 902 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
@@ -341,8 +343,10 @@ Implemented: `make update-daily` runs players, current totals and games;
 so `make -j` retains stage order and a failure prevents subsequent stages from
 running. Earlier successful loaders are not rolled back across command boundaries.
 `PYTHON=venv/bin/python` can override the interpreter without activating the venv.
-Full historical refresh remains explicit. Scheduling remains deferred until manual
-runs are reliable.
+Full historical refresh remains explicit. The later
+[server scheduling policy](loader-scheduling.md) separates live refreshes from
+heavy batch work; automation remains disabled pending targeted-loader and
+coordination implementation.
 The reported current-totals HTTP 429 now has a shared bounded retry policy across
 supported loaders: seconds/date `Retry-After`, exponential backoff, finite timeouts,
 fail-fast permanent HTTP errors and explicit failure on persistent rate limits.
@@ -602,3 +606,19 @@ reset/toggle orders, independent accounts and rollback. The full offline suite
 passes 942 tests at 91.30% coverage, with all 22 Chromium cases passing. See
 [concurrency behavior and writer requirements](saved-player-season-tables.md#concurrent-changes).
 Ambiguous legacy-data review and deployment rehearsal remain separate work.
+
+## Server scheduling plan
+
+The owner confirmed Celery is not running and should be set up on an always-on
+server. The [scheduling policy and server requirements](loader-scheduling.md)
+document proposed live-game polling every 2–5 minutes, bounded final-game retries,
+daily player/current-totals/recent-game reconciliation and weekly teams. Cadences
+remain provisional; full historical refresh stays manual. No jobs or services are
+enabled by the policy commit.
+
+Next implement targeted game/date refreshes and preserve verified fields when
+reports are unavailable, then shared loader overlap/cooldown guards and progress,
+then task splitting, broker/Beat/supervision setup, followed by browser freshness.
+Host/broker choice, exact live freshness, intra-game season-table needs and quiet
+windows must be confirmed before activation. Existing manual Make targets and
+the legacy Celery task retain their current behavior until those focused commits.

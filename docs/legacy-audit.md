@@ -129,8 +129,10 @@ checks validate that executable or the host's process setup.
    top-level legacy commands. Review exclusive dependencies, fixture exports and
    OAuth files separately; preserve stored fields/UI unless a separate product/
    data migration is agreed.
-4. Decide whether the Celery update task should match the Make sequence. This
-   changes behavior and existing task-order tests, so keep it separate from cleanup.
+4. Plan the Celery task split and scheduling separately from cleanup. The owner
+   confirmed Celery is not running and the target is an always-on server. See the
+   [scheduling policy](loader-scheduling.md): live updates need targeted game
+   refreshes; the current task still skips current totals. No schedule is enabled.
 5. Resolve the Procfile/server gap as part of the previously deferred deployment
    rehearsal if that entry point is actually used.
 

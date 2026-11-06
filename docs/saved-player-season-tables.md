@@ -76,6 +76,10 @@ and real committed transactions, rather than SQLite or a wrapping test transacti
 
 ## Running updates
 
+Manual commands below remain supported. Planned automatic live-game and batch
+cadences are recorded in the [server scheduling policy](loader-scheduling.md);
+game refreshes alone do not refresh these season/career tables.
+
 From the repository root, activate the existing environment:
 
 ```bash
