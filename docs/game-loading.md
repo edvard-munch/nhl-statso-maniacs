@@ -9,7 +9,9 @@ longer escapes as a raw `JSONDecodeError`.
 - Each request uses the supplied session and a 10-second timeout.
 - Empty/invalid JSON, non-object JSON, missing required fields, connection errors,
   timeouts, HTTP 408/429 and server errors receive up to three attempts, separated
-  by one second. A successful retry returns the response normally.
+  by exponential backoff (one/two seconds, or five/ten for HTTP 429).
+  `Retry-After` seconds/dates can extend that wait; a requested wait over sixty
+  seconds ends the request instead of retrying early. A successful retry returns normally.
 - Other HTTP client errors, including 401/403/404, stop after one attempt.
 - Responses are checked for HTTP errors before decoding. Schedules require their
   game-week and season-boundary fields; boxscores require state and home/away team
@@ -18,9 +20,11 @@ longer escapes as a raw `JSONDecodeError`.
   endpoint URL, attempt count and cause. Gameday processing adds the day's date.
   Failed JSON requests are not converted into empty report data.
 - Valid empty right-rail/play-by-play objects retain the existing missing-data
-  fallback behavior. Optional HTML report fetching and parsing are unchanged.
+  fallback behavior. Optional HTML reports also retry transient failures; persistent
+  429 raises an error while other unavailable HTML retains the existing fallback.
 
-The limits are named constants in `upd_gms.py`. A timeout applies to each attempt,
+The shared retry limits are named constants in `players/nhl_http.py`; see
+[loader HTTP policy](loader-http.md). A timeout applies to each attempt,
 not a strict wall-clock deadline for the entire command.
 
 ## Publication and replay
@@ -214,8 +218,8 @@ HTTP 429 responses get at most three attempts, with 5/10-second exponential wait
 and a longer `Retry-After` delay when supplied (seconds or an HTTP date). If the
 server requests more than 60 seconds, the audit stops instead of retrying early.
 Persistent 429 responses mark the current game unverified and stop before the next
-game, avoiding a season-long retry loop. This policy is local to the audit; the
-normal game loader's request handling is unchanged.
+game, avoiding a season-long retry loop. The audit retains its own pacing and
+checkpoint behavior; normal loaders now also have [shared cooldown handling](loader-http.md).
 
 Use `--output` for an **incremental JSONL checkpoint**, separate from the optional
 final JSON stdout report. The file starts with a version/selection header, followed

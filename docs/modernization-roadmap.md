@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 849 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 893 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -339,6 +339,12 @@ running. Earlier successful loaders are not rolled back across command boundarie
 `PYTHON=venv/bin/python` can override the interpreter without activating the venv.
 Full historical refresh remains explicit. Scheduling remains deferred until manual
 runs are reliable.
+The reported current-totals HTTP 429 now has a shared bounded retry policy across
+supported loaders: seconds/date `Retry-After`, exponential backoff, finite timeouts,
+fail-fast permanent HTTP errors and explicit failure on persistent rate limits.
+Optional career data and season detection cannot swallow an exhausted 429.
+Image/report downloads share the same policy; the audit retains its existing pacing
+and checkpoint behavior. See [HTTP policy and reruns](loader-http.md).
 After a successful refresh verify the new season on Players, teams and saved
 lists; absence of a season row must not display an older snapshot as current.
 

@@ -1,6 +1,6 @@
 from itertools import chain
 
-import requests
+from players import nhl_http
 from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
@@ -70,6 +70,4 @@ def player_ind_stats(nhl_id):
     """
     url = "".join([upd_pls_tot.PLAYER_ENDPOINT_URL, str(nhl_id), API_END])
 
-    response = requests.get(url)
-    response.raise_for_status()
-    return response
+    return nhl_http.required_get(url, context=f"player {nhl_id} projection")

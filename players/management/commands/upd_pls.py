@@ -1,18 +1,18 @@
 import logging
 import os
-import urllib
 from datetime import date
 
 import requests
 from django.conf import settings
 from django.core.files import File
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils.dateparse import parse_date
 from players.models import Goalie, Skater, Team
 from tqdm import tqdm
 
-from players import season_loading
+from players import nhl_http, season_loading
 from players.season_stats import GOALIE, SKATER
 
 from . import upd_tms
@@ -186,14 +186,14 @@ def get_response(rep_type, pl_type, start_from_index):
     params["start"] = start_from_index
 
     try:
-        resp = requests.get(url, params=params, timeout=TIMEOUT)
+        resp = nhl_http.get(url, params=params, timeout=TIMEOUT)
         print(resp.url)
         return resp
 
     except requests.HTTPError as e:  # if Not fOUND
-        print(e.code)
+        nhl_http.raise_if_rate_limited(e, "player report", url)
         print("Wrong endpoint or a problem with the connection!")
-        return None
+        return e.response
     except requests.exceptions.ReadTimeout:
         print("Timeout!")
         return None
@@ -201,7 +201,7 @@ def get_response(rep_type, pl_type, start_from_index):
 
 def get_season_id():
     try:
-        response = requests.get(URL_SCHEDULE_CALENDAR_NOW, timeout=TIMEOUT).json()
+        response = nhl_http.get(URL_SCHEDULE_CALENDAR_NOW, timeout=TIMEOUT).json()
         season_ids = {
             str(team["seasonId"]) for team in response.get("teams", []) if team.get("seasonId")
         }
@@ -219,6 +219,7 @@ def get_season_id():
             return season_id
 
     except requests.exceptions.RequestException as exc:
+        nhl_http.raise_if_rate_limited(exc, "season detection", URL_SCHEDULE_CALENDAR_NOW)
         logger.warning("Failed to autodetect seasonId from NHL API: %s", exc)
 
     logger.warning("Falling back to default seasonId=%s", DEFAULT_SEASON)
@@ -293,23 +294,13 @@ def upload_pic(directory, object_, img_name, url):
         pic = File(open(path, "rb"))
         object_.image.save(name=img_name, content=pic)
     else:
-        try:
-            if directory == upd_tms.TEAMS_LOGOS_DIR:
-                id_string = object_.abbr
-
-            else:
-                id_string = object_.nhl_id
-
-            content = urllib.request.urlretrieve(url.format(id_string))
-
-            pic = File(open(content[0], "rb"))
-            object_.image.save(name=img_name, content=pic)
-
-        except urllib.error.HTTPError:
+        id_string = object_.abbr if directory == upd_tms.TEAMS_LOGOS_DIR else object_.nhl_id
+        response = nhl_http.optional_get(url.format(id_string), context="player/team image")
+        if response is None:
             print(f"{object_.name} has no picture yet")
-
-        except urllib.error.URLError:
-            print("Request failed")
+        else:
+            with response:
+                object_.image.save(name=img_name, content=ContentFile(response.content))
 
 
 def upload_flag(player_obj, flag_name):

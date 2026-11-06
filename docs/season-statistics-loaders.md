@@ -62,7 +62,8 @@ stop the update before publishing that data. Multi-team counts exclude `TOT`.
 
 ## Request failures and existing data
 
-Report requests have a timeout, a bounded retry count, status/JSON checks and
+Report requests use the [shared HTTP retry/cooldown policy](loader-http.md), with
+a timeout, a bounded retry count, status/JSON checks and
 pagination. Failed or malformed reports raise a command error instead of looking
 like successful empty results. Optional reports that successfully return no rows
 leave their statistical fields unavailable; they do not inherit values from a
@@ -130,8 +131,10 @@ use synthetic responses and real test-database saves to protect the current rule
   aggregate request.
 
 Valid empty report lists and optional HTTP/timeout failures retain saved career
-values. The legacy optional-career HTTP boundary still does not retry failures,
-including 429 responses; the audit's rate-limit policy is separate. A successful
+values after bounded retries. Persistent 429 now stops the command, including
+optional career requests, leaving the current player's saved values unchanged.
+Season detection also stops on persistent 429 rather than selecting a fallback
+season. The audit retains its own pacing/checkpoint policy. A successful
 HTTP response with invalid JSON, missing/null/non-list `data`, or non-object rows
 raises `CommandError` identifying the report and player. It must not silently count
 as an empty report. The current player's statistics are prepared before saving;

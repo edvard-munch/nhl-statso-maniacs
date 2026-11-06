@@ -7,6 +7,18 @@ import pytest
 SEASON_FIXTURES_PATH = Path(__file__).parent / "fixtures" / "season_stats.json"
 
 
+@pytest.fixture(autouse=True)
+def no_loader_retry_wait(monkeypatch, request):
+    """Offline regressions exercise retry logic without real cooldown waits."""
+    if request.node.get_closest_marker("external"):
+        return
+    from players import nhl_http
+    from players.management.commands import upd_gms
+
+    monkeypatch.setattr(nhl_http, "sleep", lambda seconds: None)
+    monkeypatch.setattr(upd_gms, "sleep", lambda seconds: None)
+
+
 @pytest.fixture
 def season_stats_data():
     """Fresh synthetic API inputs and expected values for each test."""

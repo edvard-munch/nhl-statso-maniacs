@@ -157,6 +157,8 @@ python manage.py upd_pls_proj
 ```
 
 For game-response failures and safe reruns, see [game-loader behavior](docs/game-loading.md).
+Supported loader GETs use bounded retries with `Retry-After` cooldowns; persistent rate
+limits stop the sequence. See [shared HTTP policy and reruns](docs/loader-http.md).
 
 ## Update Cadence
 
@@ -199,7 +201,7 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **849 tests at 90.55% combined line/branch
+The current offline suite passes **893 tests at 90.86% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 

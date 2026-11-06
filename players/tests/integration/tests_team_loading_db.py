@@ -3,7 +3,7 @@
 from copy import deepcopy
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib import request
+import re
 
 import pytest
 import requests
@@ -33,22 +33,23 @@ def team_report():
 
 
 @pytest.fixture
-def logos(settings, tmp_path, monkeypatch):
+def logos(settings, tmp_path, requests_mock):
     settings.MEDIA_ROOT = str(tmp_path / "media")
-    downloads = tmp_path / "downloads"
-    downloads.mkdir()
     state = {"calls": [], "errors": {}}
 
-    def download(url):
+    def download(request, context):
+        url = request.url
         assert url in {upd_tms.URL_TEAMS_LOGOS.format(abbr) for abbr in ("FX1", "FX2")}
         state["calls"].append(url)
         if url in state["errors"]:
-            raise state["errors"][url]
-        path = downloads / "{}.svg".format(len(state["calls"]))
-        path.write_bytes(LOGO)
-        return str(path), None
+            error = state["errors"][url]
+            if isinstance(error, HTTPError):
+                context.status_code = error.code
+                return b"Missing logo"
+            raise requests.ConnectionError(str(error))
+        return LOGO
 
-    monkeypatch.setattr(request, "urlretrieve", download)
+    requests_mock.get(re.compile(r"https://assets\.nhle\.com/"), content=download)
     return state
 
 
@@ -63,7 +64,7 @@ def test_team_command_creates_metadata_and_logos_and_replays_without_duplicates(
 
     assert dict(Team.objects.values_list("nhl_id", "pk")) == original_ids
     assert len(original_ids) == 2
-    assert requests_mock.call_count == 2
+    assert requests_mock.call_count == 4  # Two team reports and two logo downloads.
     assert logos["calls"] == [upd_tms.URL_TEAMS_LOGOS.format(abbr) for abbr in ("FX1", "FX2")]
     one = Team.objects.get(nhl_id=9001)
     two = Team.objects.get(nhl_id=9002)
@@ -220,4 +221,5 @@ def test_optional_logo_failure_keeps_metadata_and_next_team_and_retries_on_repla
     assert dict(Team.objects.values_list("nhl_id", "pk")) == original_ids
     for team in Team.objects.all():
         assert Path(team.image.path).read_bytes() == LOGO
-    assert logos["calls"] == [url, upd_tms.URL_TEAMS_LOGOS.format("FX2"), url]
+    attempts = 3 if failure == "connection" else 1
+    assert logos["calls"] == [url] * attempts + [upd_tms.URL_TEAMS_LOGOS.format("FX2"), url]

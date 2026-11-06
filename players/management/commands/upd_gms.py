@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.utils.text import slugify
 from players.models import Game, Gameday, Goalie, Side, Skater, Team
 from zoneinfo import ZoneInfo
+from players import nhl_http
 import logging
 
 logger = logging.getLogger(__name__)
@@ -40,10 +41,8 @@ REGULAR_SEASON_CODE = "02"
 REGULAR_PERIODS_AMOUNT = 3
 REPORT_FETCH_TIMEOUT = 10
 JSON_FETCH_TIMEOUT = 10
-JSON_FETCH_ATTEMPTS = 3
-JSON_RETRY_DELAY = 1
-RETRYABLE_HTTP_STATUSES = {408, 429}
-SERVER_ERROR_STATUS = 500
+JSON_FETCH_ATTEMPTS = nhl_http.ATTEMPTS
+JSON_RETRY_DELAY = nhl_http.BACKOFF_SECONDS
 SCHEDULE_FIELDS = {"gameWeek", "regularSeasonStartDate", "regularSeasonEndDate"}
 BOXSCORE_FIELDS = {"gameState", "awayTeam", "homeTeam"}
 ROSTER_SIDES = ("awayTeam", "homeTeam")
@@ -658,32 +657,28 @@ def get_game_data(game_id, url, session=None):
 
 def fetch_json(url, context, session=None, required_fields=()):
     """Bounded retries; an unavailable endpoint must never resemble empty stats."""
-    client = session or requests
-    for attempt in range(1, JSON_FETCH_ATTEMPTS + 1):
-        try:
-            response = client.get(url, timeout=JSON_FETCH_TIMEOUT)
-            response.raise_for_status()
-            payload = response.json()
-            if not isinstance(payload, dict):
-                raise ValueError("Expected a JSON object")
-            if not set(required_fields).issubset(payload):
-                raise ValueError(
-                    "Missing required fields: {}".format(
-                        ", ".join(sorted(set(required_fields) - set(payload)))
-                    )
+
+    def checked_json(response):
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise ValueError("Expected a JSON object")
+        if not set(required_fields).issubset(payload):
+            raise ValueError(
+                "Missing required fields: {}".format(
+                    ", ".join(sorted(set(required_fields) - set(payload)))
                 )
-            return payload
-        except (requests.RequestException, ValueError) as error:
-            retryable = True
-            if isinstance(error, requests.HTTPError) and error.response is not None:
-                status = error.response.status_code
-                retryable = status in RETRYABLE_HTTP_STATUSES or status >= SERVER_ERROR_STATUS
-            if not retryable or attempt == JSON_FETCH_ATTEMPTS:
-                raise CommandError(
-                    "Failed {} at {} after {} attempt(s): {}".format(context, url, attempt, error)
-                ) from error
-            logger.warning("Retrying %s at %s after attempt %s: %s", context, url, attempt, error)
-            sleep(JSON_RETRY_DELAY)
+            )
+        return payload
+
+    return nhl_http.required_get(
+        url,
+        session=session,
+        context=context,
+        timeout=JSON_FETCH_TIMEOUT,
+        attempts=JSON_FETCH_ATTEMPTS,
+        validate=checked_json,
+        sleep_fn=sleep,
+    )
 
 
 def get_game_report_links(game_id, session=None):
@@ -714,11 +709,10 @@ def fetch_report_html(report_url, session=None):
     if not is_valid_report_url(report_url):
         return None
 
-    client = session or requests
-    try:
-        response = client.get(report_url, timeout=REPORT_FETCH_TIMEOUT)
-        response.raise_for_status()
-    except requests.RequestException:
+    response = nhl_http.optional_get(
+        report_url, session=session, timeout=REPORT_FETCH_TIMEOUT, context="HTML game report"
+    )
+    if response is None:
         return None
 
     return response.text

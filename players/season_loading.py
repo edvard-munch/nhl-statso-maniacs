@@ -5,6 +5,7 @@ from copy import deepcopy
 
 import requests
 from django.core.management.base import CommandError
+from . import nhl_http
 
 from .season_stats import (
     GOALIE,
@@ -20,7 +21,7 @@ REPORT_URL = "https://api.nhle.com/stats/rest/en/{}/{}"
 TEAM_REGISTRY_URL = "https://api.nhle.com/stats/rest/en/team"
 REPORT_LIMIT = 100
 REPORT_TIMEOUT = 10
-REPORT_ATTEMPTS = 3
+REPORT_ATTEMPTS = nhl_http.ATTEMPTS
 REGULAR_SEASON = 2
 SUMMARY = "summary"
 BIOS = "bios"
@@ -88,26 +89,29 @@ def fetch_report(report, player_type, session=None, season=None, player_id=None,
 
 def _fetch_pages(url, params, client, label):
     rows = []
+
+    def checked_report(response):
+        payload = response.json()
+        if (
+            not isinstance(payload, dict)
+            or not isinstance(payload.get("data"), list)
+            or not isinstance(payload.get("total"), int)
+            or payload["total"] < 0
+            or any(not isinstance(row, dict) for row in payload["data"])
+        ):
+            raise ValueError("Expected a report data array and total count")
+        return payload
+
     while True:
-        for attempt in range(REPORT_ATTEMPTS):
-            try:
-                response = client.get(url, params=dict(params), timeout=REPORT_TIMEOUT)
-                response.raise_for_status()
-                payload = response.json()
-                if (
-                    not isinstance(payload, dict)
-                    or not isinstance(payload.get("data"), list)
-                    or not isinstance(payload.get("total"), int)
-                    or payload["total"] < 0
-                    or any(not isinstance(row, dict) for row in payload["data"])
-                ):
-                    raise ValueError("Expected a report data array and total count")
-                break
-            except (requests.RequestException, ValueError) as error:
-                if attempt == REPORT_ATTEMPTS - 1:
-                    raise CommandError(
-                        "Failed {} report at start={}: {}".format(label, params["start"], error)
-                    ) from error
+        payload = nhl_http.required_get(
+            url,
+            session=client,
+            params=dict(params),
+            timeout=REPORT_TIMEOUT,
+            attempts=REPORT_ATTEMPTS,
+            validate=checked_report,
+            context="{} report at start={}".format(label, params["start"]),
+        )
         page = payload["data"]
         rows.extend(page)
         if len(rows) > payload["total"]:

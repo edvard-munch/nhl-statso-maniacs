@@ -3,7 +3,6 @@
 from copy import deepcopy
 from datetime import date
 from types import SimpleNamespace
-from urllib import request as urllib_request
 
 from django.contrib.auth.models import User
 from django.core.management import call_command
@@ -26,9 +25,6 @@ def metadata_reports(request, requests_mock, season_report_data, settings, tmp_p
     flags.mkdir(parents=True)
     monkeypatch.setattr(upd_pls, "TODAY", date(2026, 3, 1))
     monkeypatch.setattr(upd_pls, "UNKNOWN_COUNTRY_CODES", set())
-    monkeypatch.setattr(
-        urllib_request, "urlretrieve", lambda *args: pytest.fail("Unexpected download")
-    )
     teams = {
         abbr: Team.objects.create(nhl_id=nhl_id, abbr=abbr, name=abbr)
         for nhl_id, abbr in [(7, "BUF"), (16, "COL")]

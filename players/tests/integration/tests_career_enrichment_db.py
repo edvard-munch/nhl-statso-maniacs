@@ -203,6 +203,13 @@ def test_unavailable_optional_career_data_preserves_saved_values(career_player, 
     fixture = career_player
     before = deepcopy(fixture.player.career_stats)
     fixture.state["failure"] = failure
+    if failure == "rate_limit":
+        stored = fixture.model.objects.values().get(pk=fixture.player.pk)
+        with pytest.raises(CommandError, match="after 3 attempt"):
+            call_command("upd_pls_tot", mode="current")
+        assert fixture.model.objects.values().get(pk=fixture.player.pk) == stored
+        assert len(fixture.state["aggregate_requests"]) == 3
+        return
     call_command("upd_pls_tot", mode="current")
     fixture.player.refresh_from_db()
     assert fixture.player.career_stats == before
@@ -210,8 +217,9 @@ def test_unavailable_optional_career_data_preserves_saved_values(career_player, 
         assert fixture.player.career_stats_avg == {"hits": 99, "custom": "average"}
     assert fixture.player.stats_season_id == "20262027"
     assert fixture.player.sbs_stats[-1]["gamesPlayed"] == (10 if fixture.kind == "skater" else 4)
-    # Optional request failures are not retried by this legacy boundary.
-    assert len(fixture.state["aggregate_requests"]) == (3 if fixture.kind == "skater" else 1)
+    reports = 3 if fixture.kind == "skater" else 1
+    attempts = 1 if failure == "empty" else 3
+    assert len(fixture.state["aggregate_requests"]) == reports * attempts
 
 
 @pytest.mark.parametrize("failure", ["json", "shape", "null", "row", "missing"])

@@ -3,6 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
 from players.models import Team
+from players import nhl_http
 
 from . import upd_pls
 
@@ -67,7 +68,12 @@ def import_team(team):
 def get_response():
     print("Uploading from teams report")
     try:
-        return requests.get(URL_TEAMS).json()["teams"]
+        return nhl_http.get(URL_TEAMS).json()["teams"]
     except requests.exceptions.ConnectionError as e:
         print(e)
-        raise CommandError("CONNECTION COULD NOT BE ESTABLISHED. TRYING NEXT TASK")
+        raise CommandError(
+            "CONNECTION COULD NOT BE ESTABLISHED. "
+            + nhl_http.failure_message(e, "teams", URL_TEAMS)
+        ) from e
+    except (requests.RequestException, ValueError) as error:
+        raise CommandError(nhl_http.failure_message(error, "teams", URL_TEAMS)) from error

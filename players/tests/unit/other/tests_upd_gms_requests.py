@@ -8,6 +8,7 @@ import requests
 from django.core.management.base import CommandError
 
 from players.management.commands import upd_gms
+from players import nhl_http
 
 
 pytestmark = pytest.mark.unit
@@ -52,7 +53,12 @@ def test_transient_failure_recovers_without_returning_empty_data(
     requests_mock.get(upd_gms.URL_BOXSCORE.format(2026020001), [failure, {"json": boxscore}])
     assert upd_gms.get_game_data(2026020001, upd_gms.URL_BOXSCORE) == boxscore
     assert requests_mock.call_count == 2
-    no_retry_wait.assert_called_once_with(upd_gms.JSON_RETRY_DELAY)
+    expected_delay = (
+        nhl_http.RATE_LIMIT_BACKOFF_SECONDS
+        if failure.get("status_code") == 429
+        else upd_gms.JSON_RETRY_DELAY
+    )
+    no_retry_wait.assert_called_once_with(expected_delay)
     assert all(
         request.timeout == upd_gms.JSON_FETCH_TIMEOUT for request in requests_mock.request_history
     )

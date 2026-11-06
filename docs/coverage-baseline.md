@@ -741,3 +741,28 @@ disposable PostgreSQL; application data is untouched.
 This completes the agreed testing phase. Hosted CI/dependency-graph verification
 and deployment/migration rehearsal on a disposable representative database copy
 are next; optional edge cases remain separate work rather than extending this phase.
+
+## Follow-up: bounded HTTP retries across supported loaders
+
+The offline gate passes **893 tests**, with **33 deselected** (12 external and
+21 browser), at **90.86% combined line/branch coverage**, retaining the 35% gate.
+Ruff, formatting and whitespace checks pass. Browser cases were not rerun for
+this loader-only change. No live NHL requests or application database writes were
+performed; persistence validation uses a disposable PostgreSQL cluster.
+
+Forty-four new unit cases protect seconds/date cooldowns, invalid/past/large
+headers, exponential waits, bounded exhaustion, permanent HTTP errors, transport
+recovery, resource cleanup, sessions/parameters, one combined HTTP/JSON attempt
+budget and recovery through eleven loader request paths. The shared helper uses
+three attempts and refuses retry waits over sixty seconds instead of retrying
+earlier than the server requested. Offline tests mock clocks/waits; external checks
+retain actual waits.
+
+Teams, player/season reports, landing/career requests, game JSON/HTML, projection
+requests and image downloads use this policy. Required failures retain command
+errors and existing publication/rollback boundaries. Optional non-rate-limit
+failures retain fallbacks; exhausted 429 stops even optional career/image/HTML
+fetches and season detection. Updated real-database regressions verify the current
+player stays unchanged on rate-limit failure, existing career data survives other
+optional failures and logos retain cache/replay behavior. Archived experiments and
+the audit's separate pacing/checkpoint policy remain outside this refactor.

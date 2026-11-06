@@ -1,14 +1,13 @@
 import copy
 from itertools import chain
-import urllib
-from django.core.files import File
+from django.core.files.base import ContentFile
 
 import requests
 from django.core.management.base import BaseCommand, CommandError
 from tqdm import tqdm
 
 from players.models import Goalie, Skater, Team
-from players import season_loading
+from players import nhl_http, season_loading
 from players.season_stats import GOALIE, SKATER
 from . import upd_pls
 
@@ -273,15 +272,14 @@ def import_player(data, player, session=None):
 
 
 def upload_profile_image(image_url, player_object, image_name):
-    content = urllib.request.urlretrieve(image_url)
-    pic = File(open(content[0], "rb"))
-
-    player_object.image.save(name=image_name, content=pic)
+    with nhl_http.required_get(image_url, context="player profile image") as response:
+        player_object.image.save(name=image_name, content=ContentFile(response.content))
 
 
 def get_response(nhl_id, session=None):
-    client = session or requests
-    return client.get(PLAYER_ENDPOINT_URL.format(nhl_id))
+    return nhl_http.required_get(
+        PLAYER_ENDPOINT_URL.format(nhl_id), session=session, context=f"player {nhl_id} landing"
+    )
 
 
 def get_career_average_stats(career_stats_average):
@@ -541,14 +539,14 @@ def get_stats_rest_rows(report_type, player_id, session=None, aggregate=False):
         "cayenneExp": f"gameTypeId={REGULAR_SEASON_CODE} and playerId={player_id}",
     }
 
-    try:
-        response = client.get(
-            STATS_REST_SKATER_URL.format(report_type),
-            params=params,
-            timeout=STATS_REST_TIMEOUT,
-        )
-        response.raise_for_status()
-    except requests.RequestException:
+    response = nhl_http.optional_get(
+        STATS_REST_SKATER_URL.format(report_type),
+        session=client,
+        params=params,
+        timeout=STATS_REST_TIMEOUT,
+        context=f"skater career {report_type} for {player_id}",
+    )
+    if response is None:
         return []
 
     return checked_stats_rest_rows(response, report_type, player_id)
@@ -564,14 +562,14 @@ def get_goalie_stats_rest_rows(report_type, player_id, session=None, aggregate=F
         "cayenneExp": f"gameTypeId={REGULAR_SEASON_CODE} and playerId={player_id}",
     }
 
-    try:
-        response = client.get(
-            STATS_REST_GOALIE_URL.format(report_type),
-            params=params,
-            timeout=STATS_REST_TIMEOUT,
-        )
-        response.raise_for_status()
-    except requests.RequestException:
+    response = nhl_http.optional_get(
+        STATS_REST_GOALIE_URL.format(report_type),
+        session=client,
+        params=params,
+        timeout=STATS_REST_TIMEOUT,
+        context=f"goalie career {report_type} for {player_id}",
+    )
+    if response is None:
         return []
 
     return checked_stats_rest_rows(response, report_type, player_id)

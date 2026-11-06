@@ -101,16 +101,19 @@ def test_import_team_update_skips_logo_upload_when_logo_present(monkeypatch):
 
 def test_get_response_returns_teams_from_api(monkeypatch):
     class FakeResponse:
+        def raise_for_status(self):
+            pass
+
         def json(self):
             return {"teams": [{"id": 1}, {"id": 2}]}
 
-    monkeypatch.setattr(upd_tms.requests, "get", lambda url: FakeResponse())
+    monkeypatch.setattr(upd_tms.requests, "get", lambda url, **kwargs: FakeResponse())
 
     assert upd_tms.get_response() == [{"id": 1}, {"id": 2}]
 
 
 def test_get_response_raises_command_error_on_connection_error(monkeypatch):
-    def raise_connection_error(url):
+    def raise_connection_error(url, **kwargs):
         raise requests.exceptions.ConnectionError("network down")
 
     monkeypatch.setattr(upd_tms.requests, "get", raise_connection_error)
@@ -162,6 +165,9 @@ def test_time_from_sec(seconds, expected):
 
 def test_get_season_id_returns_single_detected_season(monkeypatch):
     class FakeResponse:
+        def raise_for_status(self):
+            pass
+
         def json(self):
             return {"teams": [{"seasonId": 20252026}, {"seasonId": 20252026}]}
 
@@ -174,6 +180,9 @@ def test_get_season_id_returns_latest_when_multiple_seasons(monkeypatch):
     warnings = []
 
     class FakeResponse:
+        def raise_for_status(self):
+            pass
+
         def json(self):
             return {"teams": [{"seasonId": 20242025}, {"seasonId": 20252026}]}
 
