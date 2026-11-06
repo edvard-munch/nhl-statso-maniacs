@@ -55,7 +55,7 @@ not an application release.
 | Selection | Contents |
 | --- | --- |
 | Project dependencies | Existing runtime/loader dependencies and retained transitive pins. Debug toolbar and Django extensions remain because settings load them unconditionally. |
-| `test` | pytest, Django/coverage/request plugins and retained compatibility pins. |
+| `test` | pytest and its Django/coverage/request plugin dependencies. |
 | `hooks` | pre-commit. |
 | `dev` (default) | Includes `test`, `hooks`, Ruff and the validated packaging tools. |
 

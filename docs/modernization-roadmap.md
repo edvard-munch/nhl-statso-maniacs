@@ -512,6 +512,9 @@ removing obsolete live assertions does not repair their writer commands.
 The first cleanup follow-up removes only `mccabe`, `pycodestyle` and `pyflakes`
 from the development group, lockfile and generated requirements. Ruff stays the
 configured linter/formatter, and every retained dependency version is unchanged.
+The separate test compatibility cleanup removes only `attrs`, `more-itertools`,
+`py` and `pyparsing`, retaining all other versions. `django-shortcuts` is explicitly
+kept for the confirmed `django r` / `m` / `mm` developer workflow.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

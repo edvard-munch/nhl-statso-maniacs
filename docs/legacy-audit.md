@@ -86,7 +86,7 @@ start in `pyproject.toml` and regenerate the lock/export.
 | Package or chain | Evidence | Proposed disposition |
 | --- | --- | --- |
 | `mccabe 0.7.0`, `pycodestyle 2.9.1`, `pyflakes 2.5.0` | No tracked imports/commands or active mandatory reverse edges. Make, hooks and CI use Ruff; no flake8 command/config found. | Removed in the first focused cleanup follow-up. Ruff and its configuration are retained; other package versions are unchanged. |
-| `attrs 19.3.0`, `more-itertools 7.2.0`, `py 1.11.0`, `pyparsing 2.4.2` | Retained compatibility pins in the `test` group; no tracked direct imports or active mandatory reverse edges in the locked Python 3.12 installation. | Separate test-tool cleanup candidate. Verify pytest/plugins, legacy path fixtures, hooks, offline coverage and browser tests after removal. |
+| `attrs 19.3.0`, `more-itertools 7.2.0`, `py 1.11.0`, `pyparsing 2.4.2` | Legacy compatibility pins with no tracked direct imports or active mandatory reverse edges in the locked Python 3.12 installation. | Removed in the separate test-tool cleanup follow-up. All retained versions, including django-shortcuts, are unchanged. |
 | `django-shortcuts 1.6` | Provides the `django` console command, including `r` → `runserver`, `m` → `migrate` and `mm` → `makemigrations`. The user confirmed using these shortcuts. No app import is needed for this CLI consumer. `django.shortcuts` is a separate Django module. | Keep: confirmed developer workflow dependency. Use `uv run --locked django ...` to select the locked interpreter. |
 | `furl 2.1.0` → `orderedmultidict 1.0.1` | Only tracked `furl` import is `upd_vids` OAuth URL parsing. `orderedmultidict` is required by furl. | Decide the video command first; review/remove the chain together only if that consumer is retired. `six` has other consumers and is not part of that removal assumption. |
 | `gevent 24.11.1` → `greenlet 3.1.1`, `zope.event 5.0`, `zope.interface 7.2` | No direct application imports. The child packages have active gevent reverse edges; Celery can select an optional gevent worker pool externally. No tracked worker launch/pool config found. | Confirm real worker/deployment pool settings before deciding. Eager Celery tests do not prove worker-pool compatibility or disuse. |
@@ -108,8 +108,8 @@ checks validate that executable or the host's process setup.
    whether the Procfile is used. Record command arguments and interpreter, without
    copying credentials into documentation.
 2. Completed: remove the unused legacy lint pins in a focused dependency
-   follow-up, regenerating lock/export. Treat the old test-helper pins as a
-   separate reviewable batch. Retain django-shortcuts: its CLI use is confirmed.
+   follow-up, regenerating lock/export. The old test-helper pins are removed in a
+   separate follow-up. Retain django-shortcuts: its CLI use is confirmed.
 3. Resolve the video/projection and `_new` retention decisions before removing
    writers or their supporting dependencies. Preserve stored fields/UI unless a
    separate product/data migration is agreed.
@@ -128,3 +128,11 @@ environment contains none of the three removed tools; dependency/static/export
 checks, 902 offline tests at 90.86% coverage and 21 Chromium cases pass against
 disposable PostgreSQL. Run `make sync` to prune these tools from an existing uv
 environment; no other dependency versions change.
+
+
+The separate test compatibility follow-up removes attrs, more-itertools, py and
+pyparsing. A clean 67-package sync, both real test hooks in a temporary checkout,
+902 offline tests at 90.86% coverage and 21 Chromium tests pass. django-shortcuts
+remains installed; stub CLI checks preserve r/m/mm mappings and interpreter
+selection without starting the application or running migrations. Other dependency
+versions are unchanged; run `make sync` to prune the removed packages locally.

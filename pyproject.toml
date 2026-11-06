@@ -53,14 +53,10 @@ dependencies = [
 ]
 
 [dependency-groups]
-# Preserve existing test/tool pins during migration; audit legacy tools separately.
+# Explicit test dependencies; obsolete compatibility pins have been retired.
 test = [
-    "attrs==19.3.0",
     "coverage==7.6.12",
-    "more-itertools==7.2.0",
     "pluggy==1.7.0",
-    "py==1.11.0",
-    "pyparsing==2.4.2",
     "Pygments==2.21.0",
     "pytest==9.2.0",
     "pytest-cov==4.1.0",

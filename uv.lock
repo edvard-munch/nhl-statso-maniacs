@@ -31,15 +31,6 @@ wheels = [
 ]
 
 [[package]]
-name = "attrs"
-version = "19.3.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/98/c3/2c227e66b5e896e15ccdae2e00bbc69aa46e9a8ce8869cc5fa96310bf612/attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72", size = 132477, upload-time = "2019-10-15T05:52:42.95Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a2/db/4313ab3be961f7a763066401fb77f7748373b6094076ae2bda2806988af6/attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c", size = 39472, upload-time = "2019-10-15T05:52:40.702Z" },
-]
-
-[[package]]
 name = "billiard"
 version = "4.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -430,15 +421,6 @@ wheels = [
 ]
 
 [[package]]
-name = "more-itertools"
-version = "7.2.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c2/31/45f61c8927c9550109f1c4b99ba3ca66d328d889a9c9853a808bff1c9fa0/more-itertools-7.2.0.tar.gz", hash = "sha256:409cd48d4db7052af495b09dec721011634af3753ae1ef92d2b32f73a745f832", size = 73429, upload-time = "2019-07-20T17:37:39.595Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/dc/3241eef99eb45f1def35cf93af35d1cf9ef4c0991792583b8f33ea41b092/more_itertools-7.2.0-py3-none-any.whl", hash = "sha256:92b8c4b06dac4f0611c0729b2f2ede52b2e1bac1ab48f089c7ddc12e26bb60c4", size = 57331, upload-time = "2019-07-20T17:37:37.252Z" },
-]
-
-[[package]]
 name = "nhl-web-app"
 version = "0.0.0"
 source = { virtual = "." }
@@ -491,16 +473,12 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "attrs" },
     { name = "coverage" },
-    { name = "more-itertools" },
     { name = "packaging" },
     { name = "pip" },
     { name = "pluggy" },
     { name = "pre-commit" },
-    { name = "py" },
     { name = "pygments" },
-    { name = "pyparsing" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
@@ -513,13 +491,9 @@ hooks = [
     { name = "pre-commit" },
 ]
 test = [
-    { name = "attrs" },
     { name = "coverage" },
-    { name = "more-itertools" },
     { name = "pluggy" },
-    { name = "py" },
     { name = "pygments" },
-    { name = "pyparsing" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-django" },
@@ -576,16 +550,12 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "attrs", specifier = "==19.3.0" },
     { name = "coverage", specifier = "==7.6.12" },
-    { name = "more-itertools", specifier = "==7.2.0" },
     { name = "packaging", specifier = "==26.3" },
     { name = "pip", specifier = "==26.3" },
     { name = "pluggy", specifier = "==1.7.0" },
     { name = "pre-commit", specifier = "==2.21.0" },
-    { name = "py", specifier = "==1.11.0" },
     { name = "pygments", specifier = "==2.21.0" },
-    { name = "pyparsing", specifier = "==2.4.2" },
     { name = "pytest", specifier = "==9.2.0" },
     { name = "pytest-cov", specifier = "==4.1.0" },
     { name = "pytest-django", specifier = "==4.11.1" },
@@ -596,13 +566,9 @@ dev = [
 ]
 hooks = [{ name = "pre-commit", specifier = "==2.21.0" }]
 test = [
-    { name = "attrs", specifier = "==19.3.0" },
     { name = "coverage", specifier = "==7.6.12" },
-    { name = "more-itertools", specifier = "==7.2.0" },
     { name = "pluggy", specifier = "==1.7.0" },
-    { name = "py", specifier = "==1.11.0" },
     { name = "pygments", specifier = "==2.21.0" },
-    { name = "pyparsing", specifier = "==2.4.2" },
     { name = "pytest", specifier = "==9.2.0" },
     { name = "pytest-cov", specifier = "==4.1.0" },
     { name = "pytest-django", specifier = "==4.11.1" },
@@ -749,15 +715,6 @@ wheels = [
 ]
 
 [[package]]
-name = "py"
-version = "1.11.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/98/ff/fec109ceb715d2a6b4c4a85a61af3b40c723a961e8828319fbcb15b868dc/py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719", size = 207796, upload-time = "2021-11-04T17:17:01.377Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f6/f0/10642828a8dfb741e5f3fbaac830550a518a775c7fff6f04a007259b0548/py-1.11.0-py2.py3-none-any.whl", hash = "sha256:607c53218732647dff4acdfcd50cb62615cedf612e72d1724fb1a0cc6405b378", size = 98708, upload-time = "2021-11-04T17:17:00.152Z" },
-]
-
-[[package]]
 name = "pycparser"
 version = "3.12"
 source = { registry = "https://pypi.org/simple" }
@@ -773,15 +730,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/49/2e/ced460408999b33da6b31b0021b0f37d329e202d4169aeb164493778f25b/pygments-2.21.0.tar.gz", hash = "sha256:610ca751c9bc2492b38eb9a38a7fbc93edbbb2d7182edaf34e66ae493dee5c8c", size = 5005329, upload-time = "2026-08-17T08:02:48.824Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/71/46/17f022dd3e953bf20a04a028a21ec746d942f8d2af30fa0f124fa0e6a684/pygments-2.21.0-py3-none-any.whl", hash = "sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9", size = 1250147, upload-time = "2026-08-17T08:02:44.912Z" },
-]
-
-[[package]]
-name = "pyparsing"
-version = "2.4.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7e/24/eaa8d7003aee23eda270099eeec754d7bf4399f75c6a011ef948304f66a2/pyparsing-2.4.2.tar.gz", hash = "sha256:6f98a7b9397e206d78cc01df10131398f1c8b8510a2f4d97d9abd82e1aacdd80", size = 642860, upload-time = "2019-07-30T01:35:43.499Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/11/fa/0160cd525c62d7abd076a070ff02b2b94de589f1a9789774f17d7c54058e/pyparsing-2.4.2-py2.py3-none-any.whl", hash = "sha256:d9338df12903bbf5d65a0e4e87c2161968b10d2e489652bb47001d82a9b028b4", size = 65453, upload-time = "2019-07-30T01:35:39.713Z" },
 ]
 
 [[package]]

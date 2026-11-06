@@ -1097,3 +1097,24 @@ All **21 Chromium cases pass** (**924 deselected**). Whitespace checks pass.
 No application code, schema, loader, hook/CI behavior or other dependency changes;
 no application data or live NHL calls. Run `make sync` in an existing uv environment
 to prune the old tools; `uv run` alone may retain extraneous installed packages.
+
+
+## Follow-up: remove obsolete test compatibility pins
+
+Remove only **attrs 19.3.0**, **more-itertools 7.2.0**, **py 1.11.0** and
+**pyparsing 2.4.2** from the test group, lockfile and generated export. Lock
+comparison confirms no added packages or retained version changes. Explicitly
+retain **django-shortcuts 1.6** for the user's confirmed command-line workflow.
+A fresh locked environment installs 67 packages, with all four removed tools
+absent, and passes dependency, lock/export and Ruff/format checks.
+
+Against disposable PostgreSQL 16, Django system/migration checks, **902 offline
+tests** (**43 deselected**) at **90.86% combined coverage**, the unchanged 35% gate
+and XML export pass. All **21 Chromium tests pass** (**924 deselected**). Both
+real commit/push test hooks pass in a temporary Git checkout with the old venv
+marked active. A separate stub-manage.py smoke check confirms the installed
+`django` CLI maps `r`/`m`/`mm` to runserver/migrate/makemigrations and uses the new
+environment's interpreter; no real server or migration is started by that check.
+No application code, schema, hook/CI behavior, other dependency versions, user Git
+hooks or application data change; no live NHL calls. Run `make sync` to prune the
+old packages from an existing uv environment. Whitespace checks pass.
