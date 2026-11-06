@@ -47,11 +47,11 @@ $(function () {
     });
     refresh();
   }
-  function request(link, success) {
+  function request(link, success, method = 'GET') {
     if (busy) return;
     busy = true;
     $('#comparison-error').prop('hidden', true);
-    $.getJSON(selectedUrl(link.attr('href'))).done(success).fail(function () {
+    $.ajax({url: selectedUrl(link.attr('href')), type: method, dataType: 'json'}).done(success).fail(function () {
       $('#comparison-error').text('Could not update comparison. Please try again.').prop('hidden', false);
     }).always(function () { busy = false; });
   }
@@ -73,7 +73,7 @@ $(function () {
     event.preventDefault();
     const link = $(this);
     if (link.is('[data-comparison-reset]') && !window.confirm('Clear these players from comparison?')) return;
-    request(link, applyPayload);
+    request(link, applyPayload, 'POST');
   });
   refresh();
 });

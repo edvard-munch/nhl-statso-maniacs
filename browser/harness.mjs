@@ -37,6 +37,12 @@ export async function runBrowser(scenario, target, check) {
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => {
     if (request.resourceType() === 'xhr') requests.push(new URL(request.url()));
+    const url = new URL(request.url());
+    const savedMutation = /\/(player_favorite|player_compare)\/$|\/reset_comparison\/[^/]+\/$/;
+    if (url.origin === origin && savedMutation.test(url.pathname)) {
+      if (request.method() !== 'POST') errors.push(`Saved mutation used ${request.method()}: ${url.pathname}`);
+      if (!request.headers()['x-csrftoken']) errors.push(`Missing CSRF header: ${url.pathname}`);
+    }
   });
   page.on('response', response => {
     if (response.request().resourceType() === 'xhr' && response.status() >= 400) {

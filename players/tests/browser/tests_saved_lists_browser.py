@@ -80,3 +80,24 @@ def test_favorite_removal_browser(kind, final, browser_players, browser_run, cli
     assert after["comparable_goalies"] == before_owner["comparable_goalies"]
     assert memberships(other) == before_other
     assert {model: list(model.objects.values()) for model in (Skater, Goalie)} == before_players
+
+
+def test_saved_mutations_send_post_and_csrf(browser_players, browser_run, client):
+    owner = User.objects.create_user(username="post-owner")
+    other = User.objects.create_user(username="post-other")
+    for player in browser_players.values():
+        player.favoriting.add(other)
+        player.comparing.add(other)
+    before_other = memberships(other)
+    before_owner = memberships(owner)
+    before_players = {model: list(model.objects.values()) for model in (Skater, Goalie)}
+    client.force_login(owner)
+    browser_run(
+        "saved-mutations-smoke.mjs",
+        "post-csrf",
+        reverse("players") + "?season=20262027",
+        client=client,
+    )
+    assert memberships(owner) == before_owner
+    assert memberships(other) == before_other
+    assert {model: list(model.objects.values()) for model in (Skater, Goalie)} == before_players

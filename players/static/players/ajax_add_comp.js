@@ -3,7 +3,7 @@ $('body').on('click', '.js-compare-add', function() {
   var btn = $(this);
 
   $.ajax({
-    type: 'GET',
+    type: 'POST',
     url: btn.attr('href'),
     success: function(data) {
       if (data['authenticated']) {

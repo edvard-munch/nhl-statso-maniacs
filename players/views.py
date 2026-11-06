@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import format_html
+from django.views.decorators.http import require_POST
 
 from . import player_table, saved_players, team_tables, utils
 from .forms import NoteForm, PositionsForm
@@ -519,6 +520,7 @@ def comparison(request):
     return render(request, "players/comparison.html", context)
 
 
+@require_POST
 def player_compare(request, slug, nhl_id):
     data = {}
     user = request.user
@@ -559,6 +561,7 @@ def player_compare(request, slug, nhl_id):
     return JsonResponse(data)
 
 
+@require_POST
 def reset_comparison(request, player_type):
     if not request.user.is_authenticated:
         return JsonResponse({"authenticated": False, "error": "Sign in required"}, status=403)
@@ -573,6 +576,7 @@ def reset_comparison(request, player_type):
     return JsonResponse(saved_players.comparison_payload(context, request))
 
 
+@require_POST
 def player_favorite(request, slug, nhl_id):
     data = {}
     user = request.user

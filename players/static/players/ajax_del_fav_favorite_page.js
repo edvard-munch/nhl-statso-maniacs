@@ -21,7 +21,7 @@ $(function () {
     busy = true;
     button.attr('aria-disabled', 'true');
 
-    $.getJSON(url.href).done(function (data) {
+    $.ajax({url: url.href, type: 'POST', dataType: 'json'}).done(function (data) {
       if (!data.authenticated) {
         showMessage('Sign in to update your favorites.', true);
         return;

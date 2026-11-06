@@ -1,6 +1,6 @@
 # Offline Chromium smoke tests
 
-Twenty-one browser cases check real JavaScript, DOM events and Django AJAX responses:
+Twenty-two browser cases check real JavaScript, DOM events and Django AJAX responses:
 
 - Players season selection, totals/averages and goalie modes, and unloaded seasons.
 - Goalie-only and empty favorites, including an old season with no goalie data.
@@ -19,6 +19,10 @@ Twenty-one browser cases check real JavaScript, DOM events and Django AJAX respo
 - AJAX failure and explicit retry for favorites removal, comparison mode/removal/
   reset, and team mode/split-layout changes. A failed split must preserve the
   joined table even when the other request succeeds.
+- Favorites and comparison add/remove through POST with CSRF headers. Every saved
+  mutation observed by the harness must use POST and include the header. A local
+  interception of a synthetic external request verifies that the shared setup
+  does not send the CSRF token to another origin; no external service is contacted.
 
 Conflicting snapshot values ensure displayed assertions use the correct sources.
 Browser JavaScript errors and unexpected HTTP errors on AJAX responses fail the

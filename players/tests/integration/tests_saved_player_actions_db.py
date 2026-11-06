@@ -64,8 +64,10 @@ def state(users):
 
 
 def toggle(client, player, route, **params):
-    return client.get(
-        reverse(route, args=[player.slug, player.nhl_id]), {"season": "20262027", **params}
+    return client.post(
+        reverse(route, args=[player.slug, player.nhl_id]),
+        params,
+        query_params={"season": "20262027", **params},
     )
 
 
@@ -152,7 +154,7 @@ def test_missing_saved_action_target_returns_404_without_mutations(client, actio
     player.favoriting.add(actions.owner, actions.other)
     player.comparing.add(actions.owner, actions.other)
     before = state([actions.owner, actions.other])
-    response = client.get(
+    response = client.post(
         reverse(
             route,
             args=[
@@ -189,10 +191,73 @@ def test_repeated_comparison_reset_preserves_other_group_users_and_favorites(cli
         player.favoriting.add(actions.owner, actions.other)
     before = state([actions.owner, actions.other])
     for _ in range(2):
-        response = client.get(reverse("reset_comparison", args=[kind]), {"season": "20262027"})
+        response = client.post(
+            reverse("reset_comparison", args=[kind]), query_params={"season": "20262027"}
+        )
         assert response.status_code == 200
         assert getattr(actions.owner, "comparable_" + kind).count() == 0
     after = state([actions.owner, actions.other])
     expected = before
     expected[actions.owner.pk]["comparable_" + kind] = []
     assert after == expected
+
+
+@pytest.mark.parametrize("kind", ["skaters", "goalies"])
+@pytest.mark.parametrize("route", ["player_favorite", "player_compare", "reset_comparison"])
+@pytest.mark.parametrize("method", ["get", "head"])
+def test_saved_mutations_reject_safe_methods_without_changes(client, actions, kind, route, method):
+    player = actions.create(kind)[0]
+    player.favoriting.add(actions.owner, actions.other)
+    player.comparing.add(actions.owner, actions.other)
+    before = state([actions.owner, actions.other])
+    args = [kind] if route == "reset_comparison" else [player.slug, player.nhl_id]
+    url = reverse(route, args=args)
+    for authenticated in (True, False):
+        if not authenticated:
+            client.logout()
+        response = getattr(client, method)(url)
+        assert response.status_code == 405
+        assert response.headers["Allow"] == "POST"
+        assert state([actions.owner, actions.other]) == before
+
+
+@pytest.mark.parametrize("kind", ["skaters", "goalies"])
+@pytest.mark.parametrize("route", ["player_favorite", "player_compare", "reset_comparison"])
+def test_saved_mutations_require_csrf_and_trusted_origin(actions, kind, route):
+    from copy import deepcopy
+    from django.test import Client
+
+    players = actions.create(kind, 2)
+    opposite = actions.create("goalies" if kind == "skaters" else "skaters")[0]
+    for player in [*players, opposite]:
+        player.favoriting.add(actions.owner, actions.other)
+        player.comparing.add(actions.owner, actions.other)
+    before = state([actions.owner, actions.other])
+    target = players[0]
+    args = [kind] if route == "reset_comparison" else [target.slug, target.nhl_id]
+    url = reverse(route, args=args)
+    strict = Client(enforce_csrf_checks=True)
+    strict.force_login(actions.owner)
+    assert strict.post(url).status_code == 403
+    assert state([actions.owner, actions.other]) == before
+    page = strict.get(reverse("favorites" if route == "player_favorite" else "comparison"))
+    assert page.status_code == 200
+    assert b'id="ajax-csrf-token"' in page.content
+    token = strict.cookies["csrftoken"].value
+    for headers in (
+        {},
+        {"HTTP_X_CSRFTOKEN": "a" * 32},
+        {"HTTP_X_CSRFTOKEN": token, "HTTP_ORIGIN": "https://untrusted.invalid"},
+    ):
+        assert strict.post(url, **headers).status_code == 403
+        assert state([actions.owner, actions.other]) == before
+    response = strict.post(url, HTTP_X_CSRFTOKEN=token, query_params={"season": "20262027"})
+    assert response.status_code == 200
+    if route == "reset_comparison":
+        assert response.json()[kind + "_count"] == 0
+    else:
+        assert response.json()["authenticated"] is True
+    expected = deepcopy(before)
+    relation = ("favorite_" if route == "player_favorite" else "comparable_") + kind
+    expected[actions.owner.pk][relation] = [] if route == "reset_comparison" else [players[1].pk]
+    assert state([actions.owner, actions.other]) == expected

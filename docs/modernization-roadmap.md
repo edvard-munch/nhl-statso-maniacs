@@ -166,7 +166,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Planned phase complete locally | Game persistence | Real saved roster/gamelog values through mocked schedule/boxscore/reports, missing/bench players, identity, malformed-response rejection, history preservation, rollback and replay. Corrected participants now reconcile roster links and verified date entries, with game-ID markers, guarded legacy cleanup, typed skater/goalie identity and retention of ambiguous data. |
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
-| Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
+| Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and CSRF contracts are covered. Favorites/comparison toggles and resets now require POST with CSRF protection. Sequential quotas, missing-target 404s, anonymous no-writes and reset isolation have persistence tests; concurrent quotas remain separate work. |
 | Table cells and filter checkboxes covered; other substantive rules remain | Model/util/template logic | Shared player links/tooltips and filter checkboxes escape dynamic text/attributes. Unit and real AJAX regressions protect numeric precision, missing values, checkbox selection/reset, literal value round-trips and unchanged stored records. Remaining model/template rules should be chosen by behavior and risk. |
 | Core Players/saved-list/team workflows and failure recovery covered | Browser smoke tests | Twenty-one Chromium cases cover season/mode/layout controls, favorites last-member/final-member removal, empty transitions, comparison removal/reset and AJAX failures with explicit retries. Season retention, team contributions, reload persistence and ownership are checked. Filtered/paginated favorites removal now protects global counts, sorting, season, valid paging and ownership for both player types. |
 
@@ -271,8 +271,9 @@ at 90.13% combined coverage. Actual quota boundaries, independent comparison gro
 removal/re-addition at capacity, repeated toggles/resets and user isolation now have
 real M2M contracts. Four initially failing identity cases led to 404 guards for
 favorite/comparison endpoints; the legacy toggle API and quota policy are unchanged.
-These tests do not establish concurrent quota enforcement or CSRF protection for
-GET-based mutations. The browser foundation now passes three real Chromium cases for Players season
+These initial tests did not establish concurrent quota enforcement or CSRF protection
+for GET-based mutations; the POST/CSRF follow-up below closes the latter gap.
+The browser foundation now passes three real Chromium cases for Players season
 selection, statistics modes and empty seasons. A separate Node lockfile, cached
 checksum-verified frontend assets, isolated live server, local browser target and
 CI step are implemented. The offline gate passes 725 tests at 90.13%; browser
@@ -300,8 +301,8 @@ The filtered/paginated removal follow-up adds four Chromium cases for skaters an
 goalies, protecting global counts, filter/sort/season retention, return to a valid
 page and deletion after reload. All twenty-one browser cases pass; application
 behavior is unchanged. Hosted CI verification and deployment rehearsal
-remain operational priorities; GET-to-POST migration, concurrency policy and
-ambiguous legacy-data review stay separate focused work.
+remain operational priorities; the later POST/CSRF follow-up completes GET-to-POST
+migration. Concurrency policy and ambiguous legacy-data review remain focused work.
 The table-rendering follow-up adds nineteen offline cases and fixes escaped
 name/tooltip output, balanced player links and missing goalie save-percentage
 display. The offline gate now passes 744 tests at 90.24% combined coverage; all
@@ -573,3 +574,15 @@ shared rendering have regression protection. The staged upgrade reached Python
 repaired live contracts. Use the legacy inventory to choose the next cleanup batch.
 Deployment rehearsal on a disposable representative data copy remains deferred;
 framework patches and behavior changes remain separate focused work.
+
+## Saved-player POST/CSRF follow-up
+
+Favorites/comparison toggles and comparison resets now require POST and CSRF
+validation. Shared AJAX setup sends the masked token only to the same origin;
+table reads and mode switches remain GET. Canonical favorite URLs avoid POST
+redirects. Eighteen new offline cases and one new Chromium case verify rejection,
+persistence and actual request headers. Disposable PostgreSQL checks pass:
+919 offline tests at 91.28% coverage and all 22 Chromium cases. See
+[saved-list request contracts](saved-player-season-tables.md#saved-list-requests).
+Concurrent quota enforcement and ambiguous legacy-data decisions remain separate
+behavior changes; deployment rehearsal remains deferred.

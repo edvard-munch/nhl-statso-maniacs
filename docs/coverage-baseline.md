@@ -1174,3 +1174,28 @@ disposable PostgreSQL 16, system/migration checks, **901 offline tests** at
 the old exports. All **21 Chromium cases pass**, with **923 deselected**. Static,
 requirements drift and whitespace checks pass. No application database or live
 NHL service is accessed; no fixtures are loaded into application records.
+
+## Follow-up: require POST and CSRF for saved-player mutations
+
+Favorite/comparison toggles and comparison reset now reject GET/HEAD with 405
+and use Django's existing CSRF middleware for POST. The base template supplies a
+masked token; shared AJAX setup sends it only to the same origin. All mutation
+controllers use POST, while table reads and mode switches retain GET. Generated
+Players-table favorite links now use the canonical trailing-slash URL so a POST
+does not depend on an APPEND_SLASH redirect. Season and mode query parameters,
+authentication responses, ownership and sequential quotas retain their contracts.
+
+Eighteen new integration cases cover both player types, safe-method rejection,
+missing/invalid tokens, untrusted origins and valid POST persistence, checking
+other users and unrelated saved groups throughout. One new Chromium scenario
+exercises favorite/comparison add/remove and an intercepted external request
+that must not receive the CSRF header. The shared browser harness checks POST
+and CSRF headers for every saved mutation, including existing removal/reset and
+failure/recovery cases.
+
+Against disposable PostgreSQL 16, Django system/migration checks and **919 offline
+tests** pass (**44 deselected**) at **91.28% combined coverage**; the 35% gate and
+XML export pass. All **22 Chromium cases pass**, with **941 deselected**. Ruff,
+format, JavaScript syntax, workflow YAML, requirements drift and whitespace checks
+pass. No application database or live NHL calls are used. No schema or dependency
+changes are needed. Concurrent quota enforcement remains separate work.

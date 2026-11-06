@@ -111,7 +111,7 @@ def test_saved_actions_toggle_only_authenticated_user(signed_in, view_data, key,
     user = view_data["user"]
     url = reverse(route, args=[player.slug, player.nhl_id])
     for expected in (False, True):
-        response = signed_in.get(url)
+        response = signed_in.post(url)
         assert response.status_code == 200
         assert response.json()["authenticated"] is True
         assert getattr(player, relation).filter(pk=user.pk).exists() is expected
@@ -119,7 +119,7 @@ def test_saved_actions_toggle_only_authenticated_user(signed_in, view_data, key,
 
 @pytest.mark.parametrize("kind", ["skaters", "goalies"])
 def test_reset_clears_only_requested_comparison_group(signed_in, view_data, kind):
-    response = signed_in.get(reverse("reset_comparison", args=[kind]))
+    response = signed_in.post(reverse("reset_comparison", args=[kind]))
     assert response.status_code == 200
     user = view_data["user"]
     assert getattr(user, "comparable_" + kind).count() == 0
@@ -188,7 +188,8 @@ def test_favorites_gamelog_returns_fixture_only(signed_in, view_data, kind, key,
     ],
 )
 def test_anonymous_private_ajax_is_forbidden(client, view_data, route, args):
-    response = client.get(reverse(route, args=args))
+    method = client.post if route == "reset_comparison" else client.get
+    response = method(reverse(route, args=args))
     assert response.status_code == 403
     assert response.json()["authenticated"] is False
     assert view_data["user"].comparable_goalies.count() == 1
@@ -199,7 +200,8 @@ def test_anonymous_private_ajax_is_forbidden(client, view_data, route, args):
 )
 def test_anonymous_player_actions_do_not_change_memberships(client, view_data, route):
     player = view_data["skater"]
-    response = client.get(reverse(route, args=[player.slug, player.nhl_id]))
+    method = client.post if route in {"player_favorite", "player_compare"} else client.get
+    response = method(reverse(route, args=[player.slug, player.nhl_id]))
     assert response.status_code == 200
     assert response.json()["authenticated"] is False
     assert player.favoriting.count() == player.comparing.count() == 1

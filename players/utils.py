@@ -10,6 +10,7 @@ from itertools import chain, zip_longest
 from django.db.models import Max, Min
 from django.contrib.contenttypes.models import ContentType
 from django.utils.html import format_html
+from django.urls import reverse
 
 from . import models
 from zoneinfo import ZoneInfo
@@ -511,7 +512,8 @@ def make_tooltip(column, tip_field):
 
 
 def make_fav_link(request, player, link, column):
-    fav_link = os.path.join(link, FAVORITE_URL)
+    # POST must use the canonical route; APPEND_SLASH redirects cannot preserve it.
+    fav_link = reverse(FAVORITE_URL, args=[player["fields"]["slug"], player["fields"]["nhl_id"]])
     # makes a flat array
     player_followers = list(chain.from_iterable(player["fields"][column]))
 

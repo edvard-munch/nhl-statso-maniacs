@@ -265,10 +265,12 @@ current-player data, optional fallbacks and retried image downloads. See the
 
 ## Optional browser smoke tests
 
-Twenty-one Chromium cases exercise Players, authenticated saved-list controls,
+Twenty-two Chromium cases exercise Players, authenticated saved-list controls,
 favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 901 passed, 22 external and 21 browser
-cases deselected, at 91.27% combined coverage. The browser runner passes all 21 cases.
+CI runs both. The current offline result is 919 passed, 22 external and 22 browser
+cases deselected, at 91.28% combined coverage. Saved-list mutations are POST-only,
+with CSRF rejection and persistence checks in the offline suite and real CSRF
+headers checked in Chromium. See [saved-list requests](saved-player-season-tables.md#saved-list-requests).

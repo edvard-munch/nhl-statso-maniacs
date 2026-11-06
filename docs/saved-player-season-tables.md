@@ -32,6 +32,24 @@ Saved memberships, per-type comparison limits, favorite membership and user
 privacy remain intact. Rendering a different season never removes a saved player
 or modifies player statistics. No schema migration is required.
 
+## Saved-list requests
+
+Favorite toggles (`player_favorite`), comparison toggles (`player_compare`) and
+comparison resets (`reset_comparison`) require **POST**. GET and HEAD return 405
+without changing memberships. Existing authentication responses, per-type limits
+and ownership rules still apply; concurrent quota enforcement remains separate work.
+
+The shared AJAX setup reads Django's masked CSRF token from the base template
+and sends `X-CSRFToken` only to the same origin. Django rejects missing/invalid
+tokens and untrusted origins with 403. This also works with HTTP-only or
+session-backed CSRF cookies because JavaScript reads the DOM token, not the cookie.
+Keep the shared setup loaded after jQuery and before the mutation controllers.
+
+Season and statistics-mode selections remain URL query parameters on POST, so
+removal/reset responses retain the selected table. Table reads, filtering and
+statistics-mode switches remain GET requests. Favorite links generated for the
+Players table use the canonical trailing-slash route to avoid POST redirects.
+
 ## Running updates
 
 From the repository root, activate the existing environment:
@@ -90,6 +108,11 @@ These cover saved membership, stale snapshots, missing/zero-game seasons, totals
 and averages, initial/AJAX parity, career aliases, anonymous/private access,
 comparison removal/reset/limits, validation and query growth. Do not pass
 `--nomigrations`: the legacy ImageField schema differs from migration state.
+
+`tests_saved_player_actions_db.py` also checks GET/HEAD rejection, CSRF failures,
+untrusted origins and valid POST persistence for both player types. Chromium
+checks exercise the actual POST controllers, CSRF headers, membership transitions
+and failure/retry behavior; `make test-browser` runs them separately.
 
 Run `make test-cov` and `make test-ci` separately to assess the complete suite and
 the initial 35% gate. Focused results do not establish full-suite coverage or fix

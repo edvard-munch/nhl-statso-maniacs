@@ -212,11 +212,11 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **901 tests at 91.27% combined line/branch
+The current offline suite passes **919 tests at 91.28% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 
-Twenty-one optional Chromium smoke checks run separately with `make test-browser` after
+Twenty-two optional Chromium smoke checks run separately with `make test-browser` after
 [browser setup](docs/browser-smoke-tests.md). Default tests and local hooks exclude
 browser checks; CI is configured to run both suites.
 

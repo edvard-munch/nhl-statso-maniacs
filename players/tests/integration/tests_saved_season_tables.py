@@ -98,7 +98,7 @@ def test_invalid_selection_does_not_change_saved_relationships(client, saved_use
         reverse("player_compare", args=[target.slug, target.nhl_id]),
         reverse("reset_comparison", args=["skaters"]),
     ]:
-        assert client.get(url, {"season": "invalid"}).status_code == 400
+        assert client.post(url, query_params={"season": "invalid"}).status_code == 400
     assert saved_user.comparable_skaters.count() == 2
 
 
@@ -107,14 +107,18 @@ def test_remove_and_reset_preserve_modes_and_other_users(client, saved_user, tab
     other.comparable_skaters.add(table_players["low"])
     params = {"season": "20252026", "skater_mode": "career_avg"}
     low = table_players["low"]
-    response = client.get(reverse("player_compare", args=[low.slug, low.nhl_id]), params)
+    response = client.post(
+        reverse("player_compare", args=[low.slug, low.nhl_id]), query_params=params
+    )
     assert response.json()["season_id"] == "20252026"
     assert response.json()["skater_mode"] == "career_avg"
     assert response.json()["skaters_count"] == 1
     assert other.comparable_skaters.count() == 1
     assert saved_user.favorite_skaters.count() == 3
     assert (
-        client.get(reverse("reset_comparison", args=["skaters"]), params).json()["skaters_count"]
+        client.post(reverse("reset_comparison", args=["skaters"]), query_params=params).json()[
+            "skaters_count"
+        ]
         == 0
     )
 
@@ -123,7 +127,7 @@ def test_saved_pages_selector_and_anonymous_access(client, saved_user):
     assert b'data-season="20262027"' in client.get(reverse("favorites")).content
     client.logout()
     assert ajax(client, favorites="favorites_filter=true").status_code == 403
-    assert client.get(reverse("reset_comparison", args=["skaters"])).status_code == 403
+    assert client.post(reverse("reset_comparison", args=["skaters"])).status_code == 403
     assert (
         client.get(
             reverse("ajax_comparison_stat_switcher", args=["skaters", "season_tot"])
@@ -217,11 +221,11 @@ def test_comparison_quota_and_anonymous_add_contract(client, saved_user, table_p
         saved_user.comparable_skaters.add(player)
     high = table_players["high"]
     url = reverse("player_compare", args=[high.slug, high.nhl_id])
-    response = client.get(url, {"season": "20262027"})
+    response = client.post(url, query_params={"season": "20262027"})
     assert response.json()["comp_quota_reached"] == 1
     assert saved_user.comparable_skaters.count() == 5
     client.logout()
-    assert client.get(url).json()["authenticated"] is False
+    assert client.post(url).json()["authenticated"] is False
 
 
 @pytest.mark.parametrize(

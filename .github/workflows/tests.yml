@@ -65,6 +65,12 @@ jobs:
           node --check players/static/players/ajax_switch_stats.js
           node --check players/static/players/sorting_favorites.js
           node --check players/static/players/sorting_comparison.js
+          node --check players/static/players/ajax_csrf.js
+          node --check players/static/players/ajax_add_fav.js
+          node --check players/static/players/ajax_del_fav.js
+          node --check players/static/players/ajax_del_fav_favorite_page.js
+          node --check players/static/players/ajax_add_comp.js
+          node --check players/static/players/ajax_del_comp.js
       - name: Django system and migration checks
         run: |
           uv run --locked python --version

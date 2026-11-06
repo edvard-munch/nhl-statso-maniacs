@@ -3,7 +3,7 @@ $('body').on('click', '.js-fav-del', function() {
   var btn = $(this);
 
   $.ajax({
-    type: 'GET',
+    type: 'POST',
     url: btn.attr('href'),
 
     success: function(data) {

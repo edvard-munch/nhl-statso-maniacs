@@ -3,7 +3,7 @@ $('body').on('click', '.js-compare-del', function() {
   var btn = $(this);
 
   $.ajax({
-    type: 'GET',
+    type: 'POST',
     url: btn.attr('href'),
     success: function(data) {
       $('.js-comp-alert').show().attr('class', 'alert alert-primary js-comp-alert').fadeTo(2000, 500).slideUp(500).insertBefore(btn);
