@@ -5,7 +5,8 @@ behavior. Loaders share `players/nhl_http.py` for team/player reports, season
 detection, current/full totals, player landing responses, game JSON/HTML reports,
 optional projections and team/profile image downloads. The legacy season command's
 request helper also uses this policy; its old parsing/API assumptions are unchanged.
-Archived `_new/` experiments are outside the supported command workflow.
+The six obsolete `_new/` experiments have been retired; supported loader behavior
+is unchanged. See the [legacy inventory](legacy-audit.md).
 
 ## Limits and recovery
 

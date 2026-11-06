@@ -60,21 +60,33 @@ when comparing command lists between machines.
 
 ## `_new/` experiments
 
-Django's normal command discovery filters names starting with `_`, so this directory
-is not a source of normal `manage.py` commands. No tracked import or invocation of
-these modules was found. They remain importable/manual code, not harmless samples:
-several write player records directly. All six are **experimental legacy removal
-candidates**, subject to confirming manual/external use and preserving any unique
-business rules before removal.
+The user confirmed these six experiments are unused and approved retirement.
+They have now been removed; the table below preserves the source-review findings,
+with implementation history available in Git. Django's normal command discovery
+already excluded `_new`, and no tracked code imports/callers were found.
+
+Read-only URL probes before removal returned 404 for the old NHL stats reports
+(after HTTP-to-HTTPS redirects), TLS connection errors for the old statsapi/
+bamcontent hosts, and 502 for the sampled HTTP statsapi boxscore. These observations
+are point-in-time checks, not proof of permanent host removal. Several scripts
+contained DB writes; they were not executed to verify them. No stored data is
+removed as part of retiring their source files.
+
+Retirement checks confirm exactly six source deletions, no remaining code callers,
+unchanged discovery of the nine tracked top-level commands and valid audit links.
+Django system/migration checks, 902 offline tests at 90.86% combined coverage,
+the 35% gate and XML export pass against disposable PostgreSQL. Static/format,
+requirements drift and whitespace checks pass. No live requests or application
+records are involved in retirement validation.
 
 | File | Observed purpose and blockers |
 | --- | --- |
-| [`check_sbs.py`](../players/management/commands/_new/check_sbs.py) | Despite its name, rewrites SBS/averages, multi-team bookkeeping and debut fields. Uses retired statsapi year-by-year shapes. Not a read-only audit. |
-| [`fetch_pics.py`](../players/management/commands/_new/fetch_pics.py) | Incomplete headshot download experiment. Uses `Goalie.all()`/`Skater.all()` rather than model managers and then treats `values_list` rows as model instances; no completed image-save step. Uses old bamcontent URLs. |
-| [`upd_pls_NEW.py`](../players/management/commands/_new/upd_pls_NEW.py) | Older player metadata/stat importer with ORM/image/flag writes and old NHL stats/headshot URLs. No current loader-contract coverage. Compare with supported `upd_pls` before considering any unique behavior. |
-| [`upd_pls_fw.py`](../players/management/commands/_new/upd_pls_fw.py) | Historical faceoff/SBS repair over hardcoded 1996–2018 seasons; rewrites nested rows and bookkeeping via old NHL stats routes. Current `season_loading` covers faceoffs using different row contracts. |
-| [`upd_pls_logs_fw.py`](../players/management/commands/_new/upd_pls_logs_fw.py) | Faceoff gamelog backfill scoped to October 1–10, 2018, using retired statsapi schedule/boxscores and old list-shaped gamelogs. Current gamelogs are keyed by date. |
-| [`upd_pls_multiseas_goalies.py`](../players/management/commands/_new/upd_pls_multiseas_goalies.py) | Historical goalie team-split insertion over 1990–2018, old report routes and nested SBS/count bookkeeping. Compare unique cases with supported team-scoped season loading before retirement. |
+| `check_sbs.py` (removed) | Despite its name, rewrites SBS/averages, multi-team bookkeeping and debut fields. Uses retired statsapi year-by-year shapes. Not a read-only audit. |
+| `fetch_pics.py` (removed) | Incomplete headshot download experiment. Uses `Goalie.all()`/`Skater.all()` rather than model managers and then treats `values_list` rows as model instances; no completed image-save step. Uses old bamcontent URLs. |
+| `upd_pls_NEW.py` (removed) | Older player metadata/stat importer with ORM/image/flag writes and old NHL stats/headshot URLs. No current loader-contract coverage. Compare with supported `upd_pls` before considering any unique behavior. |
+| `upd_pls_fw.py` (removed) | Historical faceoff/SBS repair over hardcoded 1996–2018 seasons; rewrites nested rows and bookkeeping via old NHL stats routes. Current `season_loading` covers faceoffs using different row contracts. |
+| `upd_pls_logs_fw.py` (removed) | Faceoff gamelog backfill scoped to October 1–10, 2018, using retired statsapi schedule/boxscores and old list-shaped gamelogs. Current gamelogs are keyed by date. |
+| `upd_pls_multiseas_goalies.py` (removed) | Historical goalie team-split insertion over 1990–2018, old report routes and nested SBS/count bookkeeping. Compare unique cases with supported team-scoped season loading before retirement. |
 
 ## Dependency candidates and consumers
 
@@ -110,8 +122,9 @@ checks validate that executable or the host's process setup.
 2. Completed: remove the unused legacy lint pins in a focused dependency
    follow-up, regenerating lock/export. The old test-helper pins are removed in a
    separate follow-up. Retain django-shortcuts: its CLI use is confirmed.
-3. Resolve the video/projection and `_new` retention decisions before removing
-   writers or their supporting dependencies. Preserve stored fields/UI unless a
+3. Completed: retire the six confirmed unused `_new` experiments. Resolve the
+   four top-level legacy command decisions before removing those writers or
+   their supporting dependencies. Preserve stored fields/UI unless a
    separate product/data migration is agreed.
 4. Decide whether the Celery update task should match the Make sequence. This
    changes behavior and existing task-order tests, so keep it separate from cleanup.

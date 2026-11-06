@@ -515,6 +515,11 @@ configured linter/formatter, and every retained dependency version is unchanged.
 The separate test compatibility cleanup removes only `attrs`, `more-itertools`,
 `py` and `pyparsing`, retaining all other versions. `django-shortcuts` is explicitly
 kept for the confirmed `django r` / `m` / `mm` developer workflow.
+The six confirmed unused `_new` experiments are now removed. They had no tracked
+callers and were excluded from normal Django command discovery; several contained
+legacy data writes and unusable sampled endpoints. The inventory retains their
+purpose and findings as history. No top-level commands, stored fields/data,
+fixtures, OAuth files or dependencies are removed in this retirement batch.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 
