@@ -414,13 +414,19 @@ updates requests-mock 1.8.0 to 1.12.1, replacing the plugin's deprecated distuti
 version comparison with numeric tuple comparison; no warnings are suppressed.
 Both suites pass without warnings: 902 offline tests at 90.86% combined coverage
 and 21 Chromium cases; dependency and Django checks also pass.
-Alert closure still requires a default-branch push/rescan; uv has not started.
+Alert closure still requires a default-branch push/rescan.
 
-`pyproject.toml` currently holds Ruff configuration, not project dependency
-metadata; there is no uv lockfile. Before changing tools, capture the working
-interpreter/dependency set and identify obsolete or incompatible packages.
-Review Django integrations, Celery/results, storage, PostgreSQL driver, Pillow,
-pytest/pytest-django/coverage, documentation tools and production entry points.
+The first [uv checkpoint](uv-migration.md) adds project metadata alongside Ruff
+configuration and commits `uv.lock`. All 64 existing unique requirement pins are
+preserved across runtime, test, hook and development groups. The app is a virtual
+checkout project, with Python restricted to the validated 3.12 minor and isolated
+build constraints matching the bootstrap tools. A clean uv 0.10.10 default sync
+has the same 74 installed versions as the validated pip environment. Runtime-only
+sync, dependency checks, Django/migration/WSGI/Celery checks, 902 offline tests at
+90.86% combined coverage and 21 Chromium cases pass using disposable environments
+and PostgreSQL. Existing venv, requirements, Make commands, hooks and CI are
+unchanged. Next switch those workflows to the lockfile and validate interpreter
+selection before retiring or generating transitional requirements files.
 
 Correction to the earlier chat advice: current uv documentation lists Python
 3.7 as Tier 2, rather than universally excluding it. That does **not** prove this
@@ -428,12 +434,10 @@ project's dependency resolution, `uv sync`, or interpreter provisioning will wor
 Validate the exact uv version and workflow in a fresh environment before changing
 the standard setup. See [uv Python support](https://docs.astral.sh/uv/reference/policies/python/).
 
-Suggested sequence: stabilize the baseline; reach Django 3.2; establish a compatible
-Python bridge; introduce `[project]` metadata, explicit Python constraints and
-runtime/test/dev dependencies; generate `uv.lock`; verify clean sync and tests;
-then update Make targets, CI and documentation together. A successful isolated
-uv trial can justify moving it earlier. Keep tool migration and framework upgrades
-in separate commits, preserving a working setup until the replacement is proven.
+The baseline, Python/Django bridge and metadata/lockfile validation are complete
+locally. Next update Make targets, hooks, CI and normal setup documentation
+together. Keep tool migration and dependency/framework upgrades in separate
+commits, preserving a working setup until the replacement is proven.
 
 The separate Dependabot dependency-graph run rejected Python 3.7.17
 (`tool_version_not_supported`). The validated Python 3.12.16 bridge now updates

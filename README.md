@@ -31,6 +31,10 @@ If you use pyenv, this repo includes `.python-version` pinned to `3.12.16`.
 When changing Python versions, recreate the venv; follow the
 [Python bridge instructions](docs/django-upgrade-checkpoints.md#checkpoint-5-python-31022-to-31216).
 
+Project metadata and `uv.lock` are available as the first
+[uv migration checkpoint](docs/uv-migration.md). The setup above, Make targets,
+CI and hooks still use the existing pip workflow until the next migration step.
+
 ## Code Quality
 
 This project uses Ruff for formatting and linting.

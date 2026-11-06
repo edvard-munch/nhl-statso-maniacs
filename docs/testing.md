@@ -1,5 +1,9 @@
 # Running deterministic tests
 
+The opt-in [uv metadata/lockfile checkpoint](uv-migration.md) is validated in
+separate environments. Normal commands and hook interpreter selection below
+remain on the existing pip workflow until the next migration commit.
+
 Run commands from the repository root. The current baseline is Python 3.12.16,
 Django 5.2.18 and PostgreSQL 14+ (validated on 16). The planned LTS endpoint is
 validated locally; hosted CI, deployment checks and uv follow separately, as

@@ -872,6 +872,37 @@ change. The existing project venv is unchanged; reinstall requirements and resta
 running app/worker processes. Alert closure awaits default-branch push/rescanning;
 no alerts were dismissed or modified.
 
+## Follow-up: uv metadata and lockfile foundation
+
+Add `[project]` metadata with the validated Python 3.12 minor range, runtime
+dependencies and `test`, `hooks` and default `dev` groups. Preserve all **64 unique
+pins** from the three existing requirements files exactly; no dependency upgrades
+or removals are part of this checkpoint. Keep the checkout application unbuilt
+with `package = false`; retain Ruff settings. Isolated dependency builds constrain
+setuptools/wheel/packaging to the bootstrap versions. Add `uv.lock` from public
+PyPI with transitive dependencies, platform markers and artifact hashes, and ignore
+the default `.venv/` directory. See the [migration checkpoint](uv-migration.md).
+
+Validated with **uv 0.10.10 / Python 3.12.16**. `uv lock --check --offline` passes.
+Clean `uv sync --locked` installs **74 distributions** with no version differences
+from the validated pip environment; a separate `--no-default-groups` environment
+installs **45 distributions** without pytest, hooks or lint tools. Both dependency
+checks and offline `uv sync --locked --check` runs pass. Runtime-only system/
+migration checks and WSGI/Celery startup pass against disposable PostgreSQL 16.
+The default environment passes system/migration checks, **902 offline tests**
+(**33 deselected**) at **90.86% combined coverage** with the unchanged 35% gate,
+and **21 Chromium tests** (**914 deselected**), without warnings. Ruff, formatting
+and whitespace checks pass. uv normalizes malformed version specifiers while
+reading older candidate metadata during initial resolution; locking and isolated
+source builds complete successfully without package-version changes.
+
+The existing project venv, requirements files, Make targets, hook runner and CI
+are unchanged. Tests explicitly select temporary uv interpreters because the
+current runner still prefers the existing project venv. Application data and live
+NHL services are untouched. No application code, schema, permanent tests or browser
+dependencies change. The next commit switches workflows and interpreter selection;
+uv installation/provisioning and hosted CI validation remain for that step.
+
 ## Follow-up: requests-mock plugin deprecation cleanup
 
 Update **requests-mock 1.8.0 → 1.12.1**, a published, non-yanked release compatible

@@ -1,3 +1,98 @@
+[project]
+name = "nhl-web-app"
+version = "0.0.0"
+description = "Django NHL statistics application and data loaders"
+readme = "README.md"
+# Keep the supported range on the validated minor; .python-version pins the patch.
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "amqp==5.2.0",
+    "asgiref==3.8.1",
+    "billiard==4.2.1",
+    "celery==5.4.0",
+    "certifi==2026.10.18",
+    "chardet==3.0.4",
+    "charset-normalizer==3.4.2",
+    "click==8.1.3",
+    "click-didyoumean==0.3.0",
+    "click-plugins==1.1.1",
+    "click-repl==0.2.0",
+    "crispy-bootstrap4==2025.6",
+    "Django==5.2.18",
+    "django-celery-results==2.6.0",
+    "django-crispy-forms==2.4",
+    "django-debug-toolbar==5.2.0",
+    "django-environ==0.11.2",
+    "django-extensions==3.2.3",
+    "django-shortcuts==1.6",
+    "django-storages==1.14.6",
+    "docopt==0.6.2",
+    "furl==2.1.0",
+    "gevent==24.11.1",
+    "greenlet==3.1.1",
+    "idna==3.15",
+    "kombu==5.3.7",
+    "num2words==0.5.10",
+    "orderedmultidict==1.0.1",
+    "Pillow==13.0.0",
+    "prompt-toolkit==3.0.38",
+    "psycopg2-binary==2.9.10",
+    "python-dateutil==2.9.0.post0",
+    "pytz==2023.3",
+    "requests==2.33.0",
+    "six==1.17.0",
+    "sqlparse==0.6.1",
+    "tqdm==4.70.1",
+    "typing_extensions==4.5.0",
+    "tzdata==2026.6",
+    "urllib3==2.8.0",
+    "vine==5.1.0",
+    "wcwidth==0.1.9",
+    "zope.event==5.0",
+    "zope.interface==7.2",
+]
+
+[dependency-groups]
+# Preserve existing test/tool pins during migration; audit legacy tools separately.
+test = [
+    "attrs==19.3.0",
+    "coverage==7.6.12",
+    "more-itertools==7.2.0",
+    "pluggy==1.7.0",
+    "py==1.11.0",
+    "pyparsing==2.4.2",
+    "Pygments==2.21.0",
+    "pytest==9.2.0",
+    "pytest-cov==4.1.0",
+    "pytest-django==4.11.1",
+    "requests-mock==1.12.1",
+]
+hooks = ["pre-commit==2.21.0"]
+dev = [
+    { include-group = "test" },
+    { include-group = "hooks" },
+    "mccabe==0.7.0",
+    "packaging==26.3",
+    "pycodestyle==2.9.1",
+    "pyflakes==2.5.0",
+    "ruff==0.15.10",
+    "pip==26.3",
+    "setuptools==84.2.1",
+    "wheel==0.48.0",
+]
+
+[tool.uv]
+required-version = ">=0.10.10"
+# manage.py runs from the checkout; do not build/distribute the application.
+package = false
+default-groups = ["dev"]
+# Match the validated bootstrap tools when building legacy source dependencies.
+build-constraint-dependencies = [
+    "setuptools==84.2.1",
+    "wheel==0.48.0",
+    "packaging==26.3",
+]
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100

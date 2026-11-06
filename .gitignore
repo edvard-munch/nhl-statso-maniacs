@@ -1,4 +1,5 @@
 venv/
+.venv/
 
 # Generated coverage data (including parallel-run files)
 .coverage
