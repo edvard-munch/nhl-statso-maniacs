@@ -928,3 +928,33 @@ No application data or live NHL services are accessed. No application code,
 migrations, permanent tests, CI commands or uv files change. The project venv is
 unchanged; [cleanup instructions](testing.md#python-environment) explain that
 installing requirements alone does not uninstall the removed packages.
+
+## Follow-up: pytest temporary-directory security fix
+
+Update **pytest 7.4.4 → 9.2.0**, outside alert **#54**'s affected range `<9.0.3`.
+The [upstream changelog](https://docs.pytest.org/en/stable/changelog.html#pytest-9-0-3)
+records the insecure temporary-directory fix in 9.0.3. Official PyPI metadata
+confirms the selected releases are published, non-yanked and Python 3.12-compatible.
+Pytest requires `pluggy>=1.6,<2` and `pygments>=2.15`, so **Pluggy 1.3.0 → 1.7.0**
+and **Pygments 2.21.0** are pinned alongside it. Pygments returns for pytest terminal
+highlighting, not Sphinx; update the existing-venv cleanup instructions to retain it.
+Existing pytest-cov 4.1.0, coverage 7.6.12, pytest-django 4.11.1 and requests-mock
+1.8.0 remain unchanged after verifying compatibility.
+
+A fresh temporary Python 3.12.16 environment installs bootstrap, project and hook
+requirements and passes `pip check` plus pre-commit configuration validation.
+Using disposable PostgreSQL 16, Django system checks pass and migration checks
+report no changes. The normal commit-hook runner passes **902 tests**, with
+**33 deselected**. The push-hook coverage runner also passes **902 tests**, with
+**33 deselected**, retaining **90.86% combined line/branch coverage** and the 35%
+gate. All **21 Chromium tests pass**, with **914 deselected**. Each run reports
+three `distutils.version.StrictVersion` deprecation warnings from the existing
+requests-mock plugin, now captured at plugin startup by pytest 9.2; no warnings
+are suppressed. Updating that plugin is separate maintenance.
+
+Ruff, formatting and whitespace checks pass. No application code, schema, test
+selection, hook/CI commands or uv files change. Validation uses synthetic fixtures;
+application data and live NHL services are untouched. The project venv is unchanged;
+install updated requirements before using the existing hooks. Closing the final
+currently open alert still requires a default-branch push and GitHub rescan;
+no alerts were dismissed or modified.

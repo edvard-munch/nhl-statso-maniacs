@@ -86,7 +86,7 @@ either recreate the venv using the setup above or remove the old chain explicitl
 
 ```bash
 python -m pip uninstall -y Sphinx alabaster Babel docutils imagesize Jinja2 MarkupSafe \
-  Pygments snowballstemmer sphinxcontrib-applehelp sphinxcontrib-devhelp \
+  snowballstemmer sphinxcontrib-applehelp sphinxcontrib-devhelp \
   sphinxcontrib-htmlhelp sphinxcontrib-jsmath sphinxcontrib-napoleon \
   sphinxcontrib-qthelp sphinxcontrib-serializinghtml pockets importlib-metadata zipp
 python -m pip check
@@ -95,6 +95,13 @@ python -m pip check
 These backports are unnecessary for the supported Python 3.12 environment. This
 cleanup is scoped to the project's dedicated venv; restart app/worker processes
 after updating it.
+
+The pytest security checkpoint pins pytest 9.2.0 and Pluggy 1.7.0. Pytest now
+requires Pygments for terminal highlighting, so Pygments returns as a patched
+2.21.0 pin; keep it installed even though the old documentation chain is removed.
+The existing pytest-cov 4.1.0, coverage 7.6.12 and pytest-django 4.11.1 pins remain.
+Update using the bootstrap/project/hook installation commands above. Commit and
+push hooks continue to use the same test runner and 35% coverage gate.
 
 Configure the project's `.env` as described in the README. Django loads the normal
 application settings, which require database, allowed-host and email values even

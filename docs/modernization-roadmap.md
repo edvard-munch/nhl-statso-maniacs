@@ -401,8 +401,17 @@ machine's Python 3.6 paths. That unused scaffold and its 19 dependency pins are 
 including redundant Napoleon/pockets and Python metadata backports that no active
 dependency needs on Python 3.12. The removed Jinja2/Babel/Pygments/zipp pins account
 for eleven current alerts; closure requires pushing and rescanning. See
-[existing venv cleanup](testing.md#python-environment). The pytest alert remains
-a separate tooling compatibility update; uv has not started.
+[existing venv cleanup](testing.md#python-environment).
+The pytest security follow-up updates pytest 7.4.4 to 9.2.0, above alert #54's
+fixed version 9.0.3, and Pluggy 1.3.0 to 1.7.0 to meet its dependency requirements.
+Pygments returns as a patched 2.21.0 pin because current pytest requires it for
+terminal highlighting; the obsolete Sphinx chain remains retired. Existing Django
+and coverage plugin pins, test selection and hook commands remain unchanged.
+Fresh-install dependency and Django checks pass, as do both 902-test hook modes
+and all 21 Chromium cases, retaining 90.86% combined coverage. Three existing
+requests-mock deprecation warnings are visible at plugin startup; updating that
+plugin is separate maintenance.
+Alert closure still requires a default-branch push/rescan; uv has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working
