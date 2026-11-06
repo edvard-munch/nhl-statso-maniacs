@@ -606,3 +606,24 @@ lists and all stored player columns. The existing offline assets and CI browser
 selection include these cases without new dependencies. No application data or
 live NHL calls were involved. Legacy GET/toggle semantics, concurrent mutations
 and browser-level failure injection remain separate work.
+
+## Follow-up: browser AJAX failure and recovery
+
+All **17 Chromium cases** pass through the isolated browser runner. Three new
+cases inject six one-shot HTTP 503 failures: favorites removal, comparison mode/
+removal/reset, and team mode/split-layout changes. Existing data, counts and modes
+survive failures; errors are visible, controls permit explicit retries, and real
+successful responses clear errors and publish the expected values. Partial failure
+of the two-request team split preserves the joined layout until a successful retry.
+
+Only exact injected requests are exempt from the harness HTTP-error check.
+Unexpected AJAX errors and JavaScript exceptions still fail. Synthetic-user
+membership assertions protect other users and unrelated saved lists; complete
+player/team snapshots remain unchanged. Failures are injected before Django, so
+these tests do not claim safe retries after a committed mutation loses its response.
+No application behavior or dependencies changed.
+
+The offline gate passes **725 tests**, with **29 deselected** (12 external and
+17 browser), at **90.13% combined line/branch coverage**, retaining the 35% gate.
+Ruff, formatting, JavaScript syntax and whitespace checks pass. Both suites use
+disposable PostgreSQL clusters; no application database or live NHL calls are used.

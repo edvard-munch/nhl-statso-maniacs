@@ -26,12 +26,24 @@ export async function runBrowser(scenario, target, check) {
   const errors = [];
   const requests = [];
   const failedAjax = [];
+  const injectedRequests = new Set();
+  let pendingFailure = null;
+  function failNextAjax(matches) {
+    assert.equal(pendingFailure, null, 'Previous failure injection must be consumed');
+    const rule = {matches, count: 0};
+    pendingFailure = rule;
+    return () => assert.equal(rule.count, 1, 'Expected exactly one injected failure');
+  }
   page.on('pageerror', error => errors.push(error.message));
   page.on('request', request => {
     if (request.resourceType() === 'xhr') requests.push(new URL(request.url()));
   });
   page.on('response', response => {
-    if (response.request().resourceType() === 'xhr' && response.status() >= 400) failedAjax.push(response.status());
+    if (response.request().resourceType() === 'xhr' && response.status() >= 400) {
+      if (!injectedRequests.delete(response.request())) {
+        failedAjax.push({url: response.url(), status: response.status()});
+      }
+    }
   });
   await context.route('**/*', async route => {
     const request = route.request();
@@ -39,7 +51,17 @@ export async function runBrowser(scenario, target, check) {
     if (assets.has(url)) return route.fulfill(assets.get(url));
     // Images/fonts are cosmetic; no API or external network access is permitted.
     if (['image', 'font'].includes(request.resourceType())) return route.fulfill({status: 204});
-    if (new URL(url).origin === origin) return route.continue();
+    if (new URL(url).origin === origin) {
+      if (request.resourceType() === 'xhr' && pendingFailure?.matches(new URL(url))) {
+        const rule = pendingFailure;
+        pendingFailure = null;
+        rule.count += 1;
+        injectedRequests.add(request);
+        return route.fulfill({status: 503, contentType: 'application/json',
+                              body: JSON.stringify({error: 'Injected browser-test failure'})});
+      }
+      return route.continue();
+    }
     if (request.resourceType() === 'stylesheet') return route.fulfill({status: 200, contentType: 'text/css', body: ''});
     errors.push(`Unexpected external browser request: ${url}`);
     return route.abort();
@@ -54,8 +76,10 @@ export async function runBrowser(scenario, target, check) {
     await page.waitForFunction(() => window.jQuery?.active === 0);
   }
   try {
-    await check({page, cell, idle, requests, target});
+    await check({page, cell, idle, requests, target, failNextAjax});
     await idle();
+    assert.equal(pendingFailure, null, 'Scheduled failure was not exercised');
+    assert.equal(injectedRequests.size, 0, 'Injected response was not observed');
     assert.deepEqual(errors, [], 'Browser JavaScript errors');
     assert.deepEqual(failedAjax, [], 'Failed AJAX requests');
     await context.tracing.stop();

@@ -1,6 +1,6 @@
 # Offline Chromium smoke tests
 
-Fourteen browser cases check real JavaScript, DOM events and Django AJAX responses:
+Seventeen browser cases check real JavaScript, DOM events and Django AJAX responses:
 
 - Players season selection, totals/averages and goalie modes, and unloaded seasons.
 - Goalie-only and empty favorites, including an old season with no goalie data.
@@ -13,10 +13,13 @@ Fourteen browser cases check real JavaScript, DOM events and Django AJAX respons
 - Team split/joined layouts and independent totals/averages switches, historical
   season selection and unloaded-season empty states. Team-specific skater/goalie
   values must differ correctly from combined totals and stale snapshots.
+- AJAX failure and explicit retry for favorites removal, comparison mode/removal/
+  reset, and team mode/split-layout changes. A failed split must preserve the
+  joined table even when the other request succeeds.
 
 Conflicting snapshot values ensure displayed assertions use the correct sources.
-Browser JavaScript errors and HTTP errors on AJAX responses fail the tests (normal
-redirects are followed). Stored player columns must remain unchanged. Authenticated
+Browser JavaScript errors and unexpected HTTP errors on AJAX responses fail the
+tests (normal redirects are followed). Stored player columns must remain unchanged. Authenticated
 cases use a synthetic Django test session, not an application account, and check
 that other users' saved memberships remain intact after real mutations.
 
@@ -79,7 +82,7 @@ npm --prefix browser exec -- playwright show-trace browser-artifacts/modes.zip
 ## CI and remaining work
 
 The existing push/PR workflow runs the offline coverage gate first, installs the
-locked browser toolchain/assets, then runs all fourteen browser checks separately
+locked browser toolchain/assets, then runs all seventeen browser checks separately
 against the ephemeral PostgreSQL service. Failure artifacts are uploaded when
 present. The coverage report remains the offline server-side result; browser runs
 do not inflate it. Hosted execution still needs confirmation after pushing.
@@ -105,6 +108,15 @@ the other. Removal requests retain the selected season; successful updates use a
 stable status message. In-flight requests are guarded, and failed/unconfirmed
 responses do not remove visible rows. The legacy GET/toggle API is unchanged.
 
-Browser-level AJAX failure/recovery and broader filtered/paginated removal cases
-remain later focused work. Browser login, concurrent quota enforcement and migration of legacy
+The recovery cases inject six one-shot HTTP 503 responses before requests reach
+Django. Only those exact injected requests are exempt from the HTTP-error check;
+all other failures still fail the test. Each case checks the error, unchanged
+data/mode/counts, usable controls, successful explicit retries and error clearing.
+The selected season, other users' memberships and stored player columns are
+protected. Retries use real Django responses. These cases do not establish safe
+retry after a mutation commits but its response is lost: the legacy GET/toggle
+API still needs a separate design decision.
+
+Broader filtered/paginated removal remains later focused work.
+Browser login, concurrent quota enforcement and migration of legacy
 GET-based mutations to POST are not established by these smoke cases.
