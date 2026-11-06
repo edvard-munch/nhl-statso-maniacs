@@ -1081,3 +1081,19 @@ checks pass. Application records are untouched; only the explicit live validatio
 contacts NHL. No application code, schema, lockfile/dependency, hook or CI changes
 are part of this batch. Live success is point-in-time availability/schema evidence,
 not verification of all current-season players or production persistence.
+
+
+## Follow-up: remove unused legacy lint tools
+
+Remove only **mccabe 0.7.0**, **pycodestyle 2.9.1** and **pyflakes 2.5.0** from
+`dev`, `uv.lock` and the generated requirements export. The audit found no tracked
+callers or active mandatory dependents; Ruff remains the configured lint/format
+entry point. Lock comparison confirms no additions or retained version changes.
+A clean locked sync installs 71 packages, with all three removed tools absent,
+and passes dependency, lock/export and Ruff/format checks. Against disposable
+PostgreSQL 16, Django/migration checks, **902 offline tests** (**43 deselected**)
+at **90.86% combined coverage**, the unchanged 35% gate and XML export pass.
+All **21 Chromium cases pass** (**924 deselected**). Whitespace checks pass.
+No application code, schema, loader, hook/CI behavior or other dependency changes;
+no application data or live NHL calls. Run `make sync` in an existing uv environment
+to prune the old tools; `uv run` alone may retain extraneous installed packages.

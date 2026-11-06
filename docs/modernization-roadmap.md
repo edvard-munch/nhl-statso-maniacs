@@ -509,6 +509,9 @@ current totals, and the Procfile's undeclared Gunicorn dependency. No scripts,
 dependencies or data are removed. Confirm machine/host usage before selecting a
 cleanup batch. The legacy projection and video fields still have UI consumers;
 removing obsolete live assertions does not repair their writer commands.
+The first cleanup follow-up removes only `mccabe`, `pycodestyle` and `pyflakes`
+from the development group, lockfile and generated requirements. Ruff stays the
+configured linter/formatter, and every retained dependency version is unchanged.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

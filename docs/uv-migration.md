@@ -48,7 +48,7 @@ not an application release.
 | Project dependencies | Existing runtime/loader dependencies and retained transitive pins. Debug toolbar and Django extensions remain because settings load them unconditionally. |
 | `test` | pytest, Django/coverage/request plugins and retained compatibility pins. |
 | `hooks` | pre-commit. |
-| `dev` (default) | Includes `test`, `hooks`, Ruff, retained legacy lint tools and the validated packaging tools. |
+| `dev` (default) | Includes `test`, `hooks`, Ruff and the validated packaging tools. |
 
 For an isolated trial, set `UV_PROJECT_ENVIRONMENT` to a dedicated absolute path.
 For runtime-only deployment preparation in a separate environment:
