@@ -174,7 +174,7 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **744 tests at 90.24% combined line/branch
+The current offline suite passes **767 tests at 90.26% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 

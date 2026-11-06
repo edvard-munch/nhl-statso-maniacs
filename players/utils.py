@@ -232,14 +232,7 @@ def checkbox(array, checkbox_class, **kwargs):
     html_string = ""
 
     for index, option in enumerate(array):
-        try:
-            if kwargs["checked"]:
-                if option[0] in kwargs["checked"]:
-                    kwargs["check_this"] = True
-                else:
-                    kwargs["check_this"] = False
-        except KeyError:
-            kwargs["check_this"] = False
+        kwargs["check_this"] = option[0] in (kwargs.get("checked") or ())
 
         html_string += checkbox_option(option, checkbox_class, **kwargs)
 
@@ -253,16 +246,31 @@ def checkbox_option(option, checkbox_class, **kwargs):
     classes = TOOLTIP_CSS_CLASSES
 
     if kwargs["tip"]:
-        start = f'<label for="{option[0]}" class="{checkbox_class} {classes[0]}">{option[0]} <span class="{classes[1]}">{option[1]}</span></label>'
+        start = format_html(
+            '<label for="{}" class="{} {}">{} <span class="{}">{}</span></label>',
+            option[0],
+            checkbox_class,
+            classes[0],
+            option[0],
+            classes[1],
+            option[1],
+        )
     else:
-        start = (
-            f'<label for="{option[0]}" class="{checkbox_class} {classes[0]}">{option[0]} </label>'
+        start = format_html(
+            '<label for="{}" class="{} {}">{} </label>',
+            option[0],
+            checkbox_class,
+            classes[0],
+            option[0],
         )
 
-    if kwargs["check_this"]:
-        end = f'<input type="checkbox" class="{checkbox_class} checkbox_button" value="{option[0]}" id="{option[0]}" checked> &nbsp'
-    else:
-        end = f'<input type="checkbox" class="{checkbox_class} checkbox_button" value="{option[0]}" id="{option[0]}"> &nbsp'
+    end = format_html(
+        '<input type="checkbox" class="{} checkbox_button" value="{}" id="{}"{}> &nbsp',
+        checkbox_class,
+        option[0],
+        option[0],
+        " checked" if kwargs["check_this"] else "",
+    )
 
     return start + end
 

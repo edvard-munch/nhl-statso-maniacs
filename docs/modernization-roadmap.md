@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 744 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 767 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -162,7 +162,7 @@ below as a small batch, splitting implementation fixes from unrelated cleanup.
 | Completed | Team persistence | Real command/create/update/replay saves, stable IDs/slugs/player/game links, preservation of unreported metadata/history, cached/missing logos and optional-download failure recovery. Synthetic HTTP/download inputs and temporary media; 445 tests pass at 83.20% combined coverage. |
 | Core profiles, games/navigation and search covered | User-facing views | Rendered career statistics, current-panel guards, gamelogs, player/game/date errors and scoreboard navigation have contracts. Search/autocomplete now cover trimmed/literal terms, empty inputs/results, canonical links, escaped labels/encoded queries and viewer-specific controls. Existing Players filtering contracts remain; move to user-owned mutation endpoints next. |
 | Core private-data/preferences and saved-action contracts covered | Auth and user-owned actions | Typed notes/positions, validated profile preferences, ownership and existing CSRF contracts are covered. Sequential favorites/comparison quota boundaries, toggles, missing-target 404s, anonymous no-writes and reset isolation now have real persistence tests. Concurrent quotas and migration of legacy GET-based toggles to POST are separate decisions. |
-| Table-cell rendering covered; other substantive rules remain | Model/util/template logic | Shared player links/tooltips now escape dynamic text and use balanced markup. Unit and real AJAX regressions protect numeric precision, zero values, missing metadata/save percentages and unchanged stored records. Remaining model/template rules should be chosen by behavior and risk. |
+| Table cells and filter checkboxes covered; other substantive rules remain | Model/util/template logic | Shared player links/tooltips and filter checkboxes escape dynamic text/attributes. Unit and real AJAX regressions protect numeric precision, missing values, checkbox selection/reset, literal value round-trips and unchanged stored records. Remaining model/template rules should be chosen by behavior and risk. |
 | Core Players/saved-list/team workflows and failure recovery covered | Browser smoke tests | Twenty-one Chromium cases cover season/mode/layout controls, favorites last-member/final-member removal, empty transitions, comparison removal/reset and AJAX failures with explicit retries. Season retention, team contributions, reload persistence and ownership are checked. Filtered/paginated favorites removal now protects global counts, sorting, season, valid paging and ownership for both player types. |
 
 The reported `upd_gms` JSON failure now has controlled request handling and
@@ -300,6 +300,10 @@ The table-rendering follow-up adds nineteen offline cases and fixes escaped
 name/tooltip output, balanced player links and missing goalie save-percentage
 display. The offline gate now passes 744 tests at 90.24% combined coverage; all
 twenty-one Chromium cases still pass. Stored statistics remain unchanged.
+The checkbox-rendering follow-up adds twenty-three offline cases, escapes
+labels/tooltips/attributes, handles empty selections and protects literal filter
+values through real AJAX selection/reset. The gate now passes 767 tests at 90.26%
+combined coverage; no stored statistics or dependencies changed.
 
 ## 3. Make updates convenient and confirm the data workflow
 

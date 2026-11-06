@@ -29,8 +29,8 @@ python -m pip check
 ```
 
 The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
-The target Python 3.12.16 environment passes `pip check`, Ruff and all 744 offline
-tests with the 35% coverage gate (90.24% combined coverage). The bootstrap file
+The target Python 3.12.16 environment passes `pip check`, Ruff and all 767 offline
+tests with the 35% coverage gate (90.26% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
 validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.
@@ -237,6 +237,13 @@ precision, zero versus missing values and real AJAX responses without changing
 stored records. They run in the normal offline suite; the existing Chromium suite
 also validates the corrected markup in the actual tablesorter UI.
 
+Checkbox rendering has separate unit and AJAX regressions in
+`tests_checkbox_rendering.py` and `tests_checkbox_rendering_db.py`. These protect
+literal labels, tooltip text, quoted attributes, checked/empty selections and
+eight-option wrapping. Team, country and position values are decoded from rendered
+HTML and sent back through real totals/averages filter requests; selecting and
+clearing them must preserve values and leave stored players/teams unchanged.
+
 ## Optional browser smoke tests
 
 Twenty-one Chromium cases exercise Players, authenticated saved-list controls,
@@ -244,5 +251,5 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 744 passed, 12 external and 21 browser
-cases deselected, at 90.24% combined coverage. The browser runner passes all 21 cases.
+CI runs both. The current offline result is 767 passed, 12 external and 21 browser
+cases deselected, at 90.26% combined coverage. The browser runner passes all 21 cases.

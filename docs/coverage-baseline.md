@@ -668,3 +668,23 @@ retain the missing-value dash instead of passing it to numeric formatting;
 reported zeros still format as `0.000`. Existing Chromium checks validate the
 resulting markup through the real tablesorter UI. Other model/template rules,
 checkbox rendering and legacy mutation design remain separate focused work.
+
+## Follow-up: filter-checkbox escaping and selection contracts
+
+The offline coverage gate passes **767 tests**, with **33 deselected** (12 external
+and 21 browser), at **90.26% combined line/branch coverage**, retaining the 35% gate.
+All **21 Chromium cases** pass; Ruff, formatting and whitespace checks pass.
+
+Seventeen unit cases cover literal checkbox labels, tooltip text and attributes,
+checked/unchecked options, empty selections, option-list preservation and wrapping
+after eight options. Six database-backed AJAX cases cover team/country/position
+filters in totals and averages. They read the decoded value from rendered HTML,
+select it through the real endpoint, confirm checked state and matching rows,
+then clear it and confirm the full result set returns. Stored records remain
+unchanged; synthetic fixtures use disposable PostgreSQL and no live NHL services.
+
+Checkbox labels, tooltips, values, IDs and classes now use escaped HTML formatting,
+preserving the existing markup for ordinary values. The wrapper computes checked
+state for every option, including explicit empty/None selections that previously
+could leave `check_this` unset and raise an error. No dependencies, migrations or
+application data changed.
