@@ -36,9 +36,18 @@ def test_clean_checkout_logging_starts_without_existing_log_directory(tmp_path):
         EMAIL_PASSWORD="unused",
     )
     code = """
+import importlib.abc
 import logging
+import sys
 import django
 import requests
+
+class NoMySQLDriver(importlib.abc.MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname.split('.')[0] in {'pymysql', 'MySQLdb'}:
+            raise AssertionError('PostgreSQL startup must not import a MySQL driver')
+
+sys.meta_path.insert(0, NoMySQLDriver())
 from django.db.backends.base.base import BaseDatabaseWrapper
 
 def forbidden(*args, **kwargs):
@@ -49,6 +58,15 @@ requests.sessions.Session.request = forbidden
 for index in range(2):
     django.setup()
     logging.getLogger('django').info('Clean startup %s', index)
+from nhl_web_app import celery_app
+from nhl_web_app.celery_settings import app
+from nhl_web_app.wsgi import application
+from django.db import connections
+assert celery_app is app
+assert callable(application)
+assert connections['default'].vendor == 'postgresql'
+assert connections['default'].Database.__name__.startswith('psycopg')
+assert not {'pymysql', 'MySQLdb'} & sys.modules.keys()
 logging.shutdown()
 """
     result = subprocess.run(

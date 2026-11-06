@@ -367,8 +367,15 @@ JPEG and WebP decoding/storage, invalid/truncated/disguised SVG rejection,
 decompression-bomb limits and existing avatar/account preservation. No application
 image policy or decoder-limit settings change. Alert closure requires push/rescan;
 running environments must install requirements and restart.
-The legacy MySQL shim and tooling/docs dependencies remain separate batches; the
-uv migration has not started.
+The legacy MySQL shim is now removed: repository search found no MySQL callers
+beyond package startup, and all configured database backends use PostgreSQL.
+`PyMySQL==0.9.3` is removed from requirements instead of upgrading an unused driver.
+Django/WSGI/PostgreSQL initialization and the Celery app export are checked with
+MySQL imports forbidden; a clean environment without either MySQL driver passes
+dependency, system/migration, offline and Chromium checks. This addresses
+[PyMySQL alert #15](https://github.com/edvard-munch/nhl-statso-maniacs/security/dependabot/15)
+once the changed requirements reach the default branch and GitHub rescans.
+Tooling/docs dependencies remain separate work; the uv migration has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working

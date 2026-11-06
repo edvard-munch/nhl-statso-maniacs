@@ -818,3 +818,30 @@ measurement preferences on rejection. The normal pixel threshold is not changed.
 Application image-handling code, accepted-format policy, bootstrap/dependency pins
 other than Pillow and uv configuration are unchanged. Install requirements and
 restart running app processes to activate the patched dependency.
+
+## Follow-up: remove the unused MySQL startup shim and driver
+
+Repository searches found PyMySQL only in requirements and the startup shim;
+application/test settings and CI use PostgreSQL with `psycopg2-binary`. The
+`pymysql` import and `install_as_MySQLdb()` call are removed from package startup,
+and `PyMySQL==0.9.3` is removed from requirements. The Celery app import/export is
+preserved. This removes the dependency responsible for **#15 /
+GHSA-v9hf-5j83-6xpp**; no MySQL query callers or database migration changes were
+found. Alert closure awaits default-branch push and GitHub rescanning.
+
+A fresh temporary Python 3.12.16 environment installs the complete pinned
+requirements and passes `pip check`, with neither `pymysql` nor `MySQLdb`
+importable and PostgreSQL's adapter available. Against disposable PostgreSQL,
+`check --database default` reports no issues and `makemigrations --check --dry-run`
+reports no changes. **902 offline tests** pass at **90.86% combined line/branch
+coverage**, with **33 deselected**; all **21 Chromium cases** pass with
+**914 deselected**. Ruff, formatting and whitespace checks pass.
+
+The existing clean-checkout startup case now forbids MySQL-driver imports while
+initializing Django twice, the WSGI application, the native PostgreSQL backend
+and the same exported Celery app, without any database or HTTP connection. Existing
+Celery task-order/result and real PostgreSQL persistence regressions also pass.
+Application databases and live NHL services were not accessed. The project venv
+was left unchanged: explicitly uninstall PyMySQL after applying the code change
+and restart running app/worker processes; `pip install -r requirements.txt` alone
+does not remove an already-installed unused package.

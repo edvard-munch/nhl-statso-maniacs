@@ -47,7 +47,6 @@ py==1.11.0
 pycodestyle==2.9.1
 pyflakes==2.5.0
 Pygments==2.4.2
-PyMySQL==0.9.3
 pyparsing==2.4.2
 pytest==7.4.4
 pytest-cov==4.1.0

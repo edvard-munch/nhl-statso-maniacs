@@ -40,6 +40,19 @@ avatar. The pixel-limit check uses a tiny generated image and a temporary lower
 threshold; production Pillow safeguards are unchanged.
 After updating requirements, reinstall them in your venv and restart existing
 app processes to use the updated packages; validation used a separate temporary venv.
+PyMySQL is no longer required: application/test settings use PostgreSQL, and the
+legacy `install_as_MySQLdb()` startup shim has been removed. After applying this
+code change, remove the leftover package from an existing project venv explicitly:
+
+```bash
+python -m pip uninstall PyMySQL
+python -m pip check
+```
+
+Installing requirements alone does not remove unlisted packages. Restart app and
+worker processes after updating. The clean-startup regression blocks MySQL-driver
+imports while initializing Django, WSGI, the PostgreSQL backend and the Celery app;
+fresh-install validation confirms both `pymysql` and `MySQLdb` are absent.
 The target Python 3.12.16 environment passes `pip check`, Ruff and all 902 offline
 tests with the 35% coverage gate (90.86% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
