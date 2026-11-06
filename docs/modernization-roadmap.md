@@ -393,8 +393,16 @@ migration, 902 offline and 21 Chromium checks, retaining 90.86% combined coverag
 Local wheel build/unpack/install and uncached legacy source builds also pass.
 No CI command changes are needed: it already installs bootstrap requirements first.
 See [environment update commands](testing.md#python-environment). Alert closure
-still requires a default-branch push and rescan. Remaining docs/tooling dependency
-alerts are separate work; uv has not started.
+still requires a default-branch push and rescan.
+The legacy documentation chain is now retired: the app uses Django templates,
+and maintained documentation is Markdown linked from the README. The old Sphinx
+index referenced a missing `modules` document and its config hardcoded another
+machine's Python 3.6 paths. That unused scaffold and its 19 dependency pins are removed,
+including redundant Napoleon/pockets and Python metadata backports that no active
+dependency needs on Python 3.12. The removed Jinja2/Babel/Pygments/zipp pins account
+for eleven current alerts; closure requires pushing and rescanning. See
+[existing venv cleanup](testing.md#python-environment). The pytest alert remains
+a separate tooling compatibility update; uv has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working

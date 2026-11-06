@@ -79,6 +79,23 @@ pins packaging tools, including setuptools compatible with Python 3.12. This
 validates the current install
 procedure, not a full transitive lockfile; uv remains separate work.
 
+The obsolete Sphinx toolchain and unused Python metadata backports are no longer
+installed. Documentation is maintained as Markdown; no documentation build step
+is required. Existing venvs retain removed packages after `pip install -r`, so
+either recreate the venv using the setup above or remove the old chain explicitly:
+
+```bash
+python -m pip uninstall -y Sphinx alabaster Babel docutils imagesize Jinja2 MarkupSafe \
+  Pygments snowballstemmer sphinxcontrib-applehelp sphinxcontrib-devhelp \
+  sphinxcontrib-htmlhelp sphinxcontrib-jsmath sphinxcontrib-napoleon \
+  sphinxcontrib-qthelp sphinxcontrib-serializinghtml pockets importlib-metadata zipp
+python -m pip check
+```
+
+These backports are unnecessary for the supported Python 3.12 environment. This
+cleanup is scoped to the project's dedicated venv; restart app/worker processes
+after updating it.
+
 Configure the project's `.env` as described in the README. Django loads the normal
 application settings, which require database, allowed-host and email values even
 when tests do not use email or the application database. Never commit real secrets.

@@ -900,3 +900,31 @@ No application code, migrations, permanent tests, CI commands or uv files change
 The existing project venv remains unchanged; install bootstrap requirements before
 project/hook requirements as documented in [testing](testing.md#python-environment).
 Alert closure awaits default-branch push/rescanning; no alerts were dismissed.
+
+## Follow-up: retire the unused documentation dependency chain
+
+Remove 19 unused pins: Sphinx, alabaster, Babel, docutils, imagesize, Jinja2,
+MarkupSafe, Pygments, snowballstemmer, the seven sphinxcontrib packages, pockets,
+importlib-metadata and zipp. Repository callers and active dependency metadata on
+Python 3.12 show no remaining need for this chain. The configured template backend
+is DjangoTemplates. The separate Napoleon package duplicates the built-in Sphinx
+extension, and the metadata backports have no active consumers on this interpreter.
+Remove the obsolete `docs/conf.py`, `docs/index.rst` and `docs/Makefile`: their
+machine-specific Python 3.6 paths and missing `modules` document do not provide a
+working documentation build. All Markdown guides remain, linked from the README.
+
+The removed pins account for eleven current alerts: **#1, #13, #18, #37, #39,
+#53, #57, #58, #60, #64 and #71**. No alerts are dismissed; closure depends on
+default-branch push/rescanning. The pytest alert is a separate compatibility task.
+
+A fresh temporary Python 3.12.16 venv installs bootstrap, project and hook
+requirements. All 19 removed distributions are confirmed absent, `pip check`
+reports no broken requirements, and pre-commit configuration validation passes.
+Against disposable PostgreSQL 16, Django system/migration checks pass with no
+changes. **902 offline tests pass**, with **33 deselected**, retaining **90.86%
+combined line/branch coverage** and the unchanged 35% gate. All **21 Chromium
+tests pass**, with **914 deselected**. Ruff, formatting and whitespace checks pass.
+No application data or live NHL services are accessed. No application code,
+migrations, permanent tests, CI commands or uv files change. The project venv is
+unchanged; [cleanup instructions](testing.md#python-environment) explain that
+installing requirements alone does not uninstall the removed packages.

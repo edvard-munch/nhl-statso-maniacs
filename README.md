@@ -4,6 +4,8 @@ NHL web app for tracking player stats, game data, favorites, and player comparis
 
 The [modernization roadmap](docs/modernization-roadmap.md) records completed work,
 remaining test gaps, and the planned Python/Django upgrade sequence.
+Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
+required. The obsolete Sphinx setup and its unused dependencies have been retired.
 
 ## Stack
 
