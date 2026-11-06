@@ -66,8 +66,8 @@ sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-napoleon==0.7
 sphinxcontrib-qthelp==1.0.2
 sphinxcontrib-serializinghtml==1.1.3
-sqlparse==0.5.3
-tqdm==4.36.1
+sqlparse==0.6.1
+tqdm==4.70.1
 typing_extensions==4.5.0
 tzdata==2026.6
 urllib3==2.8.0

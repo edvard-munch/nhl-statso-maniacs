@@ -53,6 +53,11 @@ Installing requirements alone does not remove unlisted packages. Restart app and
 worker processes after updating. The clean-startup regression blocks MySQL-driver
 imports while initializing Django, WSGI, the PostgreSQL backend and the Celery app;
 fresh-install validation confirms both `pymysql` and `MySQLdb` are absent.
+The SQL/progress checkpoint pins sqlparse 0.6.1 and tqdm 4.70.1. Clean-install
+validation includes PostgreSQL system/migration checks, both test suites and
+separate SQL splitting/formatting and progress API/CLI smoke checks. The latter
+also verifies that a non-literal CLI expression is rejected. See the roadmap for
+sqlparse's upstream end-of-maintenance announcement.
 The target Python 3.12.16 environment passes `pip check`, Ruff and all 902 offline
 tests with the 35% coverage gate (90.86% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This

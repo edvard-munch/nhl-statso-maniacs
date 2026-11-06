@@ -845,3 +845,29 @@ Application databases and live NHL services were not accessed. The project venv
 was left unchanged: explicitly uninstall PyMySQL after applying the code change
 and restart running app/worker processes; `pip install -r requirements.txt` alone
 does not remove an already-installed unused package.
+
+## Follow-up: sqlparse and tqdm security checkpoint
+
+Two requirements pins change: **sqlparse 0.5.3 → 0.6.1** and **tqdm 4.36.1 →
+4.70.1**. Official metadata confirms published, non-yanked releases compatible
+with Python 3.12.16. The new pins fall outside the current affected ranges for
+**#12, #50, #100, #101, #102, #103 and #104**. sqlparse 0.6.1 is chosen over 0.6.0
+because upstream documents additional PHP-output escaping and regex DoS fixes.
+The maintainer announced that 0.6.1 is the final maintained release; this is recorded
+as a separate dependency risk to track with Django's guidance, not a reason to
+retain the older vulnerable pin. Django's metadata still requires sqlparse.
+
+A fresh temporary environment installs the complete bootstrap/project requirements
+and passes `pip check`. Against disposable PostgreSQL, system checks report no
+issues and migration consistency checks report no changes. **902 offline tests**
+pass at **90.86% combined line/branch coverage**, with **33 deselected**, and all
+**21 Chromium cases** pass with **914 deselected**. Ruff, formatting and whitespace
+checks pass. Application data and live NHL services are untouched.
+
+Separate temporary smoke checks exercise sqlparse splitting/formatting of quoted
+and dollar-quoted semicolons with comments, tqdm iterable/progress output and CLI
+stdin/stdout streaming. The CLI rejects `--buf-size=1+1` rather than evaluating it.
+No application behavior, schema, permanent tests, other package pins or uv files
+change. The existing project venv is unchanged; reinstall requirements and restart
+running app/worker processes. Alert closure awaits default-branch push/rescanning;
+no alerts were dismissed or modified.

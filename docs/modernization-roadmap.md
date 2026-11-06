@@ -375,7 +375,15 @@ MySQL imports forbidden; a clean environment without either MySQL driver passes
 dependency, system/migration, offline and Chromium checks. This addresses
 [PyMySQL alert #15](https://github.com/edvard-munch/nhl-statso-maniacs/security/dependabot/15)
 once the changed requirements reach the default branch and GitHub rescans.
-Tooling/docs dependencies remain separate work; the uv migration has not started.
+The SQL/progress security batch updates sqlparse 0.5.3 to 0.6.1 and tqdm 4.36.1
+to 4.70.1. These published, non-yanked releases support Python 3.12, cover the
+affected ranges of seven current alerts and pass clean-install, PostgreSQL
+system/migration, 902 offline and 21 Chromium checks. sqlparse 0.6.1 includes
+additional security fixes beyond 0.6.0. Its maintainer also announced
+[end of maintenance](https://sqlparse.readthedocs.io/en/latest/changes.html#release-0-6-1-nov-01-2026);
+track Django's dependency guidance and future security implications separately.
+Django still requires sqlparse, so removing its explicit pin would not remove the
+dependency. Other tooling/docs dependencies remain separate work; uv has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working
