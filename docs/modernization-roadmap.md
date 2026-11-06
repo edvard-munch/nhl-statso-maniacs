@@ -350,6 +350,16 @@ lists; absence of a season row must not display an older snapshot as current.
 
 ## 4. Reproduce dependencies and choose the uv transition
 
+The HTTP/TLS security batch updates certifi to 2026.10.18, Requests to 2.33.0,
+urllib3 to 2.8.0 and idna to 3.15. These published, non-yanked releases support
+Python 3.12 and put the pins outside the affected ranges of nine open alerts,
+including the [critical emSign CA-bundle alert](https://github.com/certifi/python-certifi/security/advisories/GHSA-6q48-6c7w-9gw2). A clean environment passes
+`pip check`, 893 offline tests (90.86% combined coverage) and all 21 Chromium cases.
+The loaded trust store excludes emSign roots; real local HTTPS validation still
+rejects untrusted certificates. Hosted alert closure awaits push and rescanning.
+Pillow, the legacy MySQL shim and tooling/docs dependencies remain separate batches;
+the uv migration has not started.
+
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working
 interpreter/dependency set and identify obsolete or incompatible packages.

@@ -766,3 +766,28 @@ fetches and season detection. Updated real-database regressions verify the curre
 player stays unchanged on rate-limit failure, existing career data survives other
 optional failures and logos retain cache/replay behavior. Archived experiments and
 the audit's separate pacing/checkpoint policy remain outside this refactor.
+
+## Follow-up: HTTP/TLS dependency security checkpoint
+
+Four requirements pins change: certifi **2025.6.15 → 2026.10.18**, Requests
+**2.32.4 → 2.33.0**, urllib3 **2.5.0 → 2.8.0**, and idna **3.10 → 3.15**.
+Official PyPI metadata confirms availability, non-yanked artifacts and compatible
+Python requirements for the project's Python 3.12.16 checkpoint. These are the
+minimum fixed releases covering the current affected ranges of repository alerts
+**#47, #48, #49, #52, #80, #81, #105, #140 and #158**. No alerts were dismissed;
+GitHub must rescan the updated default branch after push.
+
+A fresh temporary venv installs the unchanged bootstrap requirements and complete
+updated requirements successfully, with `pip check` reporting no broken requirements.
+In that environment, **893 offline tests** pass at **90.86% combined line/branch
+coverage** with **33 deselected**, and all **21 Chromium tests** pass with
+**905 deselected**. Ruff, formatting and whitespace checks pass. Both suites use
+disposable PostgreSQL; application data and live NHL services are not accessed.
+
+The loaded certifi trust store contains none of the removed emSign roots and
+Requests selects that bundle. An independent local HTTPS check rejects an
+untrusted self-signed certificate and succeeds when its certificate is explicitly
+trusted; TLS verification is enabled throughout. IDNA encoding also passes.
+The existing project venv was left unchanged: install `requirements.txt` and restart
+running application processes to use the patched packages. No application code,
+bootstrap pins, other dependency pins or uv files changed.

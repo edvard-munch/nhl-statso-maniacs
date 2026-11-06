@@ -29,6 +29,11 @@ python -m pip check
 ```
 
 The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
+The HTTP/TLS security checkpoint pins certifi 2026.10.18, Requests 2.33.0,
+urllib3 2.8.0 and idna 3.15. Clean-install validation includes `pip check`, the
+offline coverage gate, all Chromium cases and local HTTPS certificate validation.
+After updating requirements, reinstall them in your venv and restart existing
+app processes to use the updated packages; validation used a separate temporary venv.
 The target Python 3.12.16 environment passes `pip check`, Ruff and all 893 offline
 tests with the 35% coverage gate (90.86% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
