@@ -647,3 +647,24 @@ The offline coverage gate remains **725 passed**, with **33 deselected**
 Ruff, formatting, JavaScript syntax and whitespace checks pass. Validation uses
 disposable PostgreSQL clusters and real Chromium with cached assets; no
 application database or live NHL services are involved.
+
+## Follow-up: shared table-cell escaping and display contracts
+
+The offline gate passes **744 tests**, with **33 deselected** (12 external and
+21 browser), at **90.24% combined line/branch coverage**, retaining the 35% gate.
+All **21 Chromium cases** pass. Ruff, formatting and whitespace checks pass.
+
+Thirteen unit cases and six database-backed AJAX cases cover literal player names,
+team/nationality/opponent tooltips, balanced links/cells, escaped URL attributes,
+goalie precision, numeric zeros, missing statistics and missing draft/team metadata.
+Real Players and favorites-gamelog responses retain literal text and leave stored
+records unchanged. Fixtures use disposable PostgreSQL; no application data or NHL
+services are accessed.
+
+The initial focused run exposed unclosed player anchors, raw HTML interpolation
+in names/tooltips and a missing-save-percentage formatting crash. Shared helpers
+now use Django's escaped HTML formatting and close anchors explicitly. Gamelogs
+retain the missing-value dash instead of passing it to numeric formatting;
+reported zeros still format as `0.000`. Existing Chromium checks validate the
+resulting markup through the real tablesorter UI. Other model/template rules,
+checkbox rendering and legacy mutation design remain separate focused work.

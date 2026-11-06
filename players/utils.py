@@ -9,6 +9,7 @@ import functools
 from itertools import chain, zip_longest
 from django.db.models import Max, Min
 from django.contrib.contenttypes.models import ContentType
+from django.utils.html import format_html
 
 from . import models
 from zoneinfo import ZoneInfo
@@ -17,6 +18,7 @@ import json
 
 GAME_PLAYERS_SORT_ORDER = ["last_name"]
 EMPTY_LIST = []
+MISSING_CELL_VALUE = "—"
 RANGE_FIELDS = ["weight", "age"]
 GAMES_PER_PAGE = 6
 TEAM_URL = "team"
@@ -328,7 +330,7 @@ def process_json(request, columns, domain, json, total_rows, start):
                     value = player["fields"][column][0]
                     tip = player["fields"][column][1]
                 else:
-                    value = "—"
+                    value = MISSING_CELL_VALUE
                     tip = "No team"
                 player["fields"][column] = make_tooltip(value, tip)
 
@@ -347,7 +349,7 @@ def process_json(request, columns, domain, json, total_rows, start):
 
             if column in COLUMNS[10:12]:
                 if player["fields"][column] is None:
-                    value = "—"
+                    value = MISSING_CELL_VALUE
                     tip = "Undrafted"
                     player["fields"][column] = make_tooltip(value, tip)
 
@@ -358,7 +360,7 @@ def process_json(request, columns, domain, json, total_rows, start):
                 player["fields"][column] = "%.3f" % player["fields"][column]
 
             if player["fields"][column] is None:
-                player["fields"][column] = "—"
+                player["fields"][column] = MISSING_CELL_VALUE
 
             data["rows"][index].append(player["fields"][column])
 
@@ -441,7 +443,7 @@ def get_cell_value(game, column, *args):
         value = None
 
     if value is None:
-        value = "—"
+        value = MISSING_CELL_VALUE
     return value
 
 
@@ -476,7 +478,7 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
                 # tip = get_cell_value(game, column)
                 cell_value = make_tooltip(value, tip)
 
-            if column == COLUMNS_GOALIES_GAMELOG[7]:
+            if column == COLUMNS_GOALIES_GAMELOG[7] and cell_value != MISSING_CELL_VALUE:
                 cell_value = "%.3f" % cell_value
 
             data["rows"][index].append(cell_value)
@@ -485,16 +487,19 @@ def process_json_gamelog(columns, domain, one_page_slice, total_rows):
 
 
 def make_name_link(player_name, link):
-    start = '<td class="name"><a class="name"'
-    end = f'href="{link}">{player_name}</td>'
-    return start + end
+    return format_html('<td class="name"><a class="name" href="{}">{}</a></td>', link, player_name)
 
 
 def make_tooltip(column, tip_field):
     classes = TOOLTIP_CSS_CLASSES
-    value = f'<td class="{classes[0]}">{column}'
-    tip = f'<span class="{classes[1]} {classes[2]}">{tip_field}</span></td>'
-    return value + tip
+    return format_html(
+        '<td class="{}">{}<span class="{} {}">{}</span></td>',
+        classes[0],
+        column,
+        classes[1],
+        classes[2],
+        tip_field,
+    )
 
 
 def make_fav_link(request, player, link, column):
