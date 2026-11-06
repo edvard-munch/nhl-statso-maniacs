@@ -9,12 +9,15 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 902 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+**Next: confirm legacy usage and make focused cleanup decisions.** The
+[legacy inventory](legacy-audit.md) records repository callers, dependency
+candidates and external scheduling questions. Hosted uv CI and dependency-graph
+runs have succeeded; deployment backup/restore rehearsal remains deferred.
+Django 5.2.18 now passes 902 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
-CI reads the same interpreter pin as local pyenv. The hosted dependency graph
-must be rerun to confirm the former Python 3.7 blocker is cleared.
+CI reads the same interpreter pin as local uv. The hosted uv dependency graph
+completed successfully after the Python transition.
 Team persistence and paginated player publication now have database regressions. Totals ordering, history preservation and per-player failure contracts are also covered.
 Player biography and flag persistence now have regression coverage as well.
 Career-enrichment responses now have HTTP-backed persistence contracts.
@@ -499,9 +502,13 @@ reference season/game and a paced read-only session, without key-order or mutabl
 count assumptions. `make test-external` runs them explicitly and stops on the first
 failure; normal tests, hooks and CI remain offline. The default suite still passes
 902 tests at 90.86% coverage, now deselecting 22 external and 21 browser cases.
-Next audit unused scripts and dependencies by checking callers, docs and scheduled
-jobs before removal. Include the still-legacy `upd_pls_proj` command in that review;
-removing its obsolete live response assertion does not repair the command itself.
+The [legacy inventory](legacy-audit.md) now classifies the nine tracked discoverable
+commands and six `_new` experiments, their data/UI consumers and dependency chains.
+It records no repository scheduler for the Celery updater, whose sequence omits
+current totals, and the Procfile's undeclared Gunicorn dependency. No scripts,
+dependencies or data are removed. Confirm machine/host usage before selecting a
+cleanup batch. The legacy projection and video fields still have UI consumers;
+removing obsolete live assertions does not repair their writer commands.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 
@@ -515,12 +522,18 @@ with relational season rows; neither is required for the current fix or upgrade.
 5. Completed: harden game JSON fetching and verify failed-day rollback/replay.
 6. Completed locally for this phase: high-value loader/user-flow regression batches
    and the staged Python/Django upgrade.
+7. Completed: uv metadata, lockfile and local/hook/CI workflow migration; hosted
+   uv CI and dependency-graph success confirmed.
+8. Completed: repaired opt-in live API contracts; 22 live checks pass separately.
+9. Inventory complete: [legacy command/dependency audit](legacy-audit.md). Next
+   confirm external usage, then select focused cleanup/repair commits without
+   removing stored fields or changing task behavior implicitly.
 
 Use small focused commits with messages explaining both what changed and why.
 Item 6 has reached its agreed stopping point: loader persistence/identity/roster
 corrections, metadata/career enrichment, user-owned actions, browser workflows and
 shared rendering have regression protection. The staged upgrade reached Python
-3.12.16 / Django 5.2.18 locally. Next verify hosted CI/dependency-graph results and
-rehearse deployment on a disposable representative data copy. Review the next
-available 5.2 security patch, then schedule dependency/uv maintenance and optional
-edge-case work separately. Keep each change reviewable.
+3.12.16 / Django 5.2.18 locally, followed by the verified hosted uv workflow and
+repaired live contracts. Use the legacy inventory to choose the next cleanup batch.
+Deployment rehearsal on a disposable representative data copy remains deferred;
+framework patches and behavior changes remain separate focused work.
