@@ -32,9 +32,15 @@ The requirements pin the Django 5.2.18 checkpoint and compatible extensions.
 The HTTP/TLS security checkpoint pins certifi 2026.10.18, Requests 2.33.0,
 urllib3 2.8.0 and idna 3.15. Clean-install validation includes `pip check`, the
 offline coverage gate, all Chromium cases and local HTTPS certificate validation.
+The Pillow checkpoint pins 13.0.0. The profile-upload cases in
+`tests_auth_upgrade.py` decode PNG/JPEG/WebP and verify saved format, dimensions
+and original bytes. Corrupt, truncated, disguised SVG and pixel-limit-exceeding
+uploads must return form errors without changing account settings or a stored
+avatar. The pixel-limit check uses a tiny generated image and a temporary lower
+threshold; production Pillow safeguards are unchanged.
 After updating requirements, reinstall them in your venv and restart existing
 app processes to use the updated packages; validation used a separate temporary venv.
-The target Python 3.12.16 environment passes `pip check`, Ruff and all 893 offline
+The target Python 3.12.16 environment passes `pip check`, Ruff and all 902 offline
 tests with the 35% coverage gate (90.86% combined coverage). The bootstrap file
 pins packaging tools, including setuptools compatible with Python 3.12. This
 validates the current install
@@ -275,5 +281,5 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 893 passed, 12 external and 21 browser
+CI runs both. The current offline result is 902 passed, 12 external and 21 browser
 cases deselected, at 90.86% combined coverage. The browser runner passes all 21 cases.

@@ -10,7 +10,7 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Next: push and verify hosted CI, then rehearse deployment.** Django 5.2.18 now
-passes 893 offline tests on Python 3.12.16, reaching the planned LTS endpoint
+passes 902 offline tests on Python 3.12.16, reaching the planned LTS endpoint
 locally. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local pyenv. The hosted dependency graph
@@ -357,8 +357,18 @@ including the [critical emSign CA-bundle alert](https://github.com/certifi/pytho
 `pip check`, 893 offline tests (90.86% combined coverage) and all 21 Chromium cases.
 The loaded trust store excludes emSign roots; real local HTTPS validation still
 rejects untrusted certificates. Hosted alert closure awaits push and rescanning.
-Pillow, the legacy MySQL shim and tooling/docs dependencies remain separate batches;
-the uv migration has not started.
+The Pillow security batch updates 10.4.0 to 13.0.0, a published, non-yanked release
+supporting Python 3.11+ and the project's Python 3.12.16 runtime. Its pin is outside
+the affected ranges of all 52 current Pillow alerts, including the
+[critical FPX/JPEG decoding alert](https://github.com/python-pillow/Pillow/security/advisories/GHSA-5x8w-8jj5-q52h).
+A clean environment passes `pip check`, 902 offline tests at 90.86% combined
+coverage and all 21 Chromium cases. Profile-upload regressions now protect PNG,
+JPEG and WebP decoding/storage, invalid/truncated/disguised SVG rejection,
+decompression-bomb limits and existing avatar/account preservation. No application
+image policy or decoder-limit settings change. Alert closure requires push/rescan;
+running environments must install requirements and restart.
+The legacy MySQL shim and tooling/docs dependencies remain separate batches; the
+uv migration has not started.
 
 `pyproject.toml` currently holds Ruff configuration, not project dependency
 metadata; there is no uv lockfile. Before changing tools, capture the working

@@ -791,3 +791,30 @@ trusted; TLS verification is enabled throughout. IDNA encoding also passes.
 The existing project venv was left unchanged: install `requirements.txt` and restart
 running application processes to use the patched packages. No application code,
 bootstrap pins, other dependency pins or uv files changed.
+
+## Follow-up: Pillow security and image-upload compatibility
+
+Pillow changes from **10.4.0 to 13.0.0**. Official metadata confirms non-yanked
+artifacts, Python **>=3.11** support and a compatible CPython 3.12 Linux wheel.
+The new pin falls outside the affected ranges of all **52 currently open Pillow
+alerts**, including **#154 / GHSA-5x8w-8jj5-q52h** (critical FPX/JPEG decoding).
+No alerts were dismissed or modified; closure awaits push and GitHub rescanning.
+
+A clean temporary Python 3.12.16 venv installs the complete pinned requirements
+and passes `pip check`. **902 offline tests** pass with **33 deselected** at
+**90.86% combined line/branch coverage**, retaining the 35% gate. All **21 Chromium
+cases** pass with **914 deselected**. Ruff, formatting and whitespace checks pass.
+Validation uses disposable PostgreSQL and temporary media; no application data or
+live NHL services are accessed. The active project venv was left unchanged.
+
+The existing two upload tests expand to eleven cases (nine additional cases).
+Valid PNG, JPEG and WebP uploads retain their format, dimensions and encoded bytes;
+PNG pixels also retain exact values. Corrupt data, SVG disguised as PNG, truncated
+PNG and a generated image exceeding a temporarily lowered Pillow pixel threshold
+are rejected through the real profile form. Tests cover both a default avatar and
+an existing stored image, protecting file bytes, image references, email and
+measurement preferences on rejection. The normal pixel threshold is not changed.
+
+Application image-handling code, accepted-format policy, bootstrap/dependency pins
+other than Pillow and uv configuration are unchanged. Install requirements and
+restart running app processes to activate the patched dependency.
