@@ -62,8 +62,19 @@ whether history removal is needed: [GitHub sensitive-data guidance](https://docs
 
 ## Review boundary and status
 
-The files are unchanged. No account access, OAuth flow, token refresh, API test,
-revocation, rotation, deletion or history rewrite was performed. Local inspection
-confirms stored material and public repository visibility; it does not confirm
-account ownership, current validity, unauthorized use or completion of remediation.
-This review updates documentation only and requires no application-data tests.
+The initial review left files unchanged and did not use credentials. Following
+the user's confirmation that the artifacts are unused, a separate cleanup now
+deletes all 22 files and ignores the retired credential directory. No replacement
+credential or sample containing real values is added.
+
+No account access, OAuth flow, token refresh, API test, revocation, rotation or
+history rewrite was performed. Local deletion does not establish account ownership,
+current token validity, unauthorized use or completion of exposure remediation.
+The owner still needs to address revocation/rotation and decide whether coordinated
+history cleanup is warranted. Existing Git history is unchanged.
+
+Cleanup validation confirms exactly 22 file deletions, a matching scoped ignore
+rule and unchanged application/schema/dependency/test-fixture files. Static,
+requirements-export and whitespace checks pass; the normal offline suite still
+collects 901 tests with 43 deselected. No database or authenticated request is
+needed for this file cleanup; the full suite was not rerun in this batch.

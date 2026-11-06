@@ -46,7 +46,7 @@ supported commands remain discoverable; Make and Celery orchestration are unchan
 | Command | Historical classification and evidence | Disposition |
 | --- | --- | --- |
 | `upd_pls_proj` (retired) | **Broken API contract.** Concatenates the current `PLAYER_ENDPOINT_URL` template without formatting its `{}` placeholder, appends an ID/hydrate query and expects retired `people/stats/splits` data. Writes `proj_stats`. The former mocked HTTP test covered retry plumbing, not endpoint validity. | Retired. Keep stored projection stats and UI until a separate product decision. |
-| `upd_vids` (retired) | **Unavailable in the locked environment / manual workflow.** Imports `googleapiclient` and `oauth2client`, neither installed nor declared in the lock. Uses browser/input OAuth, credential storage and YouTube API calls, then writes `relevant_video`/`video_link_updated_at`. No Make/task/CI caller or command regression coverage found. | Retired. Preserve stored video fields/UI and the 22 OAuth-related JSON files pending a separate artifact review; credential validity is not established. |
+| `upd_vids` (retired) | **Unavailable in the locked environment / manual workflow.** Imports `googleapiclient` and `oauth2client`, neither installed nor declared in the lock. Uses browser/input OAuth, credential storage and YouTube API calls, then writes `relevant_video`/`video_link_updated_at`. No Make/task/CI caller or command regression coverage found. | Retired. Stored video fields/UI are preserved. The 22 OAuth artifacts are removed after review; owner revocation/rotation remains unverified. |
 | `upd_pls_sbs-n` (retired) | **Legacy season experiment / removal candidate.** Still discovered despite the hyphen. Hardcodes 2018–19, builds the same unformatted landing/hydrate URL pattern and expects nested legacy season rows; writes `sbs_stats`. No repository caller/test found. | Retired. Historical SBS data and supported current/full totals loaders are retained. |
 | `json_fixtures_creator` (retired) | **Manual data-export utility / removal candidate.** Reads every team and up to ten records of each other model, overwriting six tracked `players/fixtures/*_objects.json` files. It does not itself mutate DB records. No active test/CI caller or fixture-name consumer found; old `loaddata` examples were commented out. | Retired. The six unused exports are removed in a later artifact cleanup; current synthetic test fixtures are distinct and retained. |
 
@@ -157,7 +157,8 @@ versions are unchanged; run `make sync` to prune the removed packages locally.
 ## Separate reviews after top-level command retirement
 
 Command retirement initially preserved these artifacts. Later focused cleanups
-remove the exclusive URL packages and unused exports; OAuth files remain:
+remove the exclusive URL packages, unused exports and confirmed unused OAuth
+files. Account revocation/rotation and any history cleanup remain separate:
 
 - **Dependencies:** `furl` had no remaining tracked code import or mandatory
   dependent; `orderedmultidict` was required only by furl. Both are now removed
@@ -174,13 +175,15 @@ remove the exclusive URL packages and unused exports; OAuth files remain:
   Historical exports remain recoverable from Git; no application DB records are
   deleted or reloaded. Synthetic fixtures under `players/tests` are retained.
 - **OAuth artifacts:** 22 tracked JSON files under the former command's
-  `credentials/` directory are preserved. The later [sanitized review](oauth-file-review.md)
+  `credentials/` directory are now removed after the user confirmed they are unused.
+  A scoped ignore rule prevents accidental reintroduction. The [sanitized review](oauth-file-review.md)
   identifies eleven web-client configurations with secrets, ten saved access/
   refresh-token stores and one empty file. Recorded access-token expiry dates
   are in 2019; current refresh-token validity is unverified. The repository is
   public, so treat this material as exposed and have the owner revoke grants and
   rotate/delete client secrets before declaring remediation complete. No
-  credential was used, revoked or deleted during the review.
+  credential was used or revoked; deletion does not remove Git history or establish
+  that the credentials have been invalidated.
 - **Related application code/data:** projection/video fields, rendering and the
   OAuth callback route/view remain. Their removal would be a separate behavior/
   schema decision, not part of retiring command entry points.
@@ -201,7 +204,7 @@ The exclusive URL dependency cleanup passes a clean 65-package sync, dependency/
 static/export checks, Django/migration checks, 901 offline tests at 91.27% coverage
 and 21 Chromium cases against disposable PostgreSQL. Only furl/orderedmultidict
 leave the graph; no remaining versions change. Run `make sync` to prune them
-locally. The later fixture-export cleanup is separate; OAuth-file retention remains open.
+locally. Fixture-export and OAuth-file deletion were separate cleanups; owner revocation/rotation remains open.
 
 
 Legacy export retirement removes exactly six JSON exports and the disabled

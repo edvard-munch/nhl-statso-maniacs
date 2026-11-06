@@ -540,6 +540,11 @@ secrets, ten access/refresh-token stores and one empty file. Access-token expiry
 dates alone do not establish that refresh grants are revoked. Next the owner
 must verify project/account usage and revoke/rotate the retired credentials;
 file deletion/ignore rules and any coordinated history cleanup remain separate.
+After the user confirmed the OAuth artifacts are unused, all 22 JSON files are
+deleted and the retired directory is ignored. No credential is used or revoked,
+and Git history is unchanged. Revocation/rotation by the owner and any coordinated
+history cleanup remain outstanding; repository deletion alone does not resolve
+the prior exposure. App data/UI and dependencies are unchanged.
 Only then consider removing obsolete snapshot/cache fields or replacing SBS JSON
 with relational season rows; neither is required for the current fix or upgrade.
 

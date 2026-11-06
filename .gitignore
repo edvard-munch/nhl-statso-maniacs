@@ -8,6 +8,9 @@ coverage.xml
 
 .env
 
+# Retired video OAuth artifacts must not be committed again.
+/players/management/commands/credentials/
+
 # Dedicated local hook test credentials
 test-database.local.json
 
