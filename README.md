@@ -6,6 +6,9 @@ The [modernization roadmap](docs/modernization-roadmap.md) records completed wor
 remaining test gaps, and the planned Python/Django upgrade sequence.
 The [legacy inventory](docs/legacy-audit.md) records command callers, dependency
 cleanup candidates and usage that must be confirmed outside the repository.
+The proposed [frontend architecture and migration plan](docs/frontend-architecture.md)
+and [API conventions](docs/api-conventions.md) describe the next development phase;
+Nuxt/Vue and the new JSON API are not implemented yet.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.
 

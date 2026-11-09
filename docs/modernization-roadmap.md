@@ -9,7 +9,12 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: validate controlled server activation.** The
+**Active development: plan the separate frontend and JSON API.** Architecture and
+API conventions are recorded in [the frontend plan](frontend-architecture.md) and
+[API conventions](api-conventions.md). This is one documentation-only commit;
+the full migration is estimated at 25–30 focused commits. Confirm the proposed
+Nuxt hybrid versus browser-only Vue/Vite rendering choice before scaffolding.
+Server activation/rehearsal and ambiguous legacy-data review remain deferred. The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
 cadences, current loader limitations and always-on server requirements. The
 [legacy inventory](legacy-audit.md) retains deployment/worker usage questions.
@@ -23,9 +28,10 @@ completed successfully after the Python transition.
 Team persistence and paginated player publication now have database regressions. Totals ordering, history preservation and per-player failure contracts are also covered.
 Player biography and flag persistence now have regression coverage as well.
 Career-enrichment responses now have HTTP-backed persistence contracts.
-The agreed regression-testing phase is complete locally. Remaining edge cases are
-deferred follow-ups; proceed to hosted CI verification and deployment rehearsal
-instead of extending this phase toward 100% coverage.
+The agreed regression-testing phase is complete locally. Keep it as the baseline
+and add targeted API/frontend regressions with each migrated workflow rather than
+extending the old phase toward 100% coverage. Hosted verification, server activation
+and deployment rehearsal remain follow-ups while frontend development proceeds.
 
 ## What is already complete
 
@@ -727,3 +733,13 @@ probe services or acquire writer locks. Twenty-five new cases and the full offli
 gate pass: 1089 tests at 92.04% coverage; 79 focused cases pass. See
 [health semantics and monitoring](scheduler-health.md). Alert delivery and live
 broker/worker/Beat/service validation remain deployment work.
+
+
+## Frontend architecture and API planning
+
+The separate-frontend phase has a documented Nuxt/Vue working proposal, API-only
+Django boundaries, same-origin session/CSRF design, typed OpenAPI/client strategy,
+season/statistics/null/unit conventions and a staged 25–30-commit migration budget.
+Rendering selection and the Django-admin HTML exception remain explicit decisions;
+no new dependencies, routes, database changes or frontend implementation are
+introduced by these documents. Existing regression results remain unchanged.
