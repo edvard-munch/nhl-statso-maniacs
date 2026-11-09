@@ -1,0 +1,7 @@
+<div id="game-refresh" data-url="{{ refresh_url }}" data-entity="{{ refresh_entity }}">
+  <p id="game-freshness">{{ freshness.text }}</p>
+  <label><input id="auto-refresh" type="checkbox" checked> Auto-refresh every minute</label>
+  <button id="refresh-now" type="button">Refresh now</button>
+  <p id="refresh-status" role="status" aria-live="polite">Checks saved data; NHL updates run separately.</p>
+</div>
+{{ freshness|json_script:"initial-freshness" }}

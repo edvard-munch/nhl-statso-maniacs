@@ -9,14 +9,14 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: validate server activation and add browser freshness.** The
+**Next: validate controlled server activation.** The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
 cadences, current loader limitations and always-on server requirements. The
 [legacy inventory](legacy-audit.md) retains deployment/worker usage questions.
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1042 tests at 91.68% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1050 tests at 91.80% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -619,7 +619,7 @@ enabled by the policy commit.
 Targeted game/date refreshes are now implemented as recorded below.
 Shared overlap protection and run history are implemented below. Cross-run
 cooldown and scheduler policies are completed by the task-split follow-up below.
-Next validate the host's broker/Beat/services and add browser freshness.
+Browser freshness is implemented below; next validate the host's broker/Beat/services.
 Host/broker choice, exact live freshness, intra-game season-table needs and quiet
 windows must be confirmed before activation. Existing manual Make targets and
 the legacy Celery task retain their current behavior until those focused commits.
@@ -679,5 +679,26 @@ host service health and backup/restore rehearsal remain unverified host work.
 Thirty-three new isolated cases protect configuration, persistent selection,
 quiet/order/failure rules, DST dates, cooldowns, retention and job coalescing.
 System/migration checks, 1042 offline tests at 91.68% coverage and all 22 Chromium
-cases pass. Next validate controlled server activation, then implement browser
-refresh/freshness indicators. Ambiguous legacy-data review remains separate.
+cases pass. Browser refresh/freshness is implemented in the follow-up below.
+Next validate controlled server activation. Ambiguous legacy-data review remains separate.
+
+
+## Browser auto-refresh and saved-data freshness
+
+Game detail and scoreboard views now poll read-only, private/no-store endpoints
+once a minute while visible. Saved timestamps are distinct from browser checks;
+unfinished data older than 15 minutes and missing saved supplementary/player fields
+are labelled. Final historical data is not stale merely due to age. Manual retry,
+pause, hidden-tab suspension and bounded failure backoff keep the current data
+visible through failures. Table sorting/focus, the selected scoreboard day and
+favorite mutations are preserved, including an overlapping POST/refresh response.
+Browser polling never starts loaders or fetches NHL data.
+
+Eight new isolated database cases and four new Chromium scenarios cover these
+contracts. The offline gate passes 1050 tests at 91.80% combined coverage, with
+the existing 35% gate unchanged. All 26 Chromium cases and system/migration checks
+also pass. See
+[browser freshness operation](celery-operations.md#browser-refresh-and-freshness).
+Server broker/worker/Beat activation, a controlled live refresh, service health and
+backup/restore rehearsal remain host validation work; no services are enabled by
+this change. Ambiguous legacy-data review remains separate.

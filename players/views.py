@@ -1,4 +1,5 @@
 import json
+from datetime import date as date_type
 from itertools import chain
 from urllib.parse import urlencode
 
@@ -9,9 +10,10 @@ from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils.html import format_html
-from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
 
-from . import player_table, saved_actions, saved_players, team_tables, utils
+from . import game_refresh, player_table, saved_actions, saved_players, team_tables, utils
 from .forms import NoteForm, PositionsForm
 from .models import Game, Gameday, Goalie, Note, Position, Skater, Team
 
@@ -41,13 +43,27 @@ def games(request, date=None):
         "days_per_page": days_per_page,
     }
 
+    selected = str(today.day) if today else str(date)
+    context.update(game_refresh.scoreboard_context(selected))
+    context.update(
+        refresh_url=reverse("ajax_scoreboard", args=[selected]),
+        refresh_entity=f"scoreboard:{selected}",
+    )
     return render(request, "players/games.html", context)
 
 
 def game_detail(request, slug, nhl_id):
     game = get_object_or_404(Game, nhl_id=nhl_id, slug=slug)
-    user = request.user
+    context = game_detail_context(request, game)
+    context.update(
+        refresh_url=reverse("ajax_game", args=[game.slug, game.nhl_id]),
+        refresh_entity=f"game:{game.nhl_id}",
+    )
+    return render(request, "players/game_detail.html", context)
 
+
+def game_detail_context(request, game):
+    user = request.user
     context = {
         "game": game,
         "skaters": [
@@ -64,6 +80,7 @@ def game_detail(request, slug, nhl_id):
                 "game_goalies_table": {
                     "template": utils.TEMPLATES[8],
                     "list": game.away_goalies.all(),
+                    "id": "away_goalies",
                 },
                 "whitespace": utils.WHITESPACE,
             },
@@ -80,6 +97,7 @@ def game_detail(request, slug, nhl_id):
                 "game_goalies_table": {
                     "template": utils.TEMPLATES[8],
                     "list": game.home_goalies.all(),
+                    "id": "home_goalies",
                 },
                 "whitespace": utils.WHITESPACE,
             },
@@ -106,7 +124,36 @@ def game_detail(request, slug, nhl_id):
 
         context["favorites"] = fav_players
 
-    return render(request, "players/game_detail.html", context)
+    context["freshness"] = game_refresh.game_meta(context)
+    return context
+
+
+@never_cache
+@require_GET
+def ajax_game(request, slug, nhl_id):
+    game = get_object_or_404(Game, nhl_id=nhl_id, slug=slug)
+    context = game_detail_context(request, game)
+    return JsonResponse(game_refresh.game_payload(context, request))
+
+
+@never_cache
+@require_GET
+def ajax_scoreboard(request, date):
+    try:
+        if date_type.fromisoformat(date).isoformat() != date:
+            raise ValueError
+    except ValueError as error:
+        raise Http404("Invalid gameday") from error
+    context = game_refresh.scoreboard_context(date)
+    return JsonResponse(
+        {
+            "entity": f"scoreboard:{date}",
+            "freshness": context["freshness"],
+            "games": render_to_string(
+                "players/partial_scoreboard_games.html", context, request=request
+            ),
+        }
+    )
 
 
 def auth_callback(request):

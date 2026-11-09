@@ -1,5 +1,5 @@
 <h5>Goalies</h5>
-<table id="tab1" class="tablesorter">
+<table id="{{ item.game_goalies_table.id }}" class="tablesorter">
 <thead>
 <tr>
   <th class="cell-with-tooltip">Fv
@@ -25,30 +25,6 @@
 </thead>
 
 <tbody>
-  {% for player in item.game_goalies_table.list %}
-  {% with date=game.gameday.day|to_str %}
-  {% with stats_dict=player.gamelog_stats|get_item:date %}
-  <tr>
-  <td>
-    <div id="favorite_section">
-      {% if player in favorites %}
-        <a class="js-fav-del" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Unfollow player"> <i class="fas fa-star"></i></a>
-      {% else %}
-        <a class="js-fav-add" href="{% url 'player_favorite' player.slug player.nhl_id %}" title="Follow player"> <i class="far fa-star"></i></a>
-      {% endif %}
-    </div>
-  </td>
-  <td>{{ stats_dict.sweaterNumber }}</td>
-  <td class="name"><a class="name" href="{% url 'player_detail' player.slug player.nhl_id %}">{{ player.name }}</td>
-  <td>{{ player.age }}</td>
-  <td>{{ stats_dict.decision }}</td>
-  <td>{{ stats_dict.toi }}</td>
-  <td>{{ stats_dict.goalsAgainst }}</td>
-  <td>{{ stats_dict.savePctg }}</td>
-  <td>{{ stats_dict.saveShotsAgainst }}</td>
-  </tr>
-  {% endwith %}
-  {% endwith %}
-  {% endfor %}
+  {% include 'players/partial_game_goalies_tbody.html' %}
 </tbody>
 </table>

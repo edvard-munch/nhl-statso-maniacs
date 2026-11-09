@@ -180,3 +180,28 @@ explains singleton Beat and overlap, [routing](https://docs.celeryq.dev/en/v5.4.
 explains queue selection, and [configuration](https://docs.celeryq.dev/en/v5.4.0/userguide/configuration.html)
 describes expiry, results and broker settings. Tests use mocked NHL requests and
 isolated PostgreSQL, without a running broker or real server services.
+
+## Browser refresh and freshness
+
+The scoreboard and game detail page check saved application data every 60 seconds
+while visible. They do not call the NHL or start loaders. The scoreboard stays on
+its selected day; game tables retain their sort order and favorite controls.
+Use **Refresh now** for a manual check or uncheck **Auto-refresh** to pause.
+Hidden tabs stop polling and check again when visible. Failed checks keep the
+last displayed data and retry with increasing delays, capped at five minutes;
+a manual retry is always available.
+
+**Data saved** is the database game's successful publication time, not the NHL's
+source timestamp. **Last checked** records a successful browser check and does
+not imply the source changed. Unfinished games saved over 15 minutes ago carry
+an out-of-date warning; old final games do not receive that warning merely due
+to age. Missing saved player or supplementary fields receive an unavailable
+warning rather than an invented zero. Scoreboard summary freshness uses the
+oldest unfinished game, or the latest save when all games are final; each game
+also displays its own save time. With no saved games, the page says so and keeps
+checking the selected day. Automatic updates require the worker, Beat and loaders
+described above to be running separately.
+
+Refresh endpoints are read-only GET requests with private, no-store responses.
+Favorite actions continue to use POST and CSRF; an in-flight refresh started
+before a favorite mutation is discarded to avoid restoring an old selection.

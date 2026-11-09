@@ -87,7 +87,7 @@ def test_game_tables_use_game_date_rosters_and_stats_not_current_snapshots(
             reverse("player_detail", args=[fixture.players[key].slug, fixture.players[key].nhl_id])
             in html
         )
-    goalie_rows = TableRows(html, "tab1").rows
+    goalie_rows = TableRows(html, "away_goalies").rows + TableRows(html, "home_goalies").rows
     assert len(goalie_rows) == 2
     assert goalie_rows[0][4:] == ["W", "60:00", "2", "0.923", "24/26"]
     assert goalie_rows[1][4:] == ["L", "60:00", "2", "0.923", "24/26"]

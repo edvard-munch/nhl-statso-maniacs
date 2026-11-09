@@ -1,7 +1,8 @@
+{% load tags %}
 {% for player in item.list %}
 {% with date=game.gameday.day|to_str %}
 {% with stats_dict=player.gamelog_stats|get_item:date %}
-<tr>
+<tr data-player-id="{{ player.nhl_id }}">
 <td>
   <div id="favorite_section">
     {% if player in favorites %}

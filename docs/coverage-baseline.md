@@ -1320,3 +1320,22 @@ documentation links, service-example syntax and whitespace checks pass. Tests us
 mocked HTTP and no broker. Real broker connectivity, host services, controlled
 activation and backup/restore rehearsal still need host validation; browser
 auto-refresh is separate work.
+
+## Follow-up: browser auto-refresh and freshness
+
+The offline gate passes **1050 tests**, with **48 deselected** (22 external and
+26 browser), at **91.80% combined line/branch coverage**. The 35% gate is unchanged.
+Eight new isolated PostgreSQL cases protect read-only game/scoreboard endpoints,
+strict identity/date selection, viewer-specific favorite controls, private/no-store
+responses, saved-versus-checked timestamps, stale unfinished versus old final games,
+missing supplementary values and escaped scoreboard results. Repeated checks do
+not change saved game/player records or call NHL services.
+
+Four new Chromium scenarios cover automatic saved-data updates, retained sorting
+and focus, a pinned scoreboard date/new game, failure/manual recovery, paused and
+hidden-tab polling, and a favorite POST racing an older refresh response. The
+race changes only the fixture user's intended favorite membership; game/player
+columns remain unchanged. Frontend assets, synthetic fixtures and temporary
+PostgreSQL keep this independent of live NHL, a broker or the application database.
+All **26 Chromium cases** pass (**1072 deselected**). System/schema checks, Ruff
+and dependency-export consistency also pass.

@@ -213,6 +213,12 @@ Run/progress events appear on stderr and in the application log. See
 [overlap protection and run history](docs/loader-runs.md) for failure recovery,
 transaction requirements and the new tracking-table migration.
 
+The scoreboard and game pages automatically check saved data every minute while
+visible. **Data saved** and **Last checked** distinguish loader publication from
+browser polling; stale unfinished games and unavailable supplementary stats are
+labelled. Pause automatic checks or use **Refresh now** as needed. These checks
+do not run loaders. See [browser freshness](docs/celery-operations.md#browser-refresh-and-freshness).
+
 ## Run Development Server
 
 ```bash
@@ -251,7 +257,7 @@ The current offline suite passes **1042 tests at 91.68% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 
-Twenty-two optional Chromium smoke checks run separately with `make test-browser` after
+Twenty-six optional Chromium smoke checks run separately with `make test-browser` after
 [browser setup](docs/browser-smoke-tests.md). Default tests and local hooks exclude
 browser checks; CI is configured to run both suites.
 

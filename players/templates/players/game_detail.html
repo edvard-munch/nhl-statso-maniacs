@@ -7,6 +7,8 @@
 {% endblock styles %}
 
 {% block content %}
+<h2 id="game-result">{{ game.result }}</h2>
+{% include "players/partial_game_refresh.html" %}
 {# {% for team in game.teams.all %} #}
   {# <img src="{{ team.image.url }}" class="in-div"> #}
 {# {% endfor %} #}
@@ -102,4 +104,5 @@
 <script src="{% static 'players/sorting_game_detail.js' %}"></script>
 <script src="{% static 'players/ajax_add_fav.js' %}"></script>
 <script src="{% static 'players/ajax_del_fav.js' %}"></script>
+<script src="{% static 'players/game_refresh.js' %}"></script>
 {% endblock scripts %}

@@ -89,7 +89,7 @@ npm --prefix browser exec -- playwright show-trace browser-artifacts/modes.zip
 ## CI and remaining work
 
 The existing push/PR workflow runs the offline coverage gate first, installs the
-locked browser toolchain/assets, then runs all twenty-one browser checks separately
+locked browser toolchain/assets, then runs all twenty-six browser checks separately
 against the ephemeral PostgreSQL service. Failure artifacts are uploaded when
 present. The coverage report remains the offline server-side result; browser runs
 do not inflate it. Hosted execution still needs confirmation after pushing.
@@ -133,3 +133,15 @@ Database assertions protect other memberships, comparison lists and player field
 
 Browser login, concurrent quota enforcement and migration of legacy
 GET-based mutations to POST are not established by these smoke cases.
+
+
+## Saved-game refresh checks
+
+Four additional scenarios in `game-refresh.mjs` exercise automatic game/scoreboard
+updates with a controlled browser clock, retained table sorting/focus and selected
+day, failure followed by manual recovery, paused/hidden polling, and a favorite
+POST racing a refresh response. Mocked refresh payload changes represent separately
+published game data; backend database tests verify actual saved-data responses.
+Refreshes never call NHL services or write game/player data. One race scenario
+intentionally removes the signed-in fixture user's favorite and checks that a stale
+response cannot restore its button. All other game/player snapshots stay unchanged.

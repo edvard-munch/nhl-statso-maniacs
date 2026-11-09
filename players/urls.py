@@ -10,6 +10,8 @@ urlpatterns = [
     path("games/<str:date>/", views.games, name="games"),
     path("games/", views.games, name="games"),
     path("game/<slug>/<int:nhl_id>/", views.game_detail, name="game_detail"),
+    path("ajax_game/<slug>/<int:nhl_id>/", views.ajax_game, name="ajax_game"),
+    path("ajax_scoreboard/<str:date>/", views.ajax_scoreboard, name="ajax_scoreboard"),
     path(
         "ajax_players/<str:stat_type>/<str:page>/<str:size>/<str:sort_col>/<str:filt_col>/<str:rookie_filt>/<str:checkbox_filt>/",
         views.ajax_players,

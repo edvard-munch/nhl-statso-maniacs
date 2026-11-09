@@ -163,8 +163,10 @@ incomplete final enrichment and exhausted retry windows for later reconciliation
    weekly/bootstrap teams before players/current totals/recent final dates.
    The legacy task remains unscheduled with its original body. Actual broker and
    server-service validation remains a host rollout step.
-5. **Browser freshness:** refresh open game/scoreboard views and show last update,
-   stale/partial data and retry behavior without losing user interactions.
+5. **Implemented: browser freshness:** visible game/scoreboard pages poll saved
+   data every minute with pause/manual controls, stale/partial indicators and
+   bounded failure retries. Checks retain sorting, selected day and favorite
+   changes without initiating loaders. See [browser behavior](celery-operations.md#browser-refresh-and-freshness).
 
 Before enabling Beat, confirm host/broker, the desired live interval, whether
 season tables need intra-game refresh and the quiet-window/cooldown values.

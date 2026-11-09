@@ -1,0 +1,3 @@
+{% for item in scoreboard_games %}
+<p data-game-id="{{ item.game.nhl_id }}"><a href="{% url 'game_detail' item.game.slug item.game.nhl_id %}">{{ item.game.result }}</a> <small>{{ item.freshness.text }}</small></p>
+{% empty %}<p>No saved games for this day.</p>{% endfor %}

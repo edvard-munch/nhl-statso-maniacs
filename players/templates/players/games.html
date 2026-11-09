@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block content %}
 <h3>NHL Scoreboard</h3><br>
 <!-- <div id="#gameday_section"> -->
@@ -11,7 +12,8 @@
   {% endfor %}
 <!-- </div> -->
 <br><br>
-{% for game in today.games.all %}
-    <p><a href="{% url 'game_detail' game.slug game.nhl_id %}">{{ game.result }}</a></p>
-{% endfor %}
+{% include 'players/partial_game_refresh.html' %}
+<div id="scoreboard-games">{% include 'players/partial_scoreboard_games.html' %}</div>
 {% endblock content %}
+
+{% block scripts %}<script src="{% static 'players/game_refresh.js' %}"></script>{% endblock scripts %}
