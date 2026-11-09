@@ -185,6 +185,11 @@ LOGGING = {
         },
     },
     "loggers": {
+        "players.loader_runs": {
+            "handlers": ["file"],
+            "propagate": False,
+            "level": "INFO",
+        },
         "django": {
             "handlers": ["file"],
             "propagate": True,

@@ -1,5 +1,6 @@
+from players.loader_runs import LoaderCommand, report_progress
 import requests
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from tqdm import tqdm
 
 from players.models import Team
@@ -13,7 +14,7 @@ URL_TEAMS_LOGOS = "https://assets.nhle.com/logos/nhl/svg/{}_light.svg"
 TEAMS_LOGOS_DIR = "teams_logos"
 
 
-class Command(BaseCommand):
+class Command(LoaderCommand):
     """ """
 
     def handle(self, *args, **options):
@@ -27,9 +28,10 @@ class Command(BaseCommand):
 
         """
         teams = get_response()
-
-        for team in tqdm(teams):
+        report_progress("teams", total=len(teams))
+        for index, team in enumerate(tqdm(teams), start=1):
             import_team(team)
+            report_progress("teams", index, len(teams))
 
 
 def import_team(team):

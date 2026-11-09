@@ -9,14 +9,14 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: shared loader overlap/cooldown guards and progress before server scheduling.** The
+**Next: shared rate-limit cooldown/retry policy before server scheduling.** The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
 cadences, current loader limitations and always-on server requirements. The
 [legacy inventory](legacy-audit.md) retains deployment/worker usage questions.
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 988 tests at 91.44% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1009 tests at 91.64% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -617,7 +617,8 @@ remain provisional; full historical refresh stays manual. No jobs or services ar
 enabled by the policy commit.
 
 Targeted game/date refreshes are now implemented as recorded below.
-Next implement shared loader overlap/cooldown guards and progress,
+Shared overlap protection and run history are implemented below. Next implement
+cross-run cooldown and scheduler retry policies,
 then task splitting, broker/Beat/supervision setup, followed by browser freshness.
 Host/broker choice, exact live freshness, intra-game season-table needs and quiet
 windows must be confirmed before activation. Existing manual Make targets and
@@ -636,5 +637,25 @@ refresh and Make/Celery sequences retain their existing behavior.
 Forty-six new mocked-HTTP/PostgreSQL cases reuse the roster/report fixtures.
 System/migration checks, 988 offline tests at 91.44% coverage and all 22 Chromium
 cases pass against disposable PostgreSQL. See [targeted contracts and commands](game-loading.md#targeted-game-and-date-refreshes).
-Next add shared loader coordination, cooldowns and progress before task splitting
-and enabling Beat. No periodic jobs or server services are enabled yet.
+The overlap/run-status follow-up below adds coordination and progress. Cross-run
+cooldowns remain before task splitting and enabling Beat. No periodic jobs or
+server services are enabled yet.
+
+## Loader overlap protection and run history
+
+Supported writer command entry points share a non-waiting PostgreSQL session
+advisory lock across manual/Make/Celery execution, including TOI repair. Busy
+invocations record skipped and fail before requests/publication. Migration 0048
+adds durable scope/status/timing/progress history; stderr JSON events, application
+logging and `loader_status` expose runs without changing existing stdout payloads.
+Session changes fail closed, and the next lock owner marks abandoned runs
+interrupted after a hard exit. Existing publication transaction boundaries remain.
+
+Twenty-one new isolated PostgreSQL tests cover cross-command contention, failure,
+interruption, session loss, actual process termination, progress/status reads and
+eager Celery integration. Writer-command regression tests now use committed
+transactions rather than a wrapping test transaction. System/migration checks,
+1009 offline tests at 91.64% coverage and all 22 Chromium cases pass. See
+[rollout, limitations and status commands](loader-runs.md).
+Next decide/implement shared cross-run rate-limit cooldowns and retry/expiry
+handling, then task splitting and broker/Beat/services. Scheduling remains off.

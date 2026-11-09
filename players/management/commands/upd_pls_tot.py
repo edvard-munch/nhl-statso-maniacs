@@ -1,9 +1,10 @@
+from players.loader_runs import LoaderCommand, report_progress
 import copy
 from itertools import chain
 from django.core.files.base import ContentFile
 
 import requests
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from tqdm import tqdm
 
 from players.models import Goalie, Skater, Team
@@ -118,7 +119,7 @@ TEAM_ABBR_FROM_NAME = {
 }
 
 
-class Command(BaseCommand):
+class Command(LoaderCommand):
     def add_arguments(self, parser):
         parser.add_argument(
             "--mode",
@@ -137,16 +138,18 @@ class Command(BaseCommand):
 
 def run_full_mode():
     players = get_all_players()
-
+    report_progress("full_totals", total=len(players))
     with requests.Session() as session:
-        for player in tqdm(players):
+        for index, player in enumerate(tqdm(players), start=1):
             print(f"\n Uploading from {player.name} page")
             data = get_response(player.nhl_id, session).json()
             import_player(data, player, session)
+            report_progress("full_totals", index, len(players), item=player.nhl_id)
 
 
 def run_current_mode():
     players = get_all_players()
+    report_progress("fetch_season_reports", total=len(players))
     season = upd_pls.get_season_id()
     team_ids = dict(Team.objects.values_list("abbr", "nhl_id"))
 
@@ -155,7 +158,8 @@ def run_current_mode():
             player_type: season_loading.fetch_reports(player_type, session, season)
             for player_type in (GOALIE, SKATER)
         }
-        for player in tqdm(players):
+        report_progress("current_totals", total=len(players))
+        for index, player in enumerate(tqdm(players), start=1):
             player_type = SKATER if isinstance(player, Skater) else GOALIE
             fresh = season_loading.assemble_player_rows(
                 reports[player_type], player_type, player.nhl_id, team_ids, session
@@ -164,6 +168,7 @@ def run_current_mode():
                 apply_current_mode_to_skater(player, session, season, team_ids, fresh)
             else:
                 apply_current_mode_to_goalie(player, session, season, team_ids, fresh)
+            report_progress("current_totals", index, len(players), item=player.nhl_id)
 
 
 def get_all_players():

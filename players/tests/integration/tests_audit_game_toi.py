@@ -14,7 +14,7 @@ from players.models import Game, Gameday, Goalie, Skater
 from players.tests.integration.tests_upd_gms_rosters_db import loaded_game, load  # noqa: F401
 
 
-pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+pytestmark = [pytest.mark.integration, pytest.mark.django_db(transaction=True)]
 
 
 @pytest.fixture(autouse=True)

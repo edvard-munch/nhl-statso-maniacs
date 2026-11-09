@@ -10,7 +10,8 @@ windows, broker choice and host details still need confirmation before activatio
 
 - `nhl_web_app/celery_settings.py` discovers tasks and loads Django settings with
   the `CELERY_` namespace. Settings configure `django-db` results, but no explicit
-  broker URL, Beat schedule, task routing or loader-overlap guard.
+  broker URL, Beat schedule or task routing. Loader command execution now uses
+  [shared overlap protection and run history](loader-runs.md).
 - `players.tasks.upd_database` runs `upd_tms` → `upd_pls` → `upd_gms`. It does not
   run `upd_pls_tot --mode=current` and does not match `make update-all`.
 - `make update-daily` runs players → current totals → games sequentially;
@@ -144,9 +145,13 @@ incomplete final enrichment and exhausted retry windows for later reconciliation
    replay and per-game rollback have mocked-HTTP/PostgreSQL regressions. The broad
    manual command remains compatible. Selecting recent dates is still explicit;
    the later scheduler will decide when and which games to refresh.
-3. **Coordination and visibility:** overlap guards covering manual/Celery writers,
-   coalescing, cooldowns and structured progress. Test contention, crashes and
-   stale work using isolated PostgreSQL and mocked HTTP.
+3. **Implemented: overlap protection and run status:** one non-waiting PostgreSQL
+   lock covers supported command writers, including TOI repair, through manual
+   and Celery entry points. Migration 0048 adds durable run/progress history;
+   stderr/file JSON events and `loader_status` expose outcomes. Contention,
+   session loss and hard-process-exit recovery have isolated PostgreSQL tests.
+   Shared cross-run rate-limit cooldowns, queue expiry/coalescing and scheduler
+   retry policy remain the next focused scheduling work.
 4. **Celery task split and server configuration:** separate discovery/live/final/
    daily/weekly tasks, explicit broker/timezone, Beat schedule, supervision and
    retention. Protect dependency ordering: weekly teams when due, then players,

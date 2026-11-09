@@ -1,3 +1,4 @@
+from players.loader_runs import LoaderCommand, report_progress
 import logging
 import os
 from datetime import date
@@ -6,7 +7,7 @@ import requests
 from django.conf import settings
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.utils.dateparse import parse_date
 from players.models import Goalie, Skater, Team
@@ -82,13 +83,14 @@ COUNTRIES = {
 }
 
 
-class Command(BaseCommand):
+class Command(LoaderCommand):
     def handle(self, *args, **options):
         UNKNOWN_COUNTRY_CODES.clear()
         season = get_season_id()
         logger.info("upd_pls using seasonId=%s", season)
         team_ids = dict(Team.objects.values_list("abbr", "nhl_id"))
         staged = []
+        report_progress("fetch_player_reports")
         with requests.Session() as session:
             for player_type in (GOALIE, SKATER):
                 bios = season_loading.fetch_report(
@@ -110,13 +112,17 @@ class Command(BaseCommand):
 
         # All requests and validation finish before a season marker can be published.
         saved = []
+        report_progress("publish_players", total=len(staged))
         with transaction.atomic():
-            for player_type, bio, fresh in tqdm(staged):
+            for index, (player_type, bio, fresh) in enumerate(tqdm(staged), start=1):
                 saved.append(import_player(bio, fresh, player_type))
-        for player in saved:
+                report_progress("publish_players", index, len(staged), item=bio["playerId"])
+        report_progress("player_flags", total=len(saved))
+        for index, player in enumerate(saved, start=1):
             flag_name = f"{player.nation_abbr}.jpg"
             if pic_missing(flag_name, player.nation_flag, FLAGS_DIR):
                 upload_flag(player, flag_name)
+            report_progress("player_flags", index, len(saved), item=player.nhl_id)
         if UNKNOWN_COUNTRY_CODES:
             logger.warning(
                 "Unknown country codes from NHL API in upd_pls: %s",

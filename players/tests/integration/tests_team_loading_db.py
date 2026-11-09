@@ -15,7 +15,7 @@ from players.management.commands import upd_tms
 from players.models import Game, Goalie, Side, Skater, Team
 
 
-pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+pytestmark = [pytest.mark.integration, pytest.mark.django_db(transaction=True)]
 LOGO = b'<svg xmlns="http://www.w3.org/2000/svg"><title>Synthetic team</title></svg>'
 
 

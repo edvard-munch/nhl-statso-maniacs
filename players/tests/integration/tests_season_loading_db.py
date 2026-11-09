@@ -14,7 +14,7 @@ from players.models import Goalie, Skater, Team
 from players.season_stats import read_season_stats
 
 
-pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+pytestmark = [pytest.mark.integration, pytest.mark.django_db(transaction=True)]
 
 
 def stored_players():

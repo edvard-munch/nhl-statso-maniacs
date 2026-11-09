@@ -1,3 +1,5 @@
+from players.loader_runs import LoaderCommand, report_progress
+
 """Audit saved PP/SH time; explicitly repair verified mismatches when requested."""
 
 from collections import Counter
@@ -11,7 +13,7 @@ import json
 import re
 
 import requests
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import DatabaseError, transaction
 
 from players.models import Game, Gameday, Goalie, Skater
@@ -382,8 +384,11 @@ def repair_game(game, records):
         type(player).objects.filter(pk=player.pk).update(gamelog_stats=logs)
 
 
-class Command(BaseCommand):
+class Command(LoaderCommand):
     help = "Audit game PP/SH TOI; --repair explicitly fixes verified mismatches."
+
+    def writes_loader_data(self, options):
+        return options.get("repair", False)
 
     def add_arguments(self, parser):
         parser.add_argument("--season", help="Regular-season ID, e.g. 20262027")
@@ -442,6 +447,7 @@ class Command(BaseCommand):
         else:
             progress("No checkpoint: use --output PATH to preserve progress for --resume.")
         mode = "repair" if options["repair"] else "read-only audit"
+        report_progress("toi_repair", total=len(games))
         progress(f"Selected {len(games)} saved games; mode: {mode}.")
         try:
             with AuditSession(options["request_delay"], progress) as session:
@@ -459,6 +465,7 @@ class Command(BaseCommand):
                         )
                     ):
                         progress(prefix + " · already audited (checkpoint)")
+                        report_progress("toi_repair", index, len(games), item=game.nhl_id)
                         continue
                     progress(prefix)
                     try:
@@ -478,6 +485,7 @@ class Command(BaseCommand):
                             dict(game_id=game.nhl_id, date=day, status="unverified", reason=stopped)
                         ]
                     checkpoint.save(game, records)
+                    report_progress("toi_repair", index, len(games), item=game.nhl_id)
                     summary, _ = summarize(checkpoint.results, options["repair"])
                     progress(
                         f"  {len(checkpoint.results)}/{len(games)} recorded · "

@@ -1252,3 +1252,34 @@ application database or live loader was used for validation. Public historical
 NHL schedule/boxscore JSON was inspected read-only to confirm the target metadata
 shape; test HTTP is mocked. No schema, dependency, Make/task sequence, scheduler
 or deployment settings change. Shared overlap/cooldown guards remain next.
+
+## Follow-up: loader overlap protection and run-status logging
+
+Add migration 0048's `LoaderRun` table and a common management-command execution
+guard. One stable, non-waiting PostgreSQL advisory lock covers all four supported
+loaders (both totals/game modes) and TOI repair, including direct CLI/Make and
+Celery's existing command calls. Read-only audit/status commands remain unlocked.
+Conflicts record skipped and raise a command error before network/business-data
+work; existing command ordering and transaction boundaries are preserved.
+
+Durable UUID/scope/status/timing/progress/error records and stderr/application-log
+events expose running/succeeded/failed/skipped/interrupted outcomes. Phase
+progress is throttled to fifteen seconds with phase/end updates. The read-only
+`loader_status` command returns recent records or a selected UUID. Lost/replaced
+database sessions cannot continue writes; process exit releases the lock, and a
+later owner marks abandoned runs interrupted without assuming earlier commits
+were rolled back. Rollout requires migrations and updated cooperating writers.
+
+Twenty-one added PostgreSQL cases use independent sessions and a terminated
+child process to cover contention, release, crash recovery, progress throttling,
+status reads, original failures and eager Celery entry. Existing command tests
+now use real committed transactions, because externally wrapped writer commands
+are rejected rather than releasing their guard before a caller commits.
+
+Against disposable PostgreSQL 16, system/migration checks, **1009 offline tests**
+(**44 deselected**), **91.64% combined coverage**, the unchanged 35% gate and XML
+export pass. All **22 Chromium cases pass** (**1031 deselected**). Ruff/format,
+requirements drift, documentation-link and whitespace checks pass. Application
+data and live NHL endpoints are not accessed by validation; no broker/services
+are started. Shared cross-run cooldowns and task retry/expiry remain separate
+work; existing per-request Retry-After behavior is retained.

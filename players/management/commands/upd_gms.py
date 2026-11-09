@@ -1,10 +1,11 @@
+from players.loader_runs import LoaderCommand, report_progress
 import re
 from html import unescape
 from datetime import datetime
 from time import sleep
 
 import requests
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.db.models import Q
 from django.utils.text import slugify
@@ -123,7 +124,7 @@ MONTHS_ORDER = ["09", "10", "11", "12", "01", "02", "03", "04", "05", "06", "07"
 TIMEZONE = "US/Pacific"
 
 
-class Command(BaseCommand):
+class Command(LoaderCommand):
     def add_arguments(self, parser):
         targets = parser.add_mutually_exclusive_group()
         targets.add_argument(
@@ -238,12 +239,16 @@ def refresh_targets(dates, game_ids, state, session, output):
     refreshed = deferred = 0
     # Dates and IDs are explicitly finite. No automatic historical/future scan.
     for date in dates:
+        report_progress("schedule", item=date.isoformat())
         games = scheduled_targets(date, session)
         output.write(f"Target date {date}: {len(games)} scheduled game(s)")
-        for game in games:
+        phase = f"target_games:{date}"
+        report_progress(phase, total=len(games), deferred=deferred)
+        for index, game in enumerate(games, start=1):
             game_id = game["id"]
             if not regular_season_game(game):
                 output.write(f"Game {game_id}: skipped (not regular season)")
+                report_progress(phase, index, len(games), deferred=deferred, item=game_id)
                 continue
             if (
                 target_state(game) not in TARGET_STATES[state]
@@ -253,21 +258,28 @@ def refresh_targets(dates, game_ids, state, session, output):
                 output.write(
                     f"Game {game_id}: deferred (schedule state {game['gameState']}, {game.get('gameScheduleState', 'OK')})"
                 )
+                report_progress(phase, index, len(games), deferred=deferred, item=game_id)
                 continue
+            report_progress(phase, index - 1, len(games), deferred=deferred, item=game_id)
             if refresh_target_game(game_id, session, state, date):
                 refreshed += 1
                 output.write(f"Game {game_id}: refreshed")
             else:
                 deferred += 1
                 output.write(f"Game {game_id}: deferred (boxscore outside selected states)")
+            report_progress(phase, index, len(games), deferred=deferred, item=game_id)
         reconcile_target_day(date, games, state)
-    for game_id in game_ids:
+    if game_ids:
+        report_progress("target_games", total=len(game_ids))
+    for index, game_id in enumerate(game_ids, start=1):
+        report_progress("target_games", index - 1, len(game_ids), deferred=deferred, item=game_id)
         if refresh_target_game(game_id, session, state):
             refreshed += 1
             output.write(f"Game {game_id}: refreshed")
         else:
             deferred += 1
             output.write(f"Game {game_id}: deferred (boxscore outside selected states)")
+        report_progress("target_games", index, len(game_ids), deferred=deferred, item=game_id)
     output.write(f"Targeted refresh complete: {refreshed} refreshed, {deferred} deferred")
 
 
@@ -351,7 +363,9 @@ def reconcile_target_day(date, scheduled, state):
 
 
 def check_for_games(date, date_end, session):
+    processed = 0
     while date <= date_end:
+        report_progress("game_days", processed, item=date.isoformat())
         schedule = get_schedule(date, session)
 
         for weekday in schedule["gameWeek"]:
@@ -363,6 +377,8 @@ def check_for_games(date, date_end, session):
             if weekday["games"]:
                 print(f"{weekday['date']} games loading")
                 process_games(weekday, session)
+                processed += 1
+                report_progress("game_days", processed, item=weekday["date"])
 
         next_start_date = schedule.get("nextStartDate")
         if next_start_date:

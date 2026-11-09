@@ -14,7 +14,7 @@ from players.management.commands import upd_pls, upd_pls_tot as totals
 from players.models import Goalie, Skater, Team
 
 
-pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+pytestmark = [pytest.mark.integration, pytest.mark.django_db(transaction=True)]
 
 
 @pytest.fixture(params=["skater", "goalie"])

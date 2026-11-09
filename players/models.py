@@ -4,8 +4,33 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.text import slugify
+from django.utils import timezone
 from players.storage import OverwriteStorage
 import datetime
+import uuid
+
+
+class LoaderRun(models.Model):
+    class Status(models.TextChoices):
+        RUNNING = "running"
+        SUCCEEDED = "succeeded"
+        FAILED = "failed"
+        SKIPPED = "skipped"
+        INTERRUPTED = "interrupted"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    command = models.CharField(max_length=64)
+    scope = models.JSONField(default=dict)
+    status = models.CharField(max_length=16, choices=Status.choices, db_index=True)
+    started_at = models.DateTimeField(default=timezone.now, db_index=True)
+    updated_at = models.DateTimeField()
+    finished_at = models.DateTimeField(null=True)
+    duration_seconds = models.FloatField(null=True)
+    progress = models.JSONField(default=dict)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-started_at"]
 
 
 class Team(models.Model):

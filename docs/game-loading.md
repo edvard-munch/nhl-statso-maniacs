@@ -64,9 +64,9 @@ proof that every supplementary report is available.
 
 `tests_upd_gms_targets_db.py` reuses the roster/report fixtures for selection,
 finished replays, live/final filters, identity/date boundaries, missing-report
-preservation, null rendering and rollback contracts. No scheduling, overlap
-guard, shared cooldown or browser polling is enabled yet; do not overlap manual
-and automated loaders until the coordination follow-up is implemented.
+preservation, null rendering and rollback contracts. Command entry points now use
+[shared overlap protection and run history](loader-runs.md). Periodic scheduling,
+shared cross-run cooldowns and browser polling remain separate work.
 
 ## Request behavior
 

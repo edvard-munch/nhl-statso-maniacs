@@ -194,6 +194,19 @@ Repeat the same selector for multiple dates/IDs. Targets can replay finished
 games; known pregame games are deferred. See [targeted refresh behavior](docs/game-loading.md#targeted-game-and-date-refreshes)
 for per-game transactions, completion flags and unavailable report fields.
 
+Loader commands now share PostgreSQL overlap protection and retain run outcomes.
+Apply migrations before using them, then inspect recent work with:
+
+```bash
+uv run --locked python manage.py migrate
+uv run --locked python manage.py loader_status --limit 10
+```
+
+A conflicting invocation records `skipped` and exits nonzero before NHL requests.
+Run/progress events appear on stderr and in the application log. See
+[overlap protection and run history](docs/loader-runs.md) for failure recovery,
+transaction requirements and the new tracking-table migration.
+
 ## Run Development Server
 
 ```bash
@@ -228,7 +241,7 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **988 tests at 91.44% combined line/branch
+The current offline suite passes **1009 tests at 91.64% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 

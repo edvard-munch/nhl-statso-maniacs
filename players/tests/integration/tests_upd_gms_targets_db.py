@@ -15,7 +15,7 @@ from players.tests.integration.tests_upd_gms_rosters_db import (
     log_for,
 )
 
-pytestmark = [pytest.mark.integration, pytest.mark.django_db]
+pytestmark = [pytest.mark.integration, pytest.mark.django_db(transaction=True)]
 
 
 @pytest.fixture

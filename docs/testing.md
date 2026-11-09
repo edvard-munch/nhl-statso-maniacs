@@ -270,8 +270,8 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 988 passed, 22 external and 22 browser
-cases deselected, at 91.44% combined coverage. Saved-list mutations are POST-only,
+CI runs both. The current offline result is 1009 passed, 22 external and 22 browser
+cases deselected, at 91.64% combined coverage. Saved-list mutations are POST-only,
 with CSRF rejection and persistence checks in the offline suite and real CSRF
 headers checked in Chromium. See [saved-list requests](saved-player-season-tables.md#saved-list-requests).
 
@@ -291,3 +291,12 @@ publication. They check exact/repeated selectors, state/date/identity boundaries
 finished replay, bounded pregame deferral, conservative day flags, missing-report
 preservation, null rendering on game/profile/log pages and per-game rollback.
 See [targeted game refreshes](game-loading.md#targeted-game-and-date-refreshes).
+
+`tests_loader_runs_db.py` adds 21 coordination/status cases using actual
+PostgreSQL sessions, bounded thread synchronization and a terminated child
+process. They cover the shared lock across all writer commands (including TOI
+repair), durable progress/outcomes, crash recovery, session-change rejection,
+read-only status access and eager Celery entry. Tests that call writer commands
+use `django_db(transaction=True)`: the supported command entry point rejects a
+wrapping transaction because it could outlive the lock. Internal helper tests
+retain their smaller transaction fixtures. See [run tracking](loader-runs.md).
