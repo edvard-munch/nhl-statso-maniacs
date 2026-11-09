@@ -1,16 +1,17 @@
 # Loader scheduling policy and server requirements
 
-Status: planning baseline, updated 2026-11-09. The owner confirmed that Celery is not
-running and updates should eventually run on an always-on server. This document
-does not enable jobs. Explicit [targeted refreshes](game-loading.md#targeted-game-and-date-refreshes)
-are now implemented; no-argument `upd_gms` retains its broad behavior. Live freshness, final-refresh
-windows, broker choice and host details still need confirmation before activation.
+Status: policy and opt-in implementation, updated 2026-11-09. The owner confirmed
+Celery was not running and the target is an always-on server. Targeted refreshes,
+overlap protection, cooldowns and separate scheduled tasks are implemented.
+Defaults remain disabled; see [Celery setup and actual configurable defaults](celery-operations.md).
+Review the RabbitMQ/host setup and cadence/window defaults before activation.
 
 ## Current implementation
 
 - `nhl_web_app/celery_settings.py` discovers tasks and loads Django settings with
-  the `CELERY_` namespace. Settings configure `django-db` results, but no explicit
-  broker URL, Beat schedule or task routing. Loader command execution now uses
+  the `CELERY_` namespace. Settings configure `django-db` results, an explicit
+  environment-backed RabbitMQ URL, UTC Beat entries and task routing. Jobs are
+  opt-in through `NHL_SCHEDULING_ENABLED`. Loader command execution uses
   [shared overlap protection and run history](loader-runs.md).
 - `players.tasks.upd_database` runs `upd_tms` → `upd_pls` → `upd_gms`. It does not
   run `upd_pls_tot --mode=current` and does not match `make update-all`.
@@ -25,7 +26,8 @@ windows, broker choice and host details still need confirmation before activatio
   `--state started|active|final`, defer known pregame games and allow finished
   replays. They fetch before per-game transactions and preserve valid same-game
   report values when fresh reports omit them; new unknown report values are null.
-  There is no automatic recent-window discovery or periodic execution yet.
+  New Celery tasks discover schedules and choose live/recent-final/recent-date
+  work automatically when enabled; the legacy task is not scheduled.
 - Only regular-season games are loaded. Playoffs/preseason support is not part
   of this scheduling change. `FINAL`/`OFF` plus a matching stored roster marks a
   game finished; `OVER` and active states remain unfinished. Final status alone
@@ -42,8 +44,9 @@ comparison season tables use season rows (`sbs_stats`); career modes use career
 aggregates. Refreshing games alone does not refresh season/career tables. See
 [season workflow](saved-player-season-tables.md) and [game publication](game-loading.md).
 
-The following intervals are proposed starting values, not enabled schedules or
-guarantees about upstream publication. Keep them configurable and measure request
+The following table records the original policy ranges; implemented defaults and
+environment options are in [Celery operation](celery-operations.md). They are not
+guarantees about upstream publication. Measure request
 volume, runtime and observed freshness before increasing frequency.
 
 | Job | Proposed cadence | Scope and publication rules |
@@ -57,8 +60,9 @@ volume, runtime and observed freshness before increasing frequency.
 | `upd_tms` | Weekly before the routine refresh; also bootstrap/season rollover when needed | Refresh team metadata. Missing required teams should trigger a visible dependency failure, not repeated full team loads per live tick. |
 | `upd_pls_tot --mode=full` | Explicit manual refresh/backfill | Never include in the live tick or default daily automation. Coordinate with other writers. |
 
-Daily/weekly wall-clock times remain unset until the host and expected runtimes
-are known. Defer heavy work when games are active or imminent; expose the deferral
+Initial maintenance is configured for 09:00–12:00 UTC, checked every fifteen
+minutes; weekly teams default to Monday with bootstrap/catch-up. Review these
+defaults against host runtimes before enabling. Defer heavy work when games are active or imminent; expose the deferral
 instead of silently missing a day. A long task cannot be preempted merely by
 assigning a newer live task higher queue priority.
 
@@ -77,8 +81,8 @@ hardcode a Moscow overnight window. Early games, changed starts and North Americ
 daylight-saving transitions must work. Moscow times are display conversions
 (`Europe/Moscow`), not the source for deciding whether an NHL game is active.
 
-Configure Celery's scheduling timezone explicitly as UTC in the later setup
-commit. Django currently ends with `TIME_ZONE = "Europe/Moscow"`; `upd_gms` uses
+Celery's scheduling timezone is explicitly UTC. Django currently ends with
+`TIME_ZONE = "Europe/Moscow"`; `upd_gms` uses
 `US/Pacific` to choose its current date. Preserve API schedule dates and game IDs
 when targeting games and recent-day replays; a UTC date is not interchangeable
 with an NHL schedule date. Keep polling active/unfinished games across midnight.
@@ -97,18 +101,19 @@ paths and broker before writing an executable deployment runbook.
 | --- | --- |
 | Application environment | Pinned Python from `.python-version`, locked uv dependencies and explicit working directory/interpreter for every service. Shell aliases and an activated development venv are not service configuration. See [uv deployment preparation](uv-migration.md#dependency-groups). |
 | PostgreSQL | Reachable application database, deployed migrations, backup/restore procedure and appropriate application role. Tests must continue using a separate synthetic test database. |
-| Message broker | Choose RabbitMQ or Redis and configure authenticated private connectivity, persistence/recovery and the corresponding Python transport dependencies. Neither service is provisioned by this repository. `django-db` stores task results; it is not the message broker. Redis transport is not currently declared in the lockfile. |
+| Message broker | RabbitMQ is selected using existing AMQP dependencies. Configure authenticated private connectivity and persistence/recovery. No broker is provisioned by this repository. `django-db` stores task results; it is not the broker. Redis would require a separate transport/dependency change. |
 | Worker | Supervised non-root service with restart-on-failure, explicit environment and writable runtime/log/media paths. Start conservatively with a dedicated loader worker and concurrency one; this is not a replacement for cross-process overlap protection. Worker pool choice remains explicit; do not assume the retained gevent dependency means gevent is used. |
 | Scheduler | Exactly one supervised Beat instance for this schedule, with persistent writable scheduler state. Worker discovery alone does not create schedules. Code-based Beat entries are the initial proposal; `django-celery-beat` is not currently installed or required by this plan. |
-| Secrets/settings | Supply existing Django/PostgreSQL settings to services, and add explicit broker/timezone/routing settings in the implementation commit. Merely exporting `CELERY_BROKER_URL` does not wire it into the current Django settings module. Keep broker credentials out of tracked docs and logs. |
+| Secrets/settings | Supply existing Django/PostgreSQL settings plus `CELERY_BROKER_URL` and the scheduling flag/options to both services. Settings now read the broker URL explicitly and validate opt-in configuration. Keep credentials out of tracked docs and logs. |
 | Network and storage | Outbound HTTPS/DNS for the supported NHL/report/image sources, persistent uploaded media, logs and adequate disk space. Share the same application release/data paths between web and worker services. |
 | Web process | Separate from worker/Beat. The existing Procfile names Gunicorn, which is absent from locked dependencies; resolve the actual web-server entry point before deployment. |
 | Operations | Service health, queue age, last successful refresh by job/game, failures and rate-limit cooldowns must be visible. Define task-result/log retention so frequent jobs do not grow storage indefinitely. |
 
 See Celery's [broker choices](https://docs.celeryq.dev/en/v5.4.0/getting-started/backends-and-brokers/index.html)
 and [supervised service guidance](https://docs.celeryq.dev/en/v5.4.0/userguide/daemonizing.html).
-Broker configuration and unit/container files belong to later implementation;
-there are no ready-to-enable service definitions in this documentation commit.
+Reviewed systemd examples and startup instructions are in
+[Celery operation](celery-operations.md). Adapt paths/user/environment and validate
+on the actual host before enabling; no services are installed or started here.
 
 ## Coordination, failures and progress
 
@@ -144,19 +149,20 @@ incomplete final enrichment and exhausted retry windows for later reconciliation
    same-game report fields. Date/state boundaries, missing reports, null rendering,
    replay and per-game rollback have mocked-HTTP/PostgreSQL regressions. The broad
    manual command remains compatible. Selecting recent dates is still explicit;
-   the later scheduler will decide when and which games to refresh.
+   the scheduler below now decides when and which games to refresh.
 3. **Implemented: overlap protection and run status:** one non-waiting PostgreSQL
    lock covers supported command writers, including TOI repair, through manual
    and Celery entry points. Migration 0048 adds durable run/progress history;
    stderr/file JSON events and `loader_status` expose outcomes. Contention,
    session loss and hard-process-exit recovery have isolated PostgreSQL tests.
-   Shared cross-run rate-limit cooldowns, queue expiry/coalescing and scheduler
-   retry policy remain the next focused scheduling work.
-4. **Celery task split and server configuration:** separate discovery/live/final/
-   daily/weekly tasks, explicit broker/timezone, Beat schedule, supervision and
-   retention. Protect dependency ordering: weekly teams when due, then players,
-   current totals and recent-game reconciliation. An unrelated failed batch must
-   not suppress live polling. Preserve/document the old task's compatibility.
+   The task-split follow-up implements cross-run cooldowns and queue expiry/job
+   coalescing; new scheduled tasks defer busy/cooldown outcomes without immediate retries.
+4. **Implemented, activation pending: Celery tasks and configuration:** separate
+   discovery/live/final/daily/weekly/cleanup tasks, explicit broker/timezone, opt-in
+   Beat schedule, service examples and retention. Daily dependencies enforce
+   weekly/bootstrap teams before players/current totals/recent final dates.
+   The legacy task remains unscheduled with its original body. Actual broker and
+   server-service validation remains a host rollout step.
 5. **Browser freshness:** refresh open game/scoreboard views and show last update,
    stale/partial data and retry behavior without losing user interactions.
 

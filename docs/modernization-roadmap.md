@@ -9,14 +9,14 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: shared rate-limit cooldown/retry policy before server scheduling.** The
+**Next: validate server activation and add browser freshness.** The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
 cadences, current loader limitations and always-on server requirements. The
 [legacy inventory](legacy-audit.md) retains deployment/worker usage questions.
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1009 tests at 91.64% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1042 tests at 91.68% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -617,9 +617,9 @@ remain provisional; full historical refresh stays manual. No jobs or services ar
 enabled by the policy commit.
 
 Targeted game/date refreshes are now implemented as recorded below.
-Shared overlap protection and run history are implemented below. Next implement
-cross-run cooldown and scheduler retry policies,
-then task splitting, broker/Beat/supervision setup, followed by browser freshness.
+Shared overlap protection and run history are implemented below. Cross-run
+cooldown and scheduler policies are completed by the task-split follow-up below.
+Next validate the host's broker/Beat/services and add browser freshness.
 Host/broker choice, exact live freshness, intra-game season-table needs and quiet
 windows must be confirmed before activation. Existing manual Make targets and
 the legacy Celery task retain their current behavior until those focused commits.
@@ -657,5 +657,27 @@ eager Celery integration. Writer-command regression tests now use committed
 transactions rather than a wrapping test transaction. System/migration checks,
 1009 offline tests at 91.64% coverage and all 22 Chromium cases pass. See
 [rollout, limitations and status commands](loader-runs.md).
-Next decide/implement shared cross-run rate-limit cooldowns and retry/expiry
-handling, then task splitting and broker/Beat/services. Scheduling remains off.
+The task-split follow-up below adds shared cross-run cooldowns, retry/expiry
+handling and broker/Beat configuration. Scheduling stays opt-in.
+
+## Celery task split and opt-in scheduling
+
+Separate discovery/live/final/daily/weekly/cleanup tasks now use persisted schedule
+state, finite final-retry windows and job locks. Daily work enforces weekly or
+bootstrap teams before players, current totals and three recent final schedule
+dates. Quiet-window checks, expiring publications and completion/attempt markers
+limit duplicate or stale work. Exhausted 429s establish a shared persisted cooldown
+for manual and scheduled writers; scheduled busy/cooldown results are deferred,
+with no immediate whole-task retries. The legacy task name/body is retained and
+is not scheduled.
+
+Migration 0049 adds schedule/control tables. RabbitMQ configuration uses existing
+dependencies; Beat is explicitly UTC and disabled by default. Service examples,
+environment options and retention/startup instructions are in
+[Celery operation](celery-operations.md). Actual broker provisioning, activation,
+host service health and backup/restore rehearsal remain unverified host work.
+Thirty-three new isolated cases protect configuration, persistent selection,
+quiet/order/failure rules, DST dates, cooldowns, retention and job coalescing.
+System/migration checks, 1042 offline tests at 91.68% coverage and all 22 Chromium
+cases pass. Next validate controlled server activation, then implement browser
+refresh/freshness indicators. Ambiguous legacy-data review remains separate.

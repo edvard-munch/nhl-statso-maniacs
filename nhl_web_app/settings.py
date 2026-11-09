@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 from nhl_web_app.environ import env
+from nhl_web_app.celery_schedule import read_options, beat_schedule, TASK_ROUTES, SECONDS_PER_DAY
 # import django_heroku
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -150,7 +151,19 @@ EMAIL_HOST_PASSWORD = env("EMAIL_PASSWORD", cast=str)
 # SILKY_PYTHON_PROFILER = True
 
 CELERY_RESULT_BACKEND = "django-db"
-# CELERY_RESULT_BACKEND = 'redis://localhost'
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="")
+CELERY_TIMEZONE = "UTC"
+CELERY_ENABLE_UTC = True
+NHL_SCHEDULING = read_options(env)
+CELERY_BEAT_SCHEDULE = beat_schedule(NHL_SCHEDULING, CELERY_BROKER_URL)
+CELERY_TASK_ROUTES = TASK_ROUTES
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_RESULT_EXPIRES = 7 * SECONDS_PER_DAY
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
 
 TIME_ZONE = "Europe/Moscow"
 
@@ -190,6 +203,7 @@ LOGGING = {
             "propagate": False,
             "level": "INFO",
         },
+        "players.scheduler": {"handlers": ["file"], "propagate": False, "level": "INFO"},
         "django": {
             "handlers": ["file"],
             "propagate": True,

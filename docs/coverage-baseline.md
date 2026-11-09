@@ -1283,3 +1283,40 @@ requirements drift, documentation-link and whitespace checks pass. Application
 data and live NHL endpoints are not accessed by validation; no broker/services
 are started. Shared cross-run cooldowns and task retry/expiry remain separate
 work; existing per-request Retry-After behavior is retained.
+
+## Follow-up: split Celery work and configure opt-in schedules
+
+Add separate discovery/live/recent-final/daily/weekly/cleanup tasks, persisted
+`ScheduledGame`/`LoaderScheduleState` tables in migration 0049, and validated
+environment-backed UTC schedules. Automation defaults to disabled. Existing AMQP
+dependencies support the selected RabbitMQ transport; no dependency versions
+change. The legacy manual task retains its body and is not scheduled. Queue
+routing, expiring publications, per-job locks, attempt/completion markers and
+quiet-window gating bound duplicate/stale work and preserve maintenance ordering.
+Discovery uses schedule dates and aware starts, including Pacific-midnight/DST
+boundaries. Final retries stop after a persisted 60-minute observation window;
+daily work revisits three previous schedule dates.
+
+Exhausted writer 429s now establish a shared persisted cooldown respecting the
+greater of the configured floor and remaining Retry-After. Manual and scheduled
+writers cannot bypass it. New scheduled tasks return deferred for busy/cooldown
+outcomes without immediate whole-task retries; other failures remain visible.
+Terminal loader history defaults to thirty-day retention and task results seven
+days. Reviewed service examples and a broker/worker/Beat runbook are included;
+no broker, service, application database or live loader is started by this change.
+
+Thirty-three added cases cover disabled/configuration defaults, broker/option
+validation, routing/expiry, Celery's default-cleanup entry behavior, persistent
+discovery/final windows, state/due selection, maintenance ordering/deferral/failure,
+retention, shared cooldowns and cross-session coalescing. Configured clocks/options
+are isolated from the local environment. Existing eager task and loader guard
+contracts remain covered.
+
+Against disposable PostgreSQL 16, system/migration checks, **1042 offline tests**
+(**44 deselected**), **91.68% combined coverage**, the 35% gate and XML export pass.
+All **22 Chromium cases pass** (**1064 deselected**); the final focused scheduler/
+guard/task selection passes **59 cases**. Ruff/format, requirements drift,
+documentation links, service-example syntax and whitespace checks pass. Tests use
+mocked HTTP and no broker. Real broker connectivity, host services, controlled
+activation and backup/restore rehearsal still need host validation; browser
+auto-refresh is separate work.

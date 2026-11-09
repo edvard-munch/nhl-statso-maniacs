@@ -1,0 +1,19 @@
+[Unit]
+Description=NHL Celery Beat scheduler (run exactly one instance)
+After=network-online.target nhl-celery-worker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nhl
+Group=nhl
+WorkingDirectory=/srv/nhl_web_app
+EnvironmentFile=/etc/nhl-web-app.env
+StateDirectory=nhl-celery
+ExecStart=/srv/nhl_web_app/.venv/bin/celery -A nhl_web_app beat --loglevel=INFO --schedule=/var/lib/nhl-celery/beat-schedule --pidfile=/var/lib/nhl-celery/beat.pid
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

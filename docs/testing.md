@@ -270,8 +270,8 @@ favorites removal with filters/pagination, empty transitions, team layouts and
 AJAX failure/retry recovery against the isolated live server. See
 [browser setup and CI](browser-smoke-tests.md) before `make test-browser`. Browser
 checks are separate from the offline coverage gate and local commit/push hooks;
-CI runs both. The current offline result is 1009 passed, 22 external and 22 browser
-cases deselected, at 91.64% combined coverage. Saved-list mutations are POST-only,
+CI runs both. The current offline result is 1042 passed, 22 external and 22 browser
+cases deselected, at 91.68% combined coverage. Saved-list mutations are POST-only,
 with CSRF rejection and persistence checks in the offline suite and real CSRF
 headers checked in Chromium. See [saved-list requests](saved-player-season-tables.md#saved-list-requests).
 
@@ -300,3 +300,12 @@ read-only status access and eager Celery entry. Tests that call writer commands
 use `django_db(transaction=True)`: the supported command entry point rejects a
 wrapping transaction because it could outlive the lock. Internal helper tests
 retain their smaller transaction fixtures. See [run tracking](loader-runs.md).
+
+`tests_scheduler_db.py` adds 33 configuration/task cases with fixed clocks,
+default scheduling options independent of the local environment, mocked NHL
+schedules and real PostgreSQL state. They check opt-in defaults and broker/options
+validation, expiry/routing, prevention of Celery's duplicate default cleanup,
+persistent discovery/final windows, live/final due selection, maintenance order/
+deferral/failure, retention, cooldown enforcement and cross-session job coalescing.
+Pacific-date selection is checked across DST boundaries. Eager task tests do not
+start a broker, Beat or deployed services; validate those separately on the host.

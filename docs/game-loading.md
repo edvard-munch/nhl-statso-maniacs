@@ -65,8 +65,9 @@ proof that every supplementary report is available.
 `tests_upd_gms_targets_db.py` reuses the roster/report fixtures for selection,
 finished replays, live/final filters, identity/date boundaries, missing-report
 preservation, null rendering and rollback contracts. Command entry points now use
-[shared overlap protection and run history](loader-runs.md). Periodic scheduling,
-shared cross-run cooldowns and browser polling remain separate work.
+[shared overlap protection and run history](loader-runs.md). Opt-in periodic
+tasks and shared cross-run cooldowns are configured in [Celery setup](celery-operations.md);
+browser polling remains separate work.
 
 ## Request behavior
 

@@ -16,7 +16,9 @@ uv run --locked python manage.py loader_status
 uv run --locked python manage.py loader_status --limit 20 --json
 ```
 
-`players.0048_loader_run` adds only the `LoaderRun` table and its indexes. It does
+`players.0048_loader_run` adds only the `LoaderRun` table and its indexes; the
+subsequent `0049_loader_schedule` adds schedule/cooldown state. Apply all pending
+migrations, because writer coordination now checks both tables. This does
 not modify saved statistics or memberships. `loader_status` is read-only and can
 run while a loader holds the lock. `--run-id UUID` selects one record; `--limit`
 defaults to ten, with a maximum of 1000. A fresh installation has no run history.
@@ -39,8 +41,8 @@ If another cooperating loader is running, the new invocation records `skipped`
 and raises `LoaderBusy` (a Django `CommandError`). It makes no NHL requests or
 statistics writes and exits nonzero. It neither waits nor retries automatically.
 Make stops its remaining stages, and the current Celery task reports failure.
-A later scheduler must handle this specific outcome as deferred work rather than
-aggressively retrying it. A skipped run is visible in history even though its
+The new scheduled tasks return a deferred payload for this specific outcome,
+without immediately retrying it; the old task still fails. A skipped run is visible even though its
 business-data work did not start.
 
 The lock is shared across command types, processes and workers using the same
@@ -91,7 +93,8 @@ settings are excluded. Failure messages are bounded to 2000 characters. A
 successful run means the command returned normally, not that the NHL source had
 new data or every optional report was available. Inspect targeted deferrals,
 warnings and audit reports for missing enrichment. No API freshness timestamp or
-next-retry deadline is invented.
+source freshness is inferred. A recorded `next_retry_at` is the local cooldown's
+earliest eligible retry, not a promise that a later NHL request will succeed.
 
 ## Boundaries and remaining scheduling work
 
@@ -111,12 +114,12 @@ boundary, with mocked HTTP and a dedicated synthetic PostgreSQL database.
 Read-only `audit_game_toi` and `loader_status` do not acquire the writer lock or
 create loader runs.
 
-Run history is retained; automatic pruning/log rotation must be configured as
-part of server setup. Shared cross-run rate-limit cooldowns, task retry/expiry
-policy, quiet-window deferral, broker/Beat/service setup and browser polling are
-still separate follow-ups in the [scheduling plan](loader-scheduling.md). Existing
-per-request [Retry-After handling](loader-http.md) is unchanged. No periodic jobs
-are enabled by adding this guard or status history.
+When opt-in schedules are enabled, terminal run history is pruned after thirty
+days; configure application-log rotation on the host. Shared cross-run cooldowns,
+task expiry/coalescing and quiet-window deferral are implemented in the
+[Celery setup](celery-operations.md). Per-request [Retry-After handling](loader-http.md)
+is retained. No periodic work starts without explicit activation; browser polling
+remains separate work.
 
 ## Regression checks
 

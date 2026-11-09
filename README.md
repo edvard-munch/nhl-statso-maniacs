@@ -99,6 +99,10 @@ The supported keys are:
 - `EMAIL_HOST_USER`
 - `EMAIL_PASSWORD`
 
+Optional server automation also reads `CELERY_BROKER_URL`,
+`NHL_SCHEDULING_ENABLED` and the `NHL_*` cadence/window settings documented in
+[Celery operation](docs/celery-operations.md). NHL schedules default to disabled.
+
 ## Database Setup
 
 ```bash
@@ -180,8 +184,10 @@ limits stop the sequence. See [shared HTTP policy and reruns](docs/loader-http.m
 
 For the planned always-on server, see the [scheduling policy and server
 requirements](docs/loader-scheduling.md). It separates frequent targeted live-game
-refreshes from daily season/career work and weekly team updates. The schedule is
-not enabled yet; the current Celery task is not equivalent to `make update-all`.
+refreshes from daily season/career work and weekly team updates. Separate tasks
+and configurable UTC schedules are implemented but opt-in. See
+[broker, worker and Beat setup](docs/celery-operations.md); the legacy task remains
+available separately and is not scheduled.
 
 For a bounded game refresh, use a date or game ID, optionally filtering states:
 
@@ -241,7 +247,7 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **1009 tests at 91.64% combined line/branch
+The current offline suite passes **1042 tests at 91.68% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 

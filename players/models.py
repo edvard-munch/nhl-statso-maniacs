@@ -33,6 +33,26 @@ class LoaderRun(models.Model):
         ordering = ["-started_at"]
 
 
+class LoaderScheduleState(models.Model):
+    key = models.CharField(max_length=32, primary_key=True)
+    discovered_at = models.DateTimeField(null=True)
+    daily_completed_date = models.DateField(null=True)
+    weekly_completed_date = models.DateField(null=True)
+    cooldown_until = models.DateTimeField(null=True)
+
+
+class ScheduledGame(models.Model):
+    game_id = models.IntegerField(primary_key=True)
+    schedule_date = models.DateField(db_index=True)
+    starts_at = models.DateTimeField()
+    game_state = models.CharField(max_length=16)
+    schedule_state = models.CharField(max_length=16)
+    discovered_at = models.DateTimeField()
+    first_final_seen_at = models.DateTimeField(null=True)
+    last_live_attempt_at = models.DateTimeField(null=True)
+    last_final_attempt_at = models.DateTimeField(null=True)
+
+
 class Team(models.Model):
     name = models.CharField(max_length=128)
     nhl_id = models.IntegerField(unique=True)

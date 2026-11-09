@@ -38,3 +38,7 @@ links.txt
 node_modules/
 .browser-cache/
 browser-artifacts/
+
+# Local Celery Beat runtime state
+celerybeat-schedule*
+celerybeat.pid

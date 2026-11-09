@@ -26,6 +26,14 @@ wait in seconds, then release the failed response before waiting. Pagination
 retries the same page with the same parameters; no request-adapter retry layer
 is added. The policy follows the HTTP [Retry-After specification](https://www.rfc-editor.org/rfc/rfc9110.html#name-retry-after).
 
+Guarded writer commands now also persist an exhausted 429 as a cross-run cooldown
+in `LoaderScheduleState`: the greater of configured `NHL_COOLDOWN_SECONDS`
+(default five minutes) and a valid remaining server `Retry-After`. Manual and
+scheduled writers record skipped until that deadline; failed/skipped progress
+includes `next_retry_at`. New scheduled tasks return deferred and wait for a
+later periodic tick rather than immediately retrying a whole command. See
+[Celery scheduling and cooldowns](celery-operations.md#queues-overlap-and-rate-limits).
+
 Required failures identify the endpoint/context and number of attempts and stop
 the command. Optional career/HTML/image requests can still fall back after
 non-rate-limit failures, preserving existing missing-data behavior. Exhausted
@@ -38,7 +46,8 @@ TOI audit retains its own pacing, rate-limit stop and checkpoint behavior.
 
 ## After an exhausted rate limit
 
-Allow the service to recover before rerunning. When players already completed
+Allow the service to recover and the persisted cooldown to expire before rerunning.
+The guarded command refuses an early retry, even when called manually. When players already completed
 and current totals failed, rerun just the remaining stages:
 
 ```bash

@@ -1,0 +1,18 @@
+[Unit]
+Description=NHL loader Celery worker (example; review paths and environment)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nhl
+Group=nhl
+WorkingDirectory=/srv/nhl_web_app
+EnvironmentFile=/etc/nhl-web-app.env
+ExecStart=/srv/nhl_web_app/.venv/bin/celery -A nhl_web_app worker --loglevel=INFO --pool=prefork --concurrency=1 --prefetch-multiplier=1 --queues=nhl-live,nhl-maintenance
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=1800
+
+[Install]
+WantedBy=multi-user.target

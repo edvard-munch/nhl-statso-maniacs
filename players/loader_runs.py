@@ -2,16 +2,17 @@
 
 from contextlib import contextmanager
 from contextvars import ContextVar
-from datetime import timezone as datetime_timezone
+from datetime import timedelta, timezone as datetime_timezone
 import json
 import logging
 from time import monotonic
 
 from django.core.management.base import BaseCommand, CommandError
+from django.conf import settings
 from django.db import connection, DatabaseError
 from django.utils import timezone
 
-from .models import LoaderRun
+from .models import LoaderRun, LoaderScheduleState
 
 logger = logging.getLogger(__name__)
 # Stable, application-specific two-int PostgreSQL advisory lock key ("NHLS", 1).
@@ -19,6 +20,7 @@ LOCK_NAMESPACE = 0x4E484C53
 LOCK_RESOURCE = 1
 PROGRESS_INTERVAL_SECONDS = 15
 ERROR_LIMIT = 2000
+SCHEDULE_STATE_KEY = "nhl"
 SCOPE_OPTIONS = (
     "dates",
     "game_ids",
@@ -35,6 +37,50 @@ _current = ContextVar("loader_run", default=None)
 
 class LoaderBusy(CommandError):
     """A caller can reschedule later; waiting here would accumulate stale ticks."""
+
+
+class LoaderCooldown(CommandError):
+    """The shared NHL cooldown has not elapsed."""
+
+
+class LoaderSessionLost(CommandError):
+    """Do not retry additional games in a task after losing its database session."""
+
+
+def record_skipped(command, scope, stream, verbosity, reason, progress=None):
+    now = timezone.now()
+    run = LoaderRun.objects.create(
+        command=command,
+        scope=scope,
+        status=LoaderRun.Status.SKIPPED,
+        updated_at=now,
+        finished_at=now,
+        duration_seconds=0,
+        error=reason,
+        progress=progress or {},
+    )
+    RunReporter(run, stream, verbosity).emit("skipped")
+
+
+def note_rate_limit(error):
+    from . import nhl_http
+
+    seen = set()
+    while error is not None and id(error) not in seen:
+        seen.add(id(error))
+        response = getattr(error, "response", None)
+        if response is not None and response.status_code == nhl_http.RATE_LIMIT_STATUS:
+            delay = max(
+                settings.NHL_SCHEDULING["cooldown_seconds"],
+                nhl_http.retry_after_seconds(response.headers.get("Retry-After")) or 0,
+            )
+            until = timezone.now() + timedelta(seconds=delay)
+            LoaderScheduleState.objects.update_or_create(
+                key=SCHEDULE_STATE_KEY, defaults={"cooldown_until": until}
+            )
+            return until
+        error = error.__cause__ or error.__context__
+    return None
 
 
 class RunReporter:
@@ -124,9 +170,12 @@ def loader_execution(command, scope, stream, verbosity=1):
     if connection.in_atomic_block:
         raise CommandError("Run loader commands outside an enclosing database transaction")
     with connection.cursor() as cursor:
-        cursor.execute("SELECT to_regclass(%s)", [LoaderRun._meta.db_table])
-        if cursor.fetchone()[0] is None:
-            raise CommandError("Loader run table is missing; run python manage.py migrate first")
+        for model in (LoaderRun, LoaderScheduleState):
+            cursor.execute("SELECT to_regclass(%s)", [model._meta.db_table])
+            if cursor.fetchone()[0] is None:
+                raise CommandError(
+                    "Loader run table is missing; run python manage.py migrate first"
+                )
         if _current.get() is None:
             cursor.execute("SELECT pg_try_advisory_lock(%s, %s)", [LOCK_NAMESPACE, LOCK_RESOURCE])
             acquired = cursor.fetchone()[0]
@@ -136,18 +185,21 @@ def loader_execution(command, scope, stream, verbosity=1):
     token = None
     try:
         if not acquired:
-            now = timezone.now()
-            run = LoaderRun.objects.create(
-                command=command,
-                scope=scope,
-                status=LoaderRun.Status.SKIPPED,
-                updated_at=now,
-                finished_at=now,
-                duration_seconds=0,
-                error="Another loader holds the shared write lock; retry later",
+            reason = "Another loader holds the shared write lock; retry later"
+            record_skipped(command, scope, stream, verbosity, reason)
+            raise LoaderBusy(reason)
+        control, _ = LoaderScheduleState.objects.get_or_create(key=SCHEDULE_STATE_KEY)
+        if control.cooldown_until and control.cooldown_until > timezone.now():
+            reason = f"NHL cooldown active until {control.cooldown_until.isoformat()}"
+            record_skipped(
+                command,
+                scope,
+                stream,
+                verbosity,
+                reason,
+                {"next_retry_at": control.cooldown_until.isoformat()},
             )
-            RunReporter(run, stream, verbosity).emit("skipped")
-            raise LoaderBusy(run.error)
+            raise LoaderCooldown(reason)
         # Holding the lock proves no cooperating loader is still running. A hard
         # process exit may have committed data but failed to record its outcome.
         for abandoned in LoaderRun.objects.filter(status=LoaderRun.Status.RUNNING):
@@ -169,7 +221,7 @@ def loader_execution(command, scope, stream, verbosity=1):
 
         def same_session(execute, sql, params, many, context):
             if connection.connection is not held_connection or held_connection.closed:
-                raise CommandError(
+                raise LoaderSessionLost(
                     "Loader database session changed; refusing to continue without its lock"
                 )
             return execute(sql, params, many, context)
@@ -187,6 +239,9 @@ def loader_execution(command, scope, stream, verbosity=1):
             # Leave a running row for takeover recovery if even status persistence
             # is unavailable; logging failure must not mask the loader exception.
             try:
+                until = note_rate_limit(error)
+                if until is not None:
+                    reporter.run.progress["next_retry_at"] = until.isoformat()
                 reporter.finish(status, f"{type(error).__name__}: {error}")
             except DatabaseError:
                 logger.exception("Could not persist loader failure for %s", run.pk)
