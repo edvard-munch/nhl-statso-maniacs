@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from .logging_config import configuration as logging_configuration
 from nhl_web_app.environ import env
 from nhl_web_app.celery_schedule import read_options, beat_schedule, TASK_ROUTES, SECONDS_PER_DAY
 # import django_heroku
@@ -176,38 +177,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 2000
 
-LOG_DIRECTORY = os.path.join(BASE_DIR, "logs")
-os.makedirs(LOG_DIRECTORY, exist_ok=True)
-
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "verbose": {
-            "format": "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            "datefmt": "%d/%b/%Y %H:%M:%S",
-        },
-        "simple": {"format": "%(levelname)s %(message)s"},
-    },
-    "handlers": {
-        "file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": os.path.join(LOG_DIRECTORY, "nhl_web_app.log"),
-            "formatter": "verbose",
-        },
-    },
-    "loggers": {
-        "players.loader_runs": {
-            "handlers": ["file"],
-            "propagate": False,
-            "level": "INFO",
-        },
-        "players.scheduler": {"handlers": ["file"], "propagate": False, "level": "INFO"},
-        "django": {
-            "handlers": ["file"],
-            "propagate": True,
-            "level": "INFO",
-        },
-    },
-}
+# Use journald on supervised servers; local file logs require host logrotate.
+NHL_LOG_DESTINATION = os.environ.get("NHL_LOG_DESTINATION", "file")
+if NHL_LOG_DESTINATION == "file":
+    os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
+LOGGING = logging_configuration(BASE_DIR, NHL_LOG_DESTINATION)

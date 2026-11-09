@@ -8,7 +8,11 @@ Type=simple
 User=nhl
 Group=nhl
 WorkingDirectory=/srv/nhl_web_app
+Environment=NHL_LOG_DESTINATION=console
 EnvironmentFile=/etc/nhl-web-app.env
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nhl-celery-worker
 ExecStart=/srv/nhl_web_app/.venv/bin/celery -A nhl_web_app worker --loglevel=INFO --pool=prefork --concurrency=1 --prefetch-multiplier=1 --queues=nhl-live,nhl-maintenance
 Restart=on-failure
 RestartSec=10

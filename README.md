@@ -209,7 +209,10 @@ uv run --locked python manage.py loader_status --limit 10
 ```
 
 A conflicting invocation records `skipped` and exits nonzero before NHL requests.
-Run/progress events appear on stderr and in the application log. See
+Run/progress events appear on stderr and in the application log. Logs now use
+UTC JSON records with task/run correlation and failure tracebacks. Server services
+can use `NHL_LOG_DESTINATION=console` for journald; local file logs require host
+rotation. See [logging and retention](docs/celery-operations.md#logging-and-retention) and
 [overlap protection and run history](docs/loader-runs.md) for failure recovery,
 transaction requirements and the new tracking-table migration.
 

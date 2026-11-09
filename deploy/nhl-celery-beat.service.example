@@ -8,7 +8,11 @@ Type=simple
 User=nhl
 Group=nhl
 WorkingDirectory=/srv/nhl_web_app
+Environment=NHL_LOG_DESTINATION=console
 EnvironmentFile=/etc/nhl-web-app.env
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=nhl-celery-beat
 StateDirectory=nhl-celery
 ExecStart=/srv/nhl_web_app/.venv/bin/celery -A nhl_web_app beat --loglevel=INFO --schedule=/var/lib/nhl-celery/beat-schedule --pidfile=/var/lib/nhl-celery/beat.pid
 Restart=on-failure

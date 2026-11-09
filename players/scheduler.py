@@ -2,7 +2,6 @@
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone as datetime_timezone
-import json
 import logging
 import sys
 from zoneinfo import ZoneInfo
@@ -38,7 +37,7 @@ def control():
 
 def outcome(status, **details):
     result = {"status": status, **details}
-    logger.info(json.dumps({"timestamp": timezone.now().isoformat(), **result}, default=str))
+    logger.info("Scheduler outcome", extra={"event_data": {"event": "scheduler_outcome", **result}})
     return result
 
 

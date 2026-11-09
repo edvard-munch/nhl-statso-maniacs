@@ -5,12 +5,15 @@ from contextvars import ContextVar
 from datetime import timedelta, timezone as datetime_timezone
 import json
 import logging
+import sys
 from time import monotonic
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 from django.db import connection, DatabaseError
 from django.utils import timezone
+
+from nhl_web_app.logging_config import bind_context, context_fields
 
 from .models import LoaderRun, LoaderScheduleState
 
@@ -93,6 +96,7 @@ class RunReporter:
 
     def emit(self, event):
         payload = {
+            **context_fields(),
             "event": event,
             "run_id": str(self.run.pk),
             "command": self.run.command,
@@ -109,9 +113,22 @@ class RunReporter:
         }
         if self.run.error:
             payload["error"] = self.run.error
+        level = (
+            logging.ERROR
+            if self.run.status == LoaderRun.Status.FAILED
+            else (
+                logging.WARNING if self.run.status == LoaderRun.Status.INTERRUPTED else logging.INFO
+            )
+        )
+        payload["level"] = logging.getLevelName(level)
         line = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-        logger.info(line)
-        if self.verbosity:
+        logger.log(
+            level,
+            line,
+            exc_info=event == "finished" and sys.exc_info()[0] is not None,
+            extra={"event_data": payload, "console_event": True},
+        )
+        if self.verbosity and not context_fields()["task_id"]:
             self.stream.write(line + "\n")
             self.stream.flush()
 
@@ -226,28 +243,29 @@ def loader_execution(command, scope, stream, verbosity=1):
                 )
             return execute(sql, params, many, context)
 
-        reporter.emit("started")
-        try:
-            with connection.execute_wrapper(same_session):
-                yield reporter
-        except BaseException as error:
-            status = (
-                LoaderRun.Status.FAILED
-                if isinstance(error, Exception)
-                else LoaderRun.Status.INTERRUPTED
-            )
-            # Leave a running row for takeover recovery if even status persistence
-            # is unavailable; logging failure must not mask the loader exception.
+        with bind_context(run_id=str(run.pk), command=command, scope=scope):
+            reporter.emit("started")
             try:
-                until = note_rate_limit(error)
-                if until is not None:
-                    reporter.run.progress["next_retry_at"] = until.isoformat()
-                reporter.finish(status, f"{type(error).__name__}: {error}")
-            except DatabaseError:
-                logger.exception("Could not persist loader failure for %s", run.pk)
-            raise
-        else:
-            reporter.finish(LoaderRun.Status.SUCCEEDED)
+                with connection.execute_wrapper(same_session):
+                    yield reporter
+            except BaseException as error:
+                status = (
+                    LoaderRun.Status.FAILED
+                    if isinstance(error, Exception)
+                    else LoaderRun.Status.INTERRUPTED
+                )
+                # Leave a running row for takeover recovery if even status persistence
+                # is unavailable; logging failure must not mask the loader exception.
+                try:
+                    until = note_rate_limit(error)
+                    if until is not None:
+                        reporter.run.progress["next_retry_at"] = until.isoformat()
+                    reporter.finish(status, f"{type(error).__name__}: {error}")
+                except DatabaseError:
+                    logger.exception("Could not persist loader failure for %s", run.pk)
+                raise
+            else:
+                reporter.finish(LoaderRun.Status.SUCCEEDED)
     finally:
         if token is not None:
             _current.reset(token)

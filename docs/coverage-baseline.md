@@ -1339,3 +1339,14 @@ columns remain unchanged. Frontend assets, synthetic fixtures and temporary
 PostgreSQL keep this independent of live NHL, a broker or the application database.
 All **26 Chromium cases** pass (**1072 deselected**). System/schema checks, Ruff
 and dependency-export consistency also pass.
+
+
+## Follow-up: unattended loader/Celery logging
+
+The offline gate passes **1064 tests**, **48 deselected**, at **91.82% combined
+coverage**; the 35% gate is unchanged. Thirteen logging cases plus the added
+console-startup variant cover routing, UTC JSON, task/run correlation, severity,
+tracebacks, context cleanup, nonfailure outcomes, Celery/pool setup and reopening
+rotated files. All 72 focused logging/scheduler/loader cases pass. System/schema,
+Ruff, dependency-export and adapted service/logrotate syntax checks pass. No live
+broker, NHL request, application database or server configuration was used/changed.

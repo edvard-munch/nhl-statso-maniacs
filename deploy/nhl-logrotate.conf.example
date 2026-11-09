@@ -1,0 +1,14 @@
+# Review path/account; install in /etc/logrotate.d/nhl-web-app only for file mode.
+/srv/nhl_web_app/logs/nhl_web_app.log {
+    su nhl nhl
+    daily
+    maxsize 20M
+    rotate 14
+    missingok
+    notifempty
+    compress
+    delaycompress
+    create 0640 nhl nhl
+}
+# WatchedFileHandler reopens on the next event; do not use copytruncate.
+# maxsize is evaluated only when logrotate runs, not at every log write.

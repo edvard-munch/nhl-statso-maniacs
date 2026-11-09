@@ -13,7 +13,8 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[4]
 
 
-def test_clean_checkout_logging_starts_without_existing_log_directory(tmp_path):
+@pytest.mark.parametrize("destination", ["file", "console"])
+def test_clean_checkout_logging_starts_without_existing_log_directory(tmp_path, destination):
     checkout = tmp_path / "nhl-statso-maniacs"
     checkout.mkdir()
     shutil.copytree(
@@ -24,6 +25,7 @@ def test_clean_checkout_logging_starts_without_existing_log_directory(tmp_path):
     assert not (checkout / "logs").exists()
     env = os.environ.copy()
     env.update(
+        NHL_LOG_DESTINATION=destination,
         PYTHONPATH=str(checkout) + os.pathsep + str(ROOT),
         DJANGO_SETTINGS_MODULE="nhl_web_app.settings",
         DEBUG="false",
@@ -78,6 +80,10 @@ logging.shutdown()
         universal_newlines=True,
     )
     assert result.returncode == 0, result.stderr
-    log = (checkout / "logs/nhl_web_app.log").read_text()
+    if destination == "file":
+        log = (checkout / "logs/nhl_web_app.log").read_text()
+    else:
+        assert not (checkout / "logs").exists()
+        log = result.stderr
     assert "Clean startup 0" in log
     assert "Clean startup 1" in log

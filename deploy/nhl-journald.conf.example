@@ -1,0 +1,9 @@
+# OPTIONAL dedicated namespace; requires host systemd support and review.
+# Add LogNamespace=nhl to BOTH service units, then place this file at:
+# /etc/systemd/journald@nhl.conf.d/retention.conf
+# These limits apply to the nhl namespace, not the host's other logs.
+[Journal]
+Storage=persistent
+SystemMaxUse=256M
+RuntimeMaxUse=64M
+MaxRetentionSec=14day

@@ -69,14 +69,31 @@ SQLite/file-lock fallback.
 
 ## Logging and progress
 
-Run events contain JSON payloads in `logs/nhl_web_app.log` under the
-`players.loader_runs` logger, with the existing application-log prefix. Console
-events are plain JSON lines on stderr. Each contains an explicit UTC
-timestamp, run ID, command/scope, status, elapsed duration and progress. Standard
-stdout remains available for existing command output, especially
-`audit_game_toi --json`. `--verbosity 0` suppresses console run events, while
-file and database history remain enabled. Existing tqdm output and audit
-checkpoints still work.
+Application log records are JSON lines with UTC timestamps, severity and logger.
+`NHL_LOG_DESTINATION=file` (default) writes `logs/nhl_web_app.log` through
+`WatchedFileHandler`; `console` writes to stderr for journald and opens no
+application log file. See [retention and server setup](celery-operations.md#logging-and-retention).
+The `players` logger hierarchy collects HTTP retries and game-loader warnings,
+including loggers created before Django setup. Existing third-party loggers stay
+enabled. Celery uses the same configuration rather than replacing its handlers.
+
+Loader events include run ID, command/scope, status, elapsed duration and progress.
+Failures are ERROR with tracebacks in application logging; interruptions are
+WARNING; expected busy/cooldown skips remain INFO with status/reason fields.
+Standalone commands also emit their existing plain JSON run events to explicit
+stderr; console mode filters out duplicate handler copies. `--verbosity 0`
+suppresses those direct run events while database history and file logging remain
+available. Other warnings/errors are still logged. Stdout remains available for
+existing command output, especially `audit_game_toi --json`; legacy progress and
+print output are not converted into structured records.
+
+In Celery, loader events use the configured handler only. Task lifecycle,
+scheduler, loader and HTTP messages include task ID/name and the scheduling job
+where available; messages inside a loader also include its run ID and scope.
+Task start/finish records contain elapsed duration and the actual outcome
+(including disabled/not-due/deferred), with failure tracebacks and original
+exceptions preserved. Context is cleared between runs/tasks. The lifecycle
+wrapper does not serialize task arguments or full results.
 
 Phases cover team updates, player report fetch/publication/flags, current/full
 totals, game dates/targets and TOI repair. Progress includes the current item,
@@ -118,8 +135,7 @@ When opt-in schedules are enabled, terminal run history is pruned after thirty
 days; configure application-log rotation on the host. Shared cross-run cooldowns,
 task expiry/coalescing and quiet-window deferral are implemented in the
 [Celery setup](celery-operations.md). Per-request [Retry-After handling](loader-http.md)
-is retained. No periodic work starts without explicit activation; browser polling
-remains separate work.
+is retained. No periodic work starts without explicit activation; browser polling reads saved data independently.
 
 ## Regression checks
 

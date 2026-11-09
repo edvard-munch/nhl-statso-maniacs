@@ -169,8 +169,7 @@ uv run --locked --no-default-groups python manage.py loader_status --limit 20 --
 A normal return proves execution, not NHL source freshness or complete optional
 reports. Recently finalized games are attempted within a bounded window even
 when reports remain unavailable; the daily reconciliation revisits them later.
-Loader history defaults to 30 days; task results seven days. Configure application
-log rotation on the host. Schedule-entry history is retained, not automatically
+Loader history defaults to 30 days; task results seven days. Configure [logging and retention](#logging-and-retention) on the host. Schedule-entry history is retained, not automatically
 purged. Broker provisioning, live service startup/health and a representative
 backup/restore rehearsal must be verified on the real host; offline tests do not
 claim those checks were performed.
@@ -205,3 +204,71 @@ described above to be running separately.
 Refresh endpoints are read-only GET requests with private, no-store responses.
 Favorite actions continue to use POST and CSRF; an in-flight refresh started
 before a favorite mutation is discarded to avoid restoring an old selection.
+
+
+## Logging and retention
+
+All application logging uses JSON lines with UTC timestamps and severity. Task
+start/finish events carry task ID/name, job, duration and outcome; loader/HTTP
+messages carry the associated run ID/command/scope while executing. Find a failing
+run with `loader_status`, then search logs by its UUID or the Celery task ID.
+Failures are ERROR and include tracebacks; interrupted work is WARNING. Expected
+busy/cooldown/window deferrals and not-due outcomes remain INFO with explicit
+status/reason fields. A task failure and its loader failure are separate related
+events, not two executions. No logging-only retry or behavior change is introduced.
+
+The worker/Beat service examples set `NHL_LOG_DESTINATION=console`, with stdout
+and stderr captured by journald. The shared EnvironmentFile can override that
+setting, so remove an old `NHL_LOG_DESTINATION=file` or explicitly set `console`
+in the server environment. No application file/directory is opened in console
+mode. Inspect service logs with:
+
+```bash
+journalctl -u nhl-celery-worker.service -u nhl-celery-beat.service --since '1 hour ago' -o cat
+```
+
+Legacy loader prints, tqdm output and service startup messages may still be plain
+text; JSON logging does not turn the entire process output into JSON. Existing
+log prefixes are replaced by JSON for newly written application records. Celery's
+`setup_logging` hook retains Django's handler configuration for worker and Beat;
+its `--logfile`/format options do not replace this configuration. INFO is the
+configured application/handler threshold. Console log events from a task are
+emitted once; standalone command run events still honor their explicit stderr
+stream and verbosity. Missing task IDs on manual commands or run IDs on broker/
+Beat events are expected.
+
+For bounded server storage, review the optional
+[dedicated journal namespace example](../deploy/nhl-journald.conf.example).
+If the host supports systemd journal namespaces, add `LogNamespace=nhl` to both
+reviewed service units and install the shown namespace retention configuration.
+It sets 256 MB persistent / 64 MB runtime budgets and 14-day retention for that
+namespace, without changing other host journals. Namespace logs are then read
+with `journalctl --namespace=nhl ...` using the same unit filters. Validate namespace
+support, persistent storage and retention on the host before restarting services;
+otherwise use the host's established journal retention policy. These examples do
+not install or change services or journal configuration automatically.
+
+For file logging (the unchanged local default), install and adapt the
+[logrotate example](../deploy/nhl-logrotate.conf.example), check directory/account
+permissions and verify the host's logrotate timer. It rotates daily or above
+20 MB when logrotate runs, retains 14 files and uses delayed compression.
+`WatchedFileHandler` reopens after rename/create rotation; do not use copytruncate
+or separate in-process rotating handlers in prefork workers. A file can grow
+between logrotate invocations, so this is not a strict instantaneous size cap.
+Rotate the previous text-format log on rollout if downstream tools require each
+file to contain JSON exclusively.
+
+Check one manual run, one worker task and Beat output after deployment: verify
+UTC fields, task/run correlation, a controlled failure and log retention without
+printing the environment or broker credentials. Automated tests exercise logging
+setup, eager task failures and file reopening, without provisioning a broker or
+claiming host journal retention has been applied. Log collection does not alert
+operators on overdue jobs; monitoring/notifications remain separate work.
+
+The implementation uses Celery's
+[logging setup signal](https://docs.celeryq.dev/en/v5.4.0/userguide/signals.html#setup-logging)
+and Python's
+[WatchedFileHandler](https://docs.python.org/3.12/library/logging.handlers.html#watchedfilehandler).
+
+Journal namespace paths and retention controls follow the systemd
+[journald configuration reference](https://www.freedesktop.org/software/systemd/man/255/journald.conf.html).

@@ -16,7 +16,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1050 tests at 91.80% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1064 tests at 91.82% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -702,3 +702,16 @@ also pass. See
 Server broker/worker/Beat activation, a controlled live refresh, service health and
 backup/restore rehearsal remain host validation work; no services are enabled by
 this change. Ambiguous legacy-data review remains separate.
+
+
+## Unattended-operation logging
+
+Shared UTC JSON handlers now collect loader, HTTP, scheduler and Celery/pool
+messages with task/job/run correlation, lifecycle duration/outcomes and failure
+tracebacks. Error/interruption severity and scoped context cleanup are covered;
+command stdout, transaction behavior and scheduling decisions are unchanged.
+Service examples select journald; optional namespace retention and file-logrotate
+examples require host installation/review. The offline gate passes 1064 tests at
+91.82% coverage, including 14 added cases/variants; 72 focused cases pass. See
+[logging operation](celery-operations.md#logging-and-retention). Host activation,
+retention verification and overdue/failure monitoring remain deployment work.
