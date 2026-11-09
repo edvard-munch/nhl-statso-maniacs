@@ -16,7 +16,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1064 tests at 91.82% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1089 tests at 92.04% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -715,3 +715,15 @@ examples require host installation/review. The offline gate passes 1064 tests at
 91.82% coverage, including 14 added cases/variants; 72 focused cases pass. See
 [logging operation](celery-operations.md#logging-and-retention). Host activation,
 retention verification and overdue/failure monitoring remain deployment work.
+
+
+## Read-only scheduler health
+
+`scheduler_health` now exposes saved configuration, success markers, due/overdue
+work, cooldowns, recent unresolved failures and long-running loaders in terminal
+or versioned JSON form. Exit codes distinguish healthy/unhealthy/disabled/unknown.
+Health and execution share game selection; checks neither initialize state nor
+probe services or acquire writer locks. Twenty-five new cases and the full offline
+gate pass: 1089 tests at 92.04% coverage; 79 focused cases pass. See
+[health semantics and monitoring](scheduler-health.md). Alert delivery and live
+broker/worker/Beat/service validation remain deployment work.

@@ -1350,3 +1350,14 @@ tracebacks, context cleanup, nonfailure outcomes, Celery/pool setup and reopenin
 rotated files. All 72 focused logging/scheduler/loader cases pass. System/schema,
 Ruff, dependency-export and adapted service/logrotate syntax checks pass. No live
 broker, NHL request, application database or server configuration was used/changed.
+
+
+## Follow-up: read-only scheduler health
+
+The offline gate passes **1089 tests**, **48 deselected**, at **92.04% combined
+coverage**, with the 35% gate unchanged. Twenty-five new cases cover SELECT-only
+inspection, missing history, cadence/grace and midnight/weekly deadlines, real
+CLI JSON/exit codes, publication versus attempt evidence, cooldowns, scoped failure
+recovery, long-running work and display limits. All 79 focused health/scheduler/
+loader cases pass. System/schema, Ruff and dependency-export checks pass; no live
+services, application database or scheduler state were changed by validation.

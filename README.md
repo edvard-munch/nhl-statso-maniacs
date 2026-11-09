@@ -222,6 +222,17 @@ browser polling; stale unfinished games and unavailable supplementary stats are
 labelled. Pause automatic checks or use **Refresh now** as needed. These checks
 do not run loaders. See [browser freshness](docs/celery-operations.md#browser-refresh-and-freshness).
 
+Inspect saved scheduler health without starting work:
+
+```bash
+uv run --locked python manage.py scheduler_health
+uv run --locked python manage.py scheduler_health --json
+```
+
+See [scheduler health](docs/scheduler-health.md) for exit codes, thresholds and
+limits. Disabled scheduling returns exit code 2; live service availability is
+not probed.
+
 ## Run Development Server
 
 ```bash

@@ -189,9 +189,8 @@ def ensure_snapshot():
         discover(force=True)
 
 
-def refresh_group(final=False):
-    ensure_snapshot()
-    now = timezone.now()
+def game_candidates(now, final=False, *, due_only=True):
+    """Read-only selection shared by execution and scheduler health."""
     options = settings.NHL_SCHEDULING
     selected = ScheduledGame.objects.filter(
         schedule_state=games.SCHEDULE_OK,
@@ -211,10 +210,19 @@ def refresh_group(final=False):
             game_state__in=SOFT_FINAL_STATES, starts_at__gte=now - MAX_ACTIVE_AGE
         )
         attempt_field = "last_live_attempt_at"
-    selected = selected.filter(
+    if not due_only:
+        return selected
+    return selected.filter(
         Q(**{attempt_field + "__isnull": True})
         | Q(**{attempt_field + "__lte": now - timedelta(seconds=interval)})
     )
+
+
+def refresh_group(final=False):
+    ensure_snapshot()
+    now = timezone.now()
+    selected = game_candidates(now, final=final)
+    attempt_field = "last_final_attempt_at" if final else "last_live_attempt_at"
     failures, processed = [], 0
     for game_id in selected.order_by("starts_at", "game_id").values_list("game_id", flat=True):
         try:

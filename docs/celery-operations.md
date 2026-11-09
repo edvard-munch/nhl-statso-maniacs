@@ -272,3 +272,8 @@ and Python's
 
 Journal namespace paths and retention controls follow the systemd
 [journald configuration reference](https://www.freedesktop.org/software/systemd/man/255/journald.conf.html).
+
+
+For a read-only view of saved scheduling evidence, run `scheduler_health` or
+`scheduler_health --json`. See [health checks and monitoring exit codes](scheduler-health.md).
+This does not activate services or probe the broker/worker/Beat.
