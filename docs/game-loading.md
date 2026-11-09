@@ -4,9 +4,69 @@
 right-rail report links and play-by-play. The reported empty/HTML response no
 longer escapes as a raw `JSONDecodeError`.
 
-For proposed targeted live/final refreshes and always-on automation, see the
-[scheduling policy](loader-scheduling.md). Those scopes and periodic jobs are
-planned work; the existing broad command behavior below remains in effect.
+Explicit targeted refreshes are supported as described below. Always-on
+automation remains planned in the [scheduling policy](loader-scheduling.md).
+Running `upd_gms` without selectors retains the existing broad-refresh behavior.
+
+## Targeted game and date refreshes
+
+Select one or more NHL schedule dates, or one or more regular-season game IDs:
+
+```bash
+uv run --locked python manage.py upd_gms --date 2026-11-08
+uv run --locked python manage.py upd_gms --date 2026-11-08 --state active
+uv run --locked python manage.py upd_gms --date 2026-11-07 --date 2026-11-08 --state final
+uv run --locked python manage.py upd_gms --game-id 2023020001
+```
+
+Dates must be exact `YYYY-MM-DD`; IDs must have regular-season `YYYY02NNNN`
+form. Dates and IDs cannot be combined; repeated selectors are deduplicated.
+`--state` requires a selector and defaults to `started`: LIVE, CRIT, OVER, FINAL
+or OFF. `active` selects LIVE/CRIT; `final` selects FINAL/OFF. There is no implicit
+today, season scan, next-week traversal or continuous polling in targeted mode.
+
+Date mode fetches the requested date's schedule and uses only that exact day.
+Known FUT/PRE games, non-OK schedule states and games outside the state filter
+are deferred before boxscore/report requests; non-regular-season games are skipped.
+An empty dated games list succeeds, while a missing/ambiguous date or malformed
+schedule fails. Boxscore state is checked again because it can change after
+schedule retrieval. ID mode makes no schedule request and obtains the NHL game
+date from the boxscore, independent of the current UTC/Moscow date. A valid
+pregame boxscore is deferred without report requests or database writes.
+
+Finished games are refreshed even if already marked finished, allowing explicit
+recent-final corrections. Each game fetches/validates required JSON and optional
+HTML before a per-game publication transaction. A failed game retains its old
+publication; earlier successfully published targets remain committed. Required
+failures stop the command with a nonzero result, including 429 exhaustion. The
+command does not repeatedly probe a deferred game. A missing/unreadable boxscore
+whose state is unknown remains an error, not an assumed future game.
+
+Game ID, date, teams and roster are checked before publication. A stored game
+whose date differs from the boxscore is rejected for explicit history review;
+targeting does not automatically move old date-keyed logs. A conflicting or
+unverified same-date player log also aborts that game's transaction.
+
+Missing supplementary fields preserve valid values from a gamelog verified to
+belong to the same game/player (or an unambiguous legacy appearance). Fresh
+boxscore values take precedence over reports, and explicit zeros replace older
+values. With neither a new source value nor a valid same-game saved value,
+`faceoffs`, `powerPlayPoints`, `shPoints`, `powerPlayToi` and `shorthandedToi` are
+stored as JSON null and displayed as dashes on game, profile and game-log pages.
+Historical broad-loader default zeros cannot retrospectively be distinguished
+from measured zeros; this does not audit or rewrite their provenance.
+
+ID-only refreshes never promote whole-day completion flags. A non-final/incomplete
+target can clear an old finished-day flag. Date mode can recompute flags only
+against the exact full schedule ID set; state-filtered subsets can clear flags
+but never promote them. Final flags still describe game/roster completion, not
+proof that every supplementary report is available.
+
+`tests_upd_gms_targets_db.py` reuses the roster/report fixtures for selection,
+finished replays, live/final filters, identity/date boundaries, missing-report
+preservation, null rendering and rollback contracts. No scheduling, overlap
+guard, shared cooldown or browser polling is enabled yet; do not overlap manual
+and automated loaders until the coordination follow-up is implemented.
 
 ## Request behavior
 
@@ -39,9 +99,9 @@ flags from that day's transaction. Previously committed days remain intact. API
 fetches for the day occur inside that transaction; the whole season is not one
 transaction.
 
-Unavailable future-game payloads still produce a controlled failure. This change
-does not introduce a policy for skipping/deferring those games. A failed day is not
-marked complete. Once the endpoint is available, rerun:
+In broad mode, unavailable future-game payloads still produce a controlled
+failure and a failed day is not marked complete. Targeted mode instead defers
+known pregame games as described above. Once the endpoint is available, rerun:
 
 ```bash
 uv run --locked python manage.py upd_gms

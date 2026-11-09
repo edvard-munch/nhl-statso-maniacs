@@ -1224,3 +1224,31 @@ Ruff/format, requirements drift and whitespace checks. No schema/dependency
 changes, application database access or live NHL requests are involved. Existing
 over-quota data is retained; all future application writers must follow the same
 locking protocol. Arbitrary direct ORM/admin writes are not a database quota constraint.
+
+## Follow-up: targeted game/date refreshes
+
+Add repeatable, mutually exclusive `upd_gms --date` / `--game-id` selectors and
+started/active/final filters. Targets bypass broad season/date traversal, defer
+known pregame games before report calls and replay finished games. Boxscore IDs,
+dates, team identities and supplied rosters are validated before per-game atomic
+publication; required fetch failures retain existing publication. Previously
+committed targets survive a later failure. Partial target sets cannot promote
+whole-day flags. Saved-date and conflicting same-date log identities are rejected
+for explicit review. Existing no-argument broad orchestration is unchanged.
+
+Missing report fields preserve valid matching-game saved values; fresh boxscore
+values, including zero, still win. New unavailable fields are JSON null and render
+as dashes on game, profile and gamelog pages, rather than fabricated zeros.
+Historical broad-loader zeros are not reclassified. Forty-six added integration
+cases reuse existing roster/HTML fixtures and exercise actual command parsing,
+bounded scope/state selection, replay, day flags, report preservation, date/ID
+errors, three rendered pages and rollback after partial player publication.
+
+Against disposable PostgreSQL 16, system/migration checks, **988 offline tests**
+(**44 deselected**), **91.44% combined coverage**, the unchanged 35% gate and XML
+export pass. All **22 Chromium cases pass** (**1010 deselected**). Static/format,
+requirements drift, local documentation links and whitespace checks pass. No
+application database or live loader was used for validation. Public historical
+NHL schedule/boxscore JSON was inspected read-only to confirm the target metadata
+shape; test HTTP is mocked. No schema, dependency, Make/task sequence, scheduler
+or deployment settings change. Shared overlap/cooldown guards remain next.

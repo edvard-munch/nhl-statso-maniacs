@@ -1,6 +1,6 @@
 # Regression testing and modernization roadmap
 
-Reviewed: 2026-11-06. This records the work agreed in this chat and the remaining
+Reviewed: 2026-11-09. This records the work agreed in this chat and the remaining
 sequence. Update the status and evidence as each small commit lands.
 
 ## Goal and recommendation
@@ -9,14 +9,14 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Next: targeted game refreshes before enabling server scheduling.** The
+**Next: shared loader overlap/cooldown guards and progress before server scheduling.** The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
 cadences, current loader limitations and always-on server requirements. The
 [legacy inventory](legacy-audit.md) retains deployment/worker usage questions.
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
-Django 5.2.18 now passes 902 offline tests on Python 3.12.16, reaching the planned LTS endpoint
-locally. The final framework step includes compatible Bootstrap 4 forms, task-result
+Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
+offline suite passes 988 tests at 91.44% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -616,9 +616,25 @@ daily player/current-totals/recent-game reconciliation and weekly teams. Cadence
 remain provisional; full historical refresh stays manual. No jobs or services are
 enabled by the policy commit.
 
-Next implement targeted game/date refreshes and preserve verified fields when
-reports are unavailable, then shared loader overlap/cooldown guards and progress,
+Targeted game/date refreshes are now implemented as recorded below.
+Next implement shared loader overlap/cooldown guards and progress,
 then task splitting, broker/Beat/supervision setup, followed by browser freshness.
 Host/broker choice, exact live freshness, intra-game season-table needs and quiet
 windows must be confirmed before activation. Existing manual Make targets and
 the legacy Celery task retain their current behavior until those focused commits.
+
+## Targeted game refreshes
+
+`upd_gms --date ...` and `--game-id ...` accept repeated explicit selectors and
+started/active/final filters. They avoid broad scanning, defer known pregame games,
+replay finished games and publish per game after fetching required data. Missing
+report fields retain valid same-game values; otherwise they remain unknown and
+render as dashes. Targeted subsets cannot promote whole-day completion. Saved
+date/identity conflicts require explicit reconciliation. No-argument broad
+refresh and Make/Celery sequences retain their existing behavior.
+
+Forty-six new mocked-HTTP/PostgreSQL cases reuse the roster/report fixtures.
+System/migration checks, 988 offline tests at 91.44% coverage and all 22 Chromium
+cases pass against disposable PostgreSQL. See [targeted contracts and commands](game-loading.md#targeted-game-and-date-refreshes).
+Next add shared loader coordination, cooldowns and progress before task splitting
+and enabling Beat. No periodic jobs or server services are enabled yet.

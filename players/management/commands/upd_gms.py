@@ -87,6 +87,19 @@ GAME_STATES = {
 }
 GAME_LIVE_SUFFIX = f" ({GAME_STATES['live'].capitalize()})"
 FINAL_GAME_STATES = {GAME_STATES["hard_final"], GAME_STATES["finished"]}
+ACTIVE_GAME_STATES = {GAME_STATES["live"], GAME_STATES["critical"]}
+PREGAME_STATES = {GAME_STATES["scheduled"], GAME_STATES["pregame"]}
+STARTED_GAME_STATES = ACTIVE_GAME_STATES | FINAL_GAME_STATES | {GAME_STATES["softFinal"]}
+TARGET_STARTED = "started"
+TARGET_STATES = {
+    TARGET_STARTED: STARTED_GAME_STATES,
+    "active": ACTIVE_GAME_STATES,
+    "final": FINAL_GAME_STATES,
+}
+SCHEDULE_OK = "OK"
+SECONDS_PER_MINUTE = 60
+REGULAR_GAME_ID_REGEX = r"^\d{4}02\d{4}$"
+DATE_FORMAT = "%Y-%m-%d"
 
 SIDES = {
     "away": "away",
@@ -111,7 +124,44 @@ TIMEZONE = "US/Pacific"
 
 
 class Command(BaseCommand):
+    def add_arguments(self, parser):
+        targets = parser.add_mutually_exclusive_group()
+        targets.add_argument(
+            "--date",
+            action="append",
+            dest="dates",
+            help="NHL schedule date YYYY-MM-DD; repeat for multiple dates",
+        )
+        targets.add_argument(
+            "--game-id",
+            action="append",
+            dest="game_ids",
+            help="Regular-season NHL game ID; repeat for multiple games",
+        )
+        parser.add_argument(
+            "--state",
+            choices=tuple(TARGET_STATES),
+            help="Targeted runs only: started (default), active, or final",
+        )
+
     def handle(self, *args, **options):
+        dates = list(
+            dict.fromkeys(parse_target_date(value) for value in (options.get("dates") or []))
+        )
+        game_ids = list(
+            dict.fromkeys(parse_target_game_id(value) for value in (options.get("game_ids") or []))
+        )
+        if dates and game_ids:
+            raise CommandError("Use --date or --game-id, not both")
+        state = options.get("state")
+        if state is not None and state not in TARGET_STATES:
+            raise CommandError("Invalid --state; use started, active, or final")
+        if state and not (dates or game_ids):
+            raise CommandError("--state requires --date or --game-id")
+        if dates or game_ids:
+            with requests.Session() as session:
+                refresh_targets(dates, game_ids, state or TARGET_STARTED, session, self.stdout)
+            return
         with requests.Session() as session:
             today = datetime.now(ZoneInfo(TIMEZONE)).date()
             schedule = get_schedule(today, session)
@@ -134,6 +184,170 @@ class Command(BaseCommand):
 
             elif not first_unfinished_gameday_in_db:
                 check_for_games(regular_season_start_date, regular_season_end_date, session)
+
+
+def parse_target_date(value):
+    try:
+        parsed = datetime.strptime(str(value), DATE_FORMAT).date()
+        if parsed.isoformat() != str(value):
+            raise ValueError
+        return parsed
+    except (ValueError, TypeError) as error:
+        raise CommandError(f"Invalid target date {value!r}; use YYYY-MM-DD") from error
+
+
+def parse_target_game_id(value):
+    if not re.fullmatch(REGULAR_GAME_ID_REGEX, str(value), flags=re.ASCII):
+        raise CommandError(f"Invalid regular-season game ID {value!r}; expected YYYY02NNNN")
+    return int(value)
+
+
+def target_state(payload):
+    state = payload.get("gameState")
+    if not isinstance(state, str) or state not in STARTED_GAME_STATES | PREGAME_STATES:
+        raise CommandError(f"Invalid targeted game state {state!r}")
+    return state
+
+
+def scheduled_targets(date, session):
+    """Use only the requested NHL date, never the surrounding week or next page."""
+    schedule = fetch_json(
+        URL_SCHEDULE.format(date), f"target schedule {date}", session, {"gameWeek"}
+    )
+    week = schedule["gameWeek"]
+    if not isinstance(week, list) or any(not isinstance(day, dict) for day in week):
+        raise CommandError(f"Invalid gameWeek for {date}")
+    days = [day for day in week if day.get("date") == date.isoformat()]
+    if len(days) != 1 or not isinstance(days[0].get("games"), list):
+        raise CommandError(f"Schedule must contain exactly one games list for {date}")
+    games = days[0]["games"]
+    ids = []
+    for game in games:
+        if not isinstance(game, dict) or type(game.get("id")) is not int:
+            raise CommandError(f"Invalid scheduled game identity for {date}")
+        ids.append(game["id"])
+        if regular_season_game(game):
+            parse_target_game_id(game["id"])
+            target_state(game)
+    if len(ids) != len(set(ids)):
+        raise CommandError(f"Duplicate scheduled game ID for {date}")
+    return games
+
+
+def refresh_targets(dates, game_ids, state, session, output):
+    refreshed = deferred = 0
+    # Dates and IDs are explicitly finite. No automatic historical/future scan.
+    for date in dates:
+        games = scheduled_targets(date, session)
+        output.write(f"Target date {date}: {len(games)} scheduled game(s)")
+        for game in games:
+            game_id = game["id"]
+            if not regular_season_game(game):
+                output.write(f"Game {game_id}: skipped (not regular season)")
+                continue
+            if (
+                target_state(game) not in TARGET_STATES[state]
+                or game.get("gameScheduleState", SCHEDULE_OK) != SCHEDULE_OK
+            ):
+                deferred += 1
+                output.write(
+                    f"Game {game_id}: deferred (schedule state {game['gameState']}, {game.get('gameScheduleState', 'OK')})"
+                )
+                continue
+            if refresh_target_game(game_id, session, state, date):
+                refreshed += 1
+                output.write(f"Game {game_id}: refreshed")
+            else:
+                deferred += 1
+                output.write(f"Game {game_id}: deferred (boxscore outside selected states)")
+        reconcile_target_day(date, games, state)
+    for game_id in game_ids:
+        if refresh_target_game(game_id, session, state):
+            refreshed += 1
+            output.write(f"Game {game_id}: refreshed")
+        else:
+            deferred += 1
+            output.write(f"Game {game_id}: deferred (boxscore outside selected states)")
+    output.write(f"Targeted refresh complete: {refreshed} refreshed, {deferred} deferred")
+
+
+def refresh_target_game(game_id, session, state, date=None):
+    payload = fetch_json(
+        URL_BOXSCORE.format(game_id),
+        f"target game {game_id}",
+        session,
+        {"id", "gameDate", "gameState"},
+    )
+    if type(payload.get("id")) is not int or payload["id"] != game_id:
+        raise CommandError(f"Boxscore identity does not match requested game {game_id}")
+    payload_date = parse_target_date(payload.get("gameDate"))
+    if date is not None and payload_date != date:
+        raise CommandError(
+            f"Game {game_id}: boxscore date {payload_date} disagrees with schedule {date}"
+        )
+    if (
+        target_state(payload) not in TARGET_STATES[state]
+        or payload.get("gameScheduleState", SCHEDULE_OK) != SCHEDULE_OK
+    ):
+        return False
+    team_ids = []
+    for side in ROSTER_SIDES:
+        team = payload.get(side)
+        if not isinstance(team, dict) or type(team.get("id")) is not int or team["id"] <= 0:
+            raise CommandError(f"Game {game_id}: {side} requires a positive team ID")
+        team_ids.append(team["id"])
+    if len(set(team_ids)) != len(ROSTER_SIDES):
+        raise CommandError(f"Game {game_id}: home and away team IDs must differ")
+    # Fetch and validate before the per-game publication transaction.
+    roster = get_rosters_api(payload, game_id)
+    if not roster:
+        raise CommandError(f"Game {game_id}: started game is missing roster data")
+    reports = get_game_report_player_stats(game_id, game_data=payload, session=session)
+    publish_target_game(payload_date, payload, reports, session)
+    return True
+
+
+@transaction.atomic
+def publish_target_game(date, payload, reports, session):
+    game_id = payload["id"]
+    existing = Game.objects.select_related("gameday").filter(nhl_id=game_id).first()
+    if existing and (not existing.gameday or existing.gameday.day != date):
+        raise CommandError(
+            f"Game {game_id}: saved date differs; explicit history reconciliation required"
+        )
+    day = {"date": date.isoformat(), "games": [{"id": game_id}]}
+    try:
+        _process_games(day, session, payloads={game_id: payload}, reports={game_id: reports})
+    except (Team.DoesNotExist, CommandError) as error:
+        raise CommandError(f"Game {game_id} on {date}: {error}") from error
+
+
+@transaction.atomic
+def reconcile_target_day(date, scheduled, state):
+    # Only a full started-state date refresh can promote day flags. An ID or
+    # state-filtered subset must never claim it knows the whole day's coverage.
+    day = Gameday.objects.filter(day=date).first()
+    if not day:
+        return
+    expected = {game["id"] for game in scheduled}
+    stored = dict(day.games.values_list("nhl_id", "game_finished"))
+    complete = bool(expected) and set(stored) == expected
+    finished = (
+        complete
+        and all(stored.values())
+        and all(
+            game.get("gameState") in FINAL_GAME_STATES
+            and game.get("gameScheduleState", SCHEDULE_OK) == SCHEDULE_OK
+            for game in scheduled
+        )
+    )
+    if state == TARGET_STARTED:
+        day.all_games_uploaded = complete
+        day.all_games_finished = finished
+    else:
+        day.all_games_uploaded = day.all_games_uploaded and complete
+        day.all_games_finished = day.all_games_finished and finished
+    day.save(update_fields=["all_games_uploaded", "all_games_finished"])
 
 
 def check_for_games(date, date_end, session):
@@ -206,7 +420,7 @@ def process_games(day, session):
         raise CommandError("Gameday {}: {}".format(day["date"], error)) from error
 
 
-def _process_games(day, session):
+def _process_games(day, session, *, payloads=None, reports=None):
     date_api = datetime_from_string(day["date"])
     gameday_obj = Gameday.objects.update_or_create(day=date_api)[0]
     games_finished_total = 0
@@ -214,7 +428,11 @@ def _process_games(day, session):
     for game in day["games"]:
         game_finished = False
         if regular_season_game(game):
-            game_data = get_game_data(game["id"], URL_BOXSCORE, session)
+            game_data = (
+                payloads[game["id"]]
+                if payloads is not None
+                else get_game_data(game["id"], URL_BOXSCORE, session)
+            )
             rosters_api = None
             if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
                 rosters_api = get_rosters_api(game_data, game["id"])
@@ -239,8 +457,12 @@ def _process_games(day, session):
                 game_obj.save(update_fields=["slug"])
 
             if game_data["gameState"] not in [GAME_STATES["scheduled"], GAME_STATES["pregame"]]:
-                report_player_stats = get_game_report_player_stats(
-                    game["id"], game_data=game_data, session=session
+                report_player_stats = (
+                    reports[game["id"]]
+                    if reports is not None
+                    else get_game_report_player_stats(
+                        game["id"], game_data=game_data, session=session
+                    )
                 )
                 if rosters_api:
                     if not created:
@@ -251,6 +473,7 @@ def _process_games(day, session):
                         gameday_obj,
                         report_player_stats,
                         game_id=game_obj.nhl_id,
+                        preserve_game=game_obj if payloads is not None else None,
                     )
 
                     if game_data["gameState"] in FINAL_GAME_STATES and rosters_equal(
@@ -266,6 +489,12 @@ def _process_games(day, session):
 
             save_game_side(team_objects[0], SIDES["away"], game_obj, day["date"])
             save_game_side(team_objects[1], SIDES["home"], game_obj, day["date"])
+
+    if payloads is not None:
+        if games_finished_total != len(day["games"]):
+            gameday_obj.all_games_finished = False
+            gameday_obj.save(update_fields=["all_games_finished"])
+        return
 
     games_db = len(gameday_obj.games.all())
     games_api = len(day["games"])
@@ -337,7 +566,12 @@ def get_rosters_api(game_data, game_id=None):
 
 
 def prepare_rosters_for_database(
-    rosters_api, team_objects, gameday_object, report_player_stats=None, game_id=None
+    rosters_api,
+    team_objects,
+    gameday_object,
+    report_player_stats=None,
+    game_id=None,
+    preserve_game=None,
 ):
     away_goalies_count = len(rosters_api["awayTeam"]["goalies"])
     home_goalies_count = len(rosters_api["homeTeam"]["goalies"])
@@ -359,6 +593,7 @@ def prepare_rosters_for_database(
         away_goalies_count,
         report_player_stats,
         game_id,
+        preserve_game,
     )
     iterate_players(
         gameday_object,
@@ -370,6 +605,7 @@ def prepare_rosters_for_database(
         home_goalies_count,
         report_player_stats,
         game_id,
+        preserve_game,
     )
 
     rosters_database = {
@@ -507,12 +743,18 @@ def iterate_players(
     goalies_count,
     report_player_stats=None,
     game_id=None,
+    preserve_game=None,
 ):
     for _, value in roster.items():
         for player_data in value:
             player = get_player(player_data["playerId"])
 
             if player:
+                unknown_fields = []
+                if preserve_game is not None:
+                    unknown_fields = preserve_target_report_stats(
+                        player_data, player, preserve_game, report_player_stats
+                    )
                 game_stats = add_player(
                     player_data,
                     player,
@@ -527,6 +769,10 @@ def iterate_players(
 
                 # chek if not 'Scratched'
                 if game_stats:
+                    # Broad refresh defaults remain compatible. Targeted unknowns
+                    # must not become fabricated zero special-team statistics.
+                    for field in unknown_fields:
+                        game_stats[field] = None
                     game_stats["format_date"] = format_date
                     if game_id is not None:
                         game_stats[GAME_ID_FIELD] = game_id
@@ -537,6 +783,39 @@ def iterate_players(
                 logger.warning(
                     f"{player_data['name']['default']} from {team} not found and will not be added to the game"
                 )
+
+
+def valid_saved_report_value(field, value):
+    if field in {"powerPlayToi", "shorthandedToi"}:
+        return (
+            isinstance(value, str)
+            and bool(re.fullmatch(TIME_MM_SS_REGEX, value))
+            and int(value.split(":")[1]) < SECONDS_PER_MINUTE
+        )
+    return type(value) is int and value >= 0
+
+
+def preserve_target_report_stats(player_data, player, game, reports):
+    """Fresh boxscore/report values (including zero) win; retain known same-game values."""
+    hydrate_player_stats_from_reports(player_data, reports)
+    logs = player.gamelog_stats
+    previous = logs.get(str(game.gameday.day)) if isinstance(logs, dict) else None
+    if previous is not None:
+        fields = next(fields for model, fields in ROSTER_RELATIONS if isinstance(player, model))
+        teams = set(game.teams.values_list("abbr", flat=True))
+        if not gamelog_belongs_to_game(previous, player, game, fields, teams):
+            raise CommandError(
+                f"Unverified same-date gamelog for player {player.nhl_id}; refusing to overwrite"
+            )
+    unknown = []
+    for field in REPORT_STAT_KEYS:
+        if player_data.get(field) in (None, ""):
+            old = previous.get(field) if previous else None
+            if valid_saved_report_value(field, old):
+                player_data[field] = old
+            else:
+                unknown.append(field)
+    return unknown
 
 
 def date_convert(date):

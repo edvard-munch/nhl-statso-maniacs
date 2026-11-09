@@ -183,6 +183,17 @@ requirements](docs/loader-scheduling.md). It separates frequent targeted live-ga
 refreshes from daily season/career work and weekly team updates. The schedule is
 not enabled yet; the current Celery task is not equivalent to `make update-all`.
 
+For a bounded game refresh, use a date or game ID, optionally filtering states:
+
+```bash
+uv run --locked python manage.py upd_gms --date 2026-11-08 --state active
+uv run --locked python manage.py upd_gms --game-id 2023020001
+```
+
+Repeat the same selector for multiple dates/IDs. Targets can replay finished
+games; known pregame games are deferred. See [targeted refresh behavior](docs/game-loading.md#targeted-game-and-date-refreshes)
+for per-game transactions, completion flags and unavailable report fields.
+
 ## Run Development Server
 
 ```bash
@@ -217,7 +228,7 @@ make test-cov
 make test-ci
 ```
 
-The current offline suite passes **942 tests at 91.30% combined line/branch
+The current offline suite passes **988 tests at 91.44% combined line/branch
 coverage**, retaining the initial 35% gate. The GitHub Actions workflow runs that
 gate against isolated PostgreSQL. See the [baseline and CI details](docs/coverage-baseline.md).
 

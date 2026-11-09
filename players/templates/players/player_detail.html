@@ -455,12 +455,12 @@
       <td>{{ game.sog }}</td>
       <td>{{ game.hits }}</td>
       <td>{{ game.blockedShots }}</td>
-      <td>{{ game.faceoffs }}</td>
-      <td>{{ game.powerPlayPoints }}</td>
-      <td>{{ game.shPoints }}</td>
+      <td>{{ game.faceoffs|default_if_none:"—" }}</td>
+      <td>{{ game.powerPlayPoints|default_if_none:"—" }}</td>
+      <td>{{ game.shPoints|default_if_none:"—" }}</td>
       <td>{{ game.toi }}</td>
-      <td>{{ game.powerPlayToi }}</td>
-      <td>{{ game.shorthandedToi }}</td>
+      <td>{{ game.powerPlayToi|default_if_none:"—" }}</td>
+      <td>{{ game.shorthandedToi|default_if_none:"—" }}</td>
     </tr>
     {% endfor %}
   </tbody>

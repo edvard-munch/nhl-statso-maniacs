@@ -1,8 +1,9 @@
 # Loader scheduling policy and server requirements
 
-Status: planning baseline, 2026-11-06. The owner confirmed that Celery is not
+Status: planning baseline, updated 2026-11-09. The owner confirmed that Celery is not
 running and updates should eventually run on an always-on server. This document
-does not enable jobs or change existing commands. Live freshness, final-refresh
+does not enable jobs. Explicit [targeted refreshes](game-loading.md#targeted-game-and-date-refreshes)
+are now implemented; no-argument `upd_gms` retains its broad behavior. Live freshness, final-refresh
 windows, broker choice and host details still need confirmation before activation.
 
 ## Current implementation
@@ -19,6 +20,11 @@ windows, broker choice and host details still need confirmation before activatio
   started game it fetches boxscore, right-rail, play-by-play and available HTML
   reports. Fetches and writes currently share a transaction for the whole day.
   One required failure can therefore roll back other games in that day.
+- Explicit `--date` or `--game-id` selectors bypass the broad scan, accept
+  `--state started|active|final`, defer known pregame games and allow finished
+  replays. They fetch before per-game transactions and preserve valid same-game
+  report values when fresh reports omit them; new unknown report values are null.
+  There is no automatic recent-window discovery or periodic execution yet.
 - Only regular-season games are loaded. Playoffs/preseason support is not part
   of this scheduling change. `FINAL`/`OFF` plus a matching stored roster marks a
   game finished; `OVER` and active states remain unfinished. Final status alone
@@ -132,10 +138,12 @@ incomplete final enrichment and exhausted retry windows for later reconciliation
 ## Focused implementation queue and rollout
 
 1. **This commit:** record policy, current limitations and server requirements.
-2. **Targeted game refresh:** explicit game/date selection, bounded future-game
-   deferral, recent-final replay and preservation of verified report fields.
-   Keep the existing manual broad-refresh behavior compatible; test date/state
-   boundaries, missing reports, replay and rollback before scheduling it.
+2. **Implemented: targeted game refresh:** explicit game/date selection, bounded
+   known-pregame deferral, finished-game replay and preservation of valid
+   same-game report fields. Date/state boundaries, missing reports, null rendering,
+   replay and per-game rollback have mocked-HTTP/PostgreSQL regressions. The broad
+   manual command remains compatible. Selecting recent dates is still explicit;
+   the later scheduler will decide when and which games to refresh.
 3. **Coordination and visibility:** overlap guards covering manual/Celery writers,
    coalescing, cooldowns and structured progress. Test contention, crashes and
    stale work using isolated PostgreSQL and mocked HTTP.
