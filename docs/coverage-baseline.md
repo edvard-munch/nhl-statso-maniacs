@@ -1361,3 +1361,14 @@ CLI JSON/exit codes, publication versus attempt evidence, cooldowns, scoped fail
 recovery, long-running work and display limits. All 79 focused health/scheduler/
 loader cases pass. System/schema, Ruff and dependency-export checks pass; no live
 services, application database or scheduler state were changed by validation.
+
+
+## Follow-up: JSON API foundation
+
+The gate passes **1128 offline tests**, **48 deselected**, at **92.04% combined
+players coverage**; scope and the 35% gate are unchanged. Thirty-nine API contract
+cases cover schema validation/zero-query export, JSON errors, session/CSRF policy,
+request correlation and legacy boundaries. `nhl_web_app.api` is explicitly outside
+the existing percentage. All **26 Chromium cases** pass on standalone rerun after
+one initial-table/static-load timeout in the concurrent run. System/migration,
+lint/export and dependency checks pass; no application database or live API was used.

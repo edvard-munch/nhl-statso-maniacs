@@ -32,6 +32,8 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 # Application definition
 INSTALLED_APPS = [
+    "rest_framework",
+    "drf_spectacular",
     "users.apps.UsersConfig",
     "players.apps.PlayersConfig",
     "django.contrib.admin",
@@ -50,6 +52,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "nhl_web_app.api.middleware.ApiBoundaryMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -182,3 +185,25 @@ NHL_LOG_DESTINATION = os.environ.get("NHL_LOG_DESTINATION", "file")
 if NHL_LOG_DESTINATION == "file":
     os.makedirs(os.path.join(BASE_DIR, "logs"), exist_ok=True)
 LOGGING = logging_configuration(BASE_DIR, NHL_LOG_DESTINATION)
+
+
+# New API policy; existing Django page/AJAX views keep their own contracts.
+REST_FRAMEWORK = {
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_PARSER_CLASSES": ["rest_framework.parsers.JSONParser"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["nhl_web_app.api.authentication.SessionAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "EXCEPTION_HANDLER": "nhl_web_app.api.errors.exception_handler",
+}
+SPECTACULAR_SETTINGS = {
+    "TITLE": "NHL Web App API",
+    "DESCRIPTION": "Versioned JSON API; statistics resources migrate incrementally.",
+    "VERSION": "1.0.0",
+    "OAS_VERSION": "3.0.3",
+    "SCHEMA_PATH_PREFIX": "/api/v1",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PUBLIC": True,
+    "COMPONENT_SPLIT_REQUEST": True,
+}
+CSRF_FAILURE_VIEW = "nhl_web_app.api.errors.csrf_failure"

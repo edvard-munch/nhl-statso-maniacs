@@ -8,7 +8,9 @@ The [legacy inventory](docs/legacy-audit.md) records command callers, dependency
 cleanup candidates and usage that must be confirmed outside the repository.
 The proposed [frontend architecture and migration plan](docs/frontend-architecture.md)
 and [API conventions](docs/api-conventions.md) describe the next development phase;
-Nuxt/Vue and the new JSON API are not implemented yet.
+Nuxt/Vue is not implemented yet. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
+now provides versioned routing and an OpenAPI schema; statistics/account resources
+will migrate incrementally.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.
 

@@ -9,10 +9,10 @@ Upgrade the app from Python 3.7 / Django 2.2 to a supported stack while preservi
 loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
-**Active development: plan the separate frontend and JSON API.** Architecture and
-API conventions are recorded in [the frontend plan](frontend-architecture.md) and
-[API conventions](api-conventions.md). This is one documentation-only commit;
-the full migration is estimated at 25–30 focused commits. Confirm the proposed
+**Active development: migrate the frontend and JSON API incrementally.** The
+[API foundation](api-conventions.md#implemented-api-foundation) is implemented;
+next introduce saved scoreboard data as JSON. The [frontend plan](frontend-architecture.md)
+estimates 25–30 focused commits for the whole migration. Confirm the proposed
 Nuxt hybrid versus browser-only Vue/Vite rendering choice before scaffolding.
 Server activation/rehearsal and ambiguous legacy-data review remain deferred. The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
@@ -21,7 +21,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1089 tests at 92.04% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1128 tests at 92.04% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -743,3 +743,22 @@ season/statistics/null/unit conventions and a staged 25–30-commit migration bu
 Rendering selection and the Django-admin HTML exception remain explicit decisions;
 no new dependencies, routes, database changes or frontend implementation are
 introduced by these documents. Existing regression results remain unchanged.
+
+
+## JSON API foundation and schema
+
+DRF 3.18.3 and drf-spectacular 0.30.0 now provide `/api/v1/` private version
+metadata and a public JSON OpenAPI schema. Shared session/CSRF policy, typed
+error envelopes, API-scoped Django/middleware normalization and request-ID
+correlation leave legacy HTML/AJAX contracts intact. Schema export validates
+without database queries or live HTTP; no resource/auth lifecycle migration is
+claimed yet. The typing-extensions pin moves from 4.5.0 to 4.16.0 to fix the
+schema validator's Python 3.12 import failure; Django/Python pins are unchanged.
+
+Thirty-nine new contract cases pass, along with 1128 offline tests and all 26
+Chromium cases on rerun. System/schema, lint/export and dependency checks pass.
+The 92.04%/35% coverage result retains the existing `players` scope; project API
+helpers are tested but outside that percentage. The initial concurrent browser
+run had one initial-table timeout with unfinished local script loads; no frontend
+change was made and the standalone repeat passed. Next add the saved scoreboard
+JSON resource, preserving the existing loader/freshness contracts.

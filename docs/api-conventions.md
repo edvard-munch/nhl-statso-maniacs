@@ -1,9 +1,10 @@
 # API conventions for the frontend migration
 
-Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**,
-not documentation of endpoints already implemented. Existing pages and legacy
-AJAX responses keep their current contracts until a tested replacement is switched
-in. The [architecture plan](frontend-architecture.md) records the migration order.
+Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
+The [foundation below](#implemented-api-foundation) is implemented; statistics,
+account and saved-list endpoint families remain future migration work. Existing
+pages and legacy AJAX responses retain their contracts until a tested replacement
+is switched in. The [architecture plan](frontend-architecture.md) records the order.
 
 ## Transport and resources
 
@@ -171,3 +172,54 @@ pagination, JSON errors, CSRF/ownership, idempotence/concurrency and read-only
 behavior. Browser tests cover public initial HTML/metadata, hydrated interaction,
 account workflows, polling/recovery and preservation of user state. Template
 assertions remain until their replacement workflow is tested and switched over.
+
+
+## Implemented API foundation
+
+The locked runtime now includes DRF 3.18.3 and drf-spectacular 0.30.0. The legacy
+`typing_extensions` 4.5.0 pin is updated to 4.16.0 because schema validation's
+import path fails on Python 3.12 with the older version. Django/Python and other
+existing locked package versions are unchanged; the schema tools add their own
+transitive dependencies. Install the updated runtime with `uv sync --locked`.
+No application migration is introduced.
+
+| Route | Current behavior |
+| --- | --- |
+| `GET /api/v1/` | Session-authenticated, private/no-store version metadata: `{"version":"v1"}`. Anonymous access returns JSON 403 `authentication_required`. This is not a service-health probe. |
+| `GET /api/v1/schema/` | Public read-only OpenAPI 3.0.3 JSON. Only implemented operations are described; no YAML, Swagger UI or browsable API is served. |
+| Unknown/slashless `/api/v1` paths | JSON 404, without a trailing-slash redirect or unsafe-request replay. |
+
+Public schema serving performs no database queries or upstream requests. Generate
+and validate the same contract offline, after configuring normal Django settings:
+
+```bash
+uv run --locked python manage.py spectacular --format openapi-json \
+  --validate --fail-on-warn --file /tmp/nhl-api-schema.json
+```
+
+The normal offline suite runs this validation and fails on schema warnings. Schema
+artifact/client regeneration checks arrive in their later migration phase; there
+is no generated frontend client yet.
+
+New DRF views inherit JSON rendering/parsing, session authentication and
+`IsAuthenticated` by default. Public reads must explicitly opt into `AllowAny`.
+Session CSRF errors are distinguished from authentication/permission errors;
+existing session-backed and HTTP-only CSRF configurations remain supported. No
+JSON login/CSRF bootstrap or account/statistics endpoints are implemented yet.
+The existing HTML login continues to establish sessions during this transition.
+Future uploads must deliberately enable their multipart parser rather than
+loosening parser policy globally.
+
+The API boundary normalizes Django/middleware failures as well as DRF exceptions,
+including debug-mode errors. API errors have private/no-store cache headers;
+Allow/Retry-After and relevant security headers survive normalization. Unexpected
+failure details are logged, while the response uses a generic server-error message.
+Every Django-served API response carries a server-generated `X-Request-ID`, also
+bound to diagnostic logs. Incoming request IDs are not trusted as the local ID.
+Proxy-generated errors/TLS redirects are outside Django's JSON response guarantee
+and require deployment configuration. Routes outside `/api/v1/` retain their HTML
+and error/CSRF contracts.
+
+The existing coverage gate still measures `players`; foundation modules under
+`nhl_web_app.api` have explicit contract tests but are not added to that percentage
+by this commit. Extending coverage scope is a separate reporting decision.

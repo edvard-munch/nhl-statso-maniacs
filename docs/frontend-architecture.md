@@ -1,7 +1,8 @@
 # Frontend architecture and migration plan
 
-Recorded: 2026-11-09. This is a planning document, not an implemented frontend or
-API. Architecture/API conventions are one documentation-only commit. Budget
+Recorded: 2026-11-09. This records the target architecture; frontend/resource
+migration remains pending. The [API foundation](api-conventions.md#implemented-api-foundation)
+is now implemented. Architecture/API conventions themselves are one documentation-only commit. Budget
 roughly **25–30 focused commits for the full migration**, including this one;
 that is an estimate, not a promise to combine unrelated changes to meet a count.
 
