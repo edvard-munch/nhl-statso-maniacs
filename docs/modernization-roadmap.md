@@ -10,8 +10,9 @@ loader correctness, historical data and user-facing behavior. Make one focused
 change at a time and validate before moving to the next stage.
 
 **Active development: migrate the frontend and JSON API incrementally.** The
-[API foundation](api-conventions.md#implemented-api-foundation) is implemented;
-next introduce saved scoreboard data as JSON. The [frontend plan](frontend-architecture.md)
+[API foundation](api-conventions.md#implemented-api-foundation) and
+[saved scoreboard JSON resource](scoreboard-api.md) are implemented; next design
+the saved game-detail JSON resource. The [frontend plan](frontend-architecture.md)
 estimates 25–30 focused commits for the whole migration. Confirm the proposed
 Nuxt hybrid versus browser-only Vue/Vite rendering choice before scaffolding.
 Server activation/rehearsal and ambiguous legacy-data review remain deferred. The
@@ -21,7 +22,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1128 tests at 92.04% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1168 tests at 92.20% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -762,3 +763,24 @@ helpers are tested but outside that percentage. The initial concurrent browser
 run had one initial-table timeout with unfinished local script loads; no frontend
 change was made and the standalone repeat passed. Next add the saved scoreboard
 JSON resource, preserving the existing loader/freshness contracts.
+
+
+## Saved scoreboard JSON resource
+
+`GET /api/v1/games/?date=YYYY-MM-DD` now reads exact-date saved games with explicit
+team/score serializers, bounded page-number pagination and per-game/whole-date
+freshness. Invalid/duplicate/unsupported query parameters fail before queries;
+empty dates never fall back to another day. Public responses have no personal
+fields, template rendering, upstream calls or application writes. Nonempty reads
+use two SELECTs with prefetched historical side associations.
+
+The current model stores scores only in `Game.result`. A conservative adapter
+accepts the exact known loader label with unambiguous away/home sides and exposes
+`score_source=legacy_result`; unverifiable scores remain null/partial. This is
+not a structured-score persistence migration. See [contract and limitations](scoreboard-api.md).
+Forty new cases pass with the full offline gate: 1168 tests, 48 deselected,
+92.20% combined players coverage; the 35% gate/scope are unchanged. System/schema,
+lint and dependency-export checks pass. All 26 Chromium cases pass on repeat
+after an initial local-script `net::ERR_NETWORK_CHANGED` failure, with no test or
+application change for the repeat. The next API slice is saved game detail;
+frontend rendering selection and actual service rollout remain separate decisions.

@@ -1372,3 +1372,16 @@ request correlation and legacy boundaries. `nhl_web_app.api` is explicitly outsi
 the existing percentage. All **26 Chromium cases** pass on standalone rerun after
 one initial-table/static-load timeout in the concurrent run. System/migration,
 lint/export and dependency checks pass; no application database or live API was used.
+
+
+## Follow-up: saved scoreboard JSON endpoint
+
+The offline gate passes **1168 tests**, **48 deselected**, at **92.20% combined
+players coverage**, keeping the 35% gate/scope. Forty new cases cover exact dates,
+strict inputs, nullable verified legacy scores, side ambiguity, pagination and
+whole-date freshness, public privacy, OpenAPI and two-query SELECT-only reads.
+Existing refresh/page/API regressions remain covered. System/schema, lint and
+export checks pass. Validation uses synthetic PostgreSQL and mocked upstream data.
+All **26 Chromium cases** pass (**1190 deselected**) on rerun. The first browser
+run had a local-script `net::ERR_NETWORK_CHANGED` failure; no application/test
+change was made to obtain the passing repeat.

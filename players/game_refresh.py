@@ -12,8 +12,8 @@ SUPPLEMENTARY_FIELDS = ("faceoffs", "powerPlayPoints", "shPoints", "powerPlayToi
 GOALIE_FIELDS = ("toi", "goalsAgainst", "savePctg", "saveShotsAgainst")
 
 
-def freshness(games, *, partial=False, kind="game"):
-    now = timezone.now()
+def freshness(games, *, partial=False, kind="game", checked_at=None):
+    now = checked_at or timezone.now()
     unfinished = [game for game in games if not game.game_finished]
     saved = min((game.updated_date for game in unfinished), default=None)
     if saved is None:
