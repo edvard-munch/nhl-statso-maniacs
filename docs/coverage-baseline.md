@@ -1501,3 +1501,18 @@ Schema, Django system/migration, formatting/lint, dependency-export and local
 link checks pass. Chromium was not rerun; legacy HTML recovery/auth regression
 coverage remains in the offline gate. Synchronous delivery's timing limitation is
 documented separately from response-level enumeration protection.
+
+
+## Private Favorites API — 2026-11-10
+
+The full offline gate passes **1672 tests**, 48 deselected, at **93.58% combined
+players line/branch coverage**. Measurement scope and the 35% gate are unchanged.
+Fifty-three new cases cover owned season lists, missing/unverified/zero-game data,
+filters/order/pagination, typed identities, idempotent membership, over-limit
+preservation, CSRF, rollback and real PostgreSQL quota races shared with legacy
+writers. The focused API/legacy run passes 764 tests. Query-count checks cover
+both ordinary and over-limit lists.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and local documentation-link checks pass. Chromium was not rerun for this
+backend-only slice; existing rendered saved-list regressions run offline.

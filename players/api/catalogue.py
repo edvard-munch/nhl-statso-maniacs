@@ -179,36 +179,11 @@ def catalogue(query, *, team=None):
         projected = statistics(stats, player_type, mode)
         if projected["games"] is None or projected["games"] <= 0:
             continue
-        participation = set()
-        for row in player.sbs_stats:
-            try:
-                row_season = normalize_season_id(row.get("season"))
-            except ValueError:
-                continue
-            abbr = row.get("teamAbbr")
-            if (
-                row_season == season
-                and row.get("leagueAbbrev", NHL_LEAGUE) == NHL_LEAGUE
-                and row.get("gameTypeId", REGULAR_SEASON) == REGULAR_SEASON
-                and isinstance(abbr, str)
-                and abbr
-                and (team is None or abbr == team.abbr)
-                and not COMBINED_TEAM_PATTERN.fullmatch(abbr)
-            ):
-                participation.add(abbr)
         row = public_identity(player)
         row.update(
             _player=player,
             player_type=player_type,
-            teams=[
-                {
-                    "abbr": abbr,
-                    "name": teams[abbr].name if abbr in teams else abbr,
-                    "nhl_id": teams[abbr].nhl_id if abbr in teams else None,
-                    "slug": teams[abbr].slug if abbr in teams else None,
-                }
-                for abbr in sorted(participation)
-            ],
+            teams=participating_teams(player.sbs_stats, season, teams, team=team),
             stats=projected,
             availability="partial"
             if any(value is None for value in projected.values())
@@ -216,6 +191,10 @@ def catalogue(query, *, team=None):
         )
         if matches(row, query):
             rows.append(row)
+    return ordered_rows(rows, ordering), meta
+
+
+def ordered_rows(rows, ordering):
     # Identity tie-breakers do not depend on database insertion order.
     rows.sort(key=lambda row: (row["last_name"].casefold(), row["nhl_id"]))
     for term in reversed(ordering.split(",")):
@@ -226,11 +205,11 @@ def catalogue(query, *, team=None):
             sorted(known, key=lambda row: sort_value(value(row, field)), reverse=descending)
             + unknown
         )
-    return rows, meta
+    return rows
 
 
 def value(row, field):
-    return row["stats"].get(field) if field in STAT_NUMBERS else row.get(field)
+    return (row["stats"] or {}).get(field) if field in STAT_NUMBERS else row.get(field)
 
 
 def sort_value(value):
@@ -276,3 +255,33 @@ def public_identity(player):
     row["weight_lb"] = row.pop("weight")
     row.update({field: number(row[field]) for field in BIO_NUMBERS})
     return {**row, "_player": player}
+
+
+def participating_teams(rows, season, teams, *, team=None):
+    """Metadata for rows already validated by the season reader."""
+    participation = set()
+    for row in rows:
+        try:
+            row_season = normalize_season_id(row.get("season"))
+        except ValueError:
+            continue
+        abbr = row.get("teamAbbr")
+        if (
+            row_season == season
+            and row.get("leagueAbbrev", NHL_LEAGUE) == NHL_LEAGUE
+            and row.get("gameTypeId", REGULAR_SEASON) == REGULAR_SEASON
+            and isinstance(abbr, str)
+            and abbr
+            and (team is None or abbr == team.abbr)
+            and not COMBINED_TEAM_PATTERN.fullmatch(abbr)
+        ):
+            participation.add(abbr)
+    return [
+        {
+            "abbr": abbr,
+            "name": teams[abbr].name if abbr in teams else abbr,
+            "nhl_id": teams[abbr].nhl_id if abbr in teams else None,
+            "slug": teams[abbr].slug if abbr in teams else None,
+        }
+        for abbr in sorted(participation)
+    ]

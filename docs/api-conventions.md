@@ -4,10 +4,11 @@ Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints*
 The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api.md),
 [game detail](game-detail-api.md), [seasons](seasons-api.md),
 [Players catalogue](players-api.md), [teams](teams-api.md),
-[player profiles/history/gamelogs](player-profile-api.md) and
-[session/CSRF/login/logout](session-auth-api.md) and
-[registration](registration-api.md) and [password recovery](password-recovery-api.md)
-are implemented. Account and saved-list endpoint families remain future work.
+[player profiles/history/gamelogs](player-profile-api.md),
+[session/CSRF/login/logout](session-auth-api.md),
+[registration](registration-api.md), [password recovery](password-recovery-api.md)
+and the private [Favorites list/membership API](favorites-api.md) are implemented.
+Comparison, aggregated favorite gamelogs and account endpoints remain future work.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.
@@ -233,7 +234,8 @@ Session CSRF errors are distinguished from authentication/permission errors;
 existing session-backed and HTTP-only CSRF configurations remain supported.
 The [JSON CSRF/session/login/logout lifecycle](session-auth-api.md) is implemented;
 registration and [password recovery](password-recovery-api.md) are also implemented.
-Account editing remains pending. Statistics
+The private [Favorites list and membership API](favorites-api.md) is implemented.
+Comparison, aggregated favorite gamelogs and account editing remain pending. Statistics
 resources use their explicit public read-only contracts above.
 The existing HTML login and JSON login share Django sessions during this transition.
 Future uploads must deliberately enable their multipart parser rather than

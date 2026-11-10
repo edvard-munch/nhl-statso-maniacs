@@ -22,7 +22,9 @@ are available under `/api/v1/players/{player_type}/{nhl_id}/`.
 under `/api/v1/auth/`, including [registration](docs/registration-api.md) at
 `/api/v1/auth/register/`. [Password recovery](docs/password-recovery-api.md) is available
 under `/api/v1/auth/password-reset/`; JSON reset emails require the trusted
-`PASSWORD_RESET_PUBLIC_ORIGIN` setting. Remaining JSON APIs will be implemented
+`PASSWORD_RESET_PUBLIC_ORIGIN` setting. Private [Favorites APIs](docs/favorites-api.md)
+are available under `/api/v1/me/favorites/`, including explicit PUT/DELETE membership
+changes. Remaining JSON APIs will be implemented
 before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.

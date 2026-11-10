@@ -12,13 +12,14 @@ change at a time and validate before moving to the next stage.
 **Active development: migrate the frontend and JSON API incrementally.** The
 [API foundation](api-conventions.md#implemented-api-foundation) and
 [saved scoreboard](scoreboard-api.md) and [game-detail JSON](game-detail-api.md)
-resources are implemented; the remaining statistics, authentication, account and
-saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Complete
+resources are implemented; the remaining account and saved-list API slices
+are still pending. Vue 3/Vite/TypeScript is now selected. Complete
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add private favorites/comparison APIs with their ownership contracts. Legacy projections need a separate provenance
+add the comparison API, then aggregated favorite gamelogs; the private
+[Favorites list and membership API](favorites-api.md) is implemented. Legacy projections need a separate provenance
 contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -981,3 +982,27 @@ is tested explicitly outside that percentage. All test mail is in memory. Schema
 system/migration, formatting/lint, dependency-export and documentation-link checks
 pass. Next add private favorites/comparison APIs, followed by other owned/account
 resources. Email queue/timing hardening remains a pre-cutover follow-up.
+
+
+## Private Favorites list and membership API — 2026-11-10
+
+`GET /api/v1/me/favorites/` now projects the current account's selected-season
+players using catalogue queries and nullable profile statistics. Missing,
+unverified and zero-game members remain visible; snapshots never substitute.
+Quota metadata counts both unfiltered player groups.
+
+Typed membership PUT/DELETE routes explicitly add/remove rather than toggle.
+PUT returns 201/200, DELETE returns 204 for an already absent member, and excess
+new additions return 409 `favorites_quota_exceeded`. Session authentication,
+CSRF and private/no-store responses protect owned state. Lists and mutations
+hold the existing owner-row lock through serialization, sharing quota protection
+with legacy writers and preserving other accounts/comparison/over-limit data.
+
+Fifty-three new regressions include final-slot races, API/legacy competition,
+repeated requests, independent owners and rollback. The focused run passes
+764 tests; the full offline gate passes **1672 tests**, 48 deselected, at
+**93.58% combined players line/branch coverage**, with the same scope and 35% gate.
+Schema, Django system/migration, lint/formatting, dependency-export and local-link
+checks pass. No migrations, dependency changes or frontend work are introduced.
+See the [Favorites contract](favorites-api.md). Next add comparison APIs, then
+aggregated favorite gamelogs and remaining owned/account resources.
