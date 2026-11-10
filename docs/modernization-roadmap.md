@@ -15,8 +15,8 @@ change at a time and validate before moving to the next stage.
 resources are implemented; the remaining statistics, authentication, account and
 saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Complete
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
-Loaded-season discovery and the Players catalogue are implemented; the next API
-slice is teams and their selected-season contributions. Functionality takes priority
+Loaded-season discovery, the Players catalogue and team metadata/contributions are
+implemented; the next API slice is player profiles and gamelogs. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
 [frontend plan](frontend-architecture.md) estimates 25–30 focused commits for the
@@ -28,7 +28,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1309 tests at 92.94% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1369 tests at 93.13% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -857,3 +857,23 @@ repeat pass without changing that test or loader behavior. Schema/system/migrati
 formatting/lint and dependency-export checks pass. No frontend/browser change is
 introduced. See [Players API contract](players-api.md). Next add teams and
 selected-season team contributions, continuing API-first development.
+
+
+## Team metadata and season-contributions APIs — 2026-11-10
+
+`GET /api/v1/teams/`, `/api/v1/teams/{nhl_id}/` and the paginated
+`/api/v1/teams/{nhl_id}/players/` now expose saved metadata and exact team-season
+contributions. Team detail links preserve the resolved global season. The shared
+catalogue accepts a scoped team, narrowing candidates with JSON containment and
+reading the exact SBS split; current roster links, combined-only rows and other
+seasons do not supply missing contributions. Statistics, filters, ordering,
+pagination and public identity reuse the Players API contract, with a current
+profile jersey number on team entries. Legacy tables remain unchanged.
+
+Sixty new cases extend the team/trade fixtures. The focused API/legacy run passes
+284 tests; the full offline gate passes 1369 tests, 48 deselected, at 93.13%
+combined players coverage against the unchanged 35% gate/scope. Schema, system,
+migration-drift, lint/formatting and dependency-export checks pass. Reads have
+bounded query counts and no writes or NHL calls. No dependencies, migrations or
+frontend changes are introduced. See [Teams API contract](teams-api.md). Next add
+public player profiles and gamelogs before frontend scaffolding.

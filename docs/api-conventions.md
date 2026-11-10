@@ -3,7 +3,8 @@
 Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
 The [foundation below](#implemented-api-foundation),
 [saved scoreboard](scoreboard-api.md), [game-detail](game-detail-api.md) and
-[loaded seasons](seasons-api.md) and [Players catalogue](players-api.md) resources
+[loaded seasons](seasons-api.md), [Players catalogue](players-api.md) and
+[team metadata/contributions](teams-api.md) resources
 are implemented. Other statistics, account and saved-list endpoint families remain
 future migration work. Existing
 pages and legacy AJAX responses retain their contracts until a tested replacement
@@ -190,6 +191,9 @@ No application migration is introduced.
 | --- | --- |
 | `GET /api/v1/` | Session-authenticated, private/no-store version metadata: `{"version":"v1"}`. Anonymous access returns JSON 403 `authentication_required`. This is not a service-health probe. |
 | `GET /api/v1/schema/` | Public read-only OpenAPI 3.0.3 JSON. Only implemented operations are described; no YAML, Swagger UI or browsable API is served. |
+| `GET /api/v1/teams/` | Public saved identities, named filters/ordering and pagination. See [Teams API](teams-api.md). |
+| `GET /api/v1/teams/{nhl_id}/` | Public saved team metadata, resolved season and contributions link. |
+| `GET /api/v1/teams/{nhl_id}/players/` | Public paginated exact team-season contributions; catalogue filters/statistics with no `team` query parameter. |
 | `GET /api/v1/players/` | Public selected-season skater/goalie catalogue, named filters/ordering, typed statistics and pagination. See [resource contract](players-api.md). |
 | `GET /api/v1/seasons/` | Public loaded NHL regular-season SBS seasons, pagination and global default season. See [resource contract](seasons-api.md). |
 | `GET /api/v1/games/?date=YYYY-MM-DD` | Public saved scoreboard JSON, with strict query validation, nullable verified legacy scores, pagination and freshness. See [resource contract](scoreboard-api.md). |

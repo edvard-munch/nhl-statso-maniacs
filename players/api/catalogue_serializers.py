@@ -31,6 +31,9 @@ MAX_ORDERING_LENGTH = 1024
 
 
 class SeasonIdField(serializers.CharField):
+    def get_value(self, dictionary):
+        return dictionary.get(self.field_name, serializers.empty)
+
     def to_internal_value(self, data):
         if not isinstance(data, str) or SEASON_PATTERN.fullmatch(data) is None:
             raise serializers.ValidationError(

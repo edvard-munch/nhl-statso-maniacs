@@ -128,22 +128,42 @@ def statistics(stats, player_type, mode):
     return result
 
 
-def catalogue(query):
-    season = query.get("season_id")
-    if season is None:
-        seasons = available_seasons()
-        season = seasons[0] if seasons else None
+def resolve_season(query):
+    if "season_id" in query:
+        return query["season_id"]
+    seasons = available_seasons()
+    return seasons[0] if seasons else None
+
+
+def catalogue(query, *, team=None):
+    season = resolve_season(query)
     player_type, mode = query["player_type"], query["mode"]
     ordering = query.get("ordering", DEFAULT_ORDERING[player_type])
     meta = {"season_id": season, "player_type": player_type, "mode": mode, "ordering": ordering}
-    if season is None:
+    if season is None or (
+        team is not None and (not team.abbr or COMBINED_TEAM_PATTERN.fullmatch(team.abbr))
+    ):
         return [], meta
-    teams = {team.abbr: team for team in Team.objects.only("nhl_id", "name", "abbr", "slug")}
+    teams = (
+        {team.abbr: team}
+        if team is not None
+        else {item.abbr: item for item in Team.objects.only("nhl_id", "name", "abbr", "slug")}
+    )
     model = Goalie if player_type == GOALIE else Skater
     rows = []
-    for player in model.objects.only(*IDENTITY_FIELDS, "sbs_stats").iterator():
+    candidates = model.objects.all()
+    extra_fields = ()
+    if team is not None:
+        candidates = candidates.filter(sbs_stats__contains=[{"teamAbbr": team.abbr}])
+        extra_fields = ("pl_number",)
+    for player in candidates.only(*IDENTITY_FIELDS, "sbs_stats", *extra_fields).iterator():
         try:
-            stats = read_season_stats(player.sbs_stats, season, player_type=player_type)
+            stats = read_season_stats(
+                player.sbs_stats,
+                season,
+                player_type=player_type,
+                team_abbr=team.abbr if team is not None else None,
+            )
         except (ValueError, OverflowError):
             logger.warning(
                 "Skipping invalid season statistics for %s %s", player_type, player.nhl_id
@@ -167,6 +187,7 @@ def catalogue(query):
                 and row.get("gameTypeId", REGULAR_SEASON) == REGULAR_SEASON
                 and isinstance(abbr, str)
                 and abbr
+                and (team is None or abbr == team.abbr)
                 and not COMBINED_TEAM_PATTERN.fullmatch(abbr)
             ):
                 participation.add(abbr)

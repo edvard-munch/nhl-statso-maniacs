@@ -14,7 +14,9 @@ now provides versioned routing and an OpenAPI schema. The
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved game details](docs/game-detail-api.md)
 at `/api/v1/games/{nhl_id}/`. Loaded seasons are available at `/api/v1/seasons/`; see the
 [seasons contract](docs/seasons-api.md). The selected-season Players catalogue is
-available at `/api/v1/players/`; see its [contract](docs/players-api.md). Remaining JSON APIs will be implemented
+available at `/api/v1/players/`; see its [contract](docs/players-api.md).
+[Team metadata and season contributions](docs/teams-api.md) are available under
+`/api/v1/teams/`. Remaining JSON APIs will be implemented
 before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.

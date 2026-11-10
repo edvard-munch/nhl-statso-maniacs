@@ -1425,3 +1425,17 @@ The initial full run had one existing loader child-process startup timeout
 (1308 passed); its separate 21-test file and the full repeat passed without a
 loader/test change. Schema/system/migration, formatting/lint and dependency export
 checks pass. Chromium was not rerun for this backend-only slice.
+
+
+## Teams APIs — 2026-11-10
+
+The offline gate passes **1369 tests**, 48 deselected, at **93.13% combined
+players line/branch coverage**, with scope and the 35% gate unchanged. Sixty new
+cases extend existing team/trade fixtures; the focused API and legacy run passes
+284 tests. Coverage includes team identity/listing, season-preserving detail links,
+exact skater/goalie splits, defaults, historical/empty data, combined-only and
+malformed rows, named filtering/order/pagination, private-state exclusion and
+bounded read-only queries with larger populations.
+
+Schema validation, Django system/migration checks, lint/formatting and dependency
+export checks pass. Chromium was not rerun for this backend-only slice.
