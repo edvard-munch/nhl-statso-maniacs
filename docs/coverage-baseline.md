@@ -1410,3 +1410,18 @@ query validation, public/read-only behavior and OpenAPI. Shared discovery moved
 from `player_table` into `players.seasons`; historical coverage figures above are
 retained. Django system/migration checks, schema validation, formatting/lint and
 dependency export checks pass. Chromium was not rerun for this backend-only slice.
+
+
+## Players catalogue API — 2026-11-10
+
+The full offline repeat passes **1309 tests**, 48 deselected, with **92.94%
+combined players line/branch coverage**. Scope and the 35% gate are unchanged.
+Seventy-four new catalogue cases extend existing season fixtures; the focused API
+and legacy-table run passes 201 tests. They cover season membership, stale data,
+trades, averages/rates, nulls/units, named filters, global ordering/pagination,
+public ownership boundaries, bounded read-only queries and typed OpenAPI output.
+
+The initial full run had one existing loader child-process startup timeout
+(1308 passed); its separate 21-test file and the full repeat passed without a
+loader/test change. Schema/system/migration, formatting/lint and dependency export
+checks pass. Chromium was not rerun for this backend-only slice.

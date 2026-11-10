@@ -205,5 +205,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
     "SERVE_PUBLIC": True,
     "COMPONENT_SPLIT_REQUEST": True,
+    "ENUM_NAME_OVERRIDES": {
+        "CatalogueAvailabilityEnum": ["complete", "partial"],
+        "GamePlayerAvailabilityEnum": ["complete", "partial", "missing", "unverified"],
+    },
 }
 CSRF_FAILURE_VIEW = "nhl_web_app.api.errors.csrf_failure"

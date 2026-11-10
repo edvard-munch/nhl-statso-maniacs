@@ -29,8 +29,8 @@ A visual redesign, final theme and extensive visual snapshots can follow later.
 
 ## Current API scope and next slice
 
-The API foundation/schema, saved scoreboard, game-detail and loaded seasons resources
-are implemented. Players, teams, profiles/gamelogs, JSON authentication,
+The API foundation/schema, saved scoreboard, game-detail, loaded seasons and
+Players catalogue resources are implemented. Teams, profiles/gamelogs, JSON authentication,
 favorites/comparison, private notes/positions, account settings/uploads and search
 remain to migrate. Legacy HTML/AJAX endpoints do not complete these JSON contracts.
 

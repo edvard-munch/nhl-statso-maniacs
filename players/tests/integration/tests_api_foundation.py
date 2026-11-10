@@ -136,6 +136,7 @@ def test_schema_is_public_json_valid_and_read_only(
     assert set(schema["paths"]) == {
         PREFIX,
         PREFIX + "seasons/",
+        PREFIX + "players/",
         PREFIX + "games/",
         PREFIX + "games/{nhl_id}/",
     }
@@ -164,6 +165,7 @@ def test_schema_cli_validates_without_database_or_network(
     assert set(schema["paths"]) == {
         PREFIX,
         PREFIX + "seasons/",
+        PREFIX + "players/",
         PREFIX + "games/",
         PREFIX + "games/{nhl_id}/",
     }

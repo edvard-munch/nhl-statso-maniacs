@@ -11,6 +11,12 @@ from rest_framework.views import APIView
 from nhl_web_app.api.pagination import ApiPagination
 from nhl_web_app.api.serializers import ErrorResponseSerializer
 from players.seasons import available_seasons, season_label
+from .catalogue import catalogue
+from .catalogue_serializers import (
+    CataloguePlayerSerializer,
+    PlayersQuerySerializer,
+    PlayersResponseSerializer,
+)
 from .game_detail import game_detail
 from .scoreboard import scoreboard
 from .serializers import (
@@ -110,4 +116,35 @@ class SeasonsView(APIView):
         return paginator.get_paginated_response(
             SeasonSerializer(rows, many=True).data,
             meta={"default_season_id": seasons[0] if seasons else None},
+        )
+
+
+@method_decorator(never_cache, name="dispatch")
+class PlayersView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    @extend_schema(
+        operation_id="players_list",
+        tags=["players"],
+        parameters=[PlayersQuerySerializer],
+        responses={
+            status.HTTP_200_OK: PlayersResponseSerializer,
+            status.HTTP_400_BAD_REQUEST: ErrorResponseSerializer,
+            status.HTTP_404_NOT_FOUND: ErrorResponseSerializer,
+            status.HTTP_405_METHOD_NOT_ALLOWED: ErrorResponseSerializer,
+            status.HTTP_406_NOT_ACCEPTABLE: ErrorResponseSerializer,
+            status.HTTP_500_INTERNAL_SERVER_ERROR: ErrorResponseSerializer,
+        },
+        description="Public selected-season catalogue from saved NHL regular-season SBS rows. Only positive known games establish membership. Filters and ordering run before pagination. Teams reflect season participation; biography is current. No snapshot fallback, private state, writes or NHL calls. Statistics variant follows meta.player_type/mode. Unknown statistics are null; TOI is per-game seconds; goalie save_percentage is a fraction. Page 1 may be empty; other out-of-range pages return 404.",
+    )
+    def get(self, request):
+        query = PlayersQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        rows, meta = catalogue(query.validated_data)
+        paginator = ApiPagination()
+        page = paginator.paginate_queryset(rows, request, view=self)
+        return paginator.get_paginated_response(
+            CataloguePlayerSerializer(page, many=True, context={"mode": meta["mode"]}).data,
+            meta=meta,
         )

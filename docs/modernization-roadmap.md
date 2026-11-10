@@ -15,7 +15,9 @@ change at a time and validate before moving to the next stage.
 resources are implemented; the remaining statistics, authentication, account and
 saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Complete
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
-Loaded-season discovery is implemented; the next API slice is the Players catalogue. Functionality takes priority over visual polish;
+Loaded-season discovery and the Players catalogue are implemented; the next API
+slice is teams and their selected-season contributions. Functionality takes priority
+over visual polish;
 mobile usability and viewport checks belong in each slice. The
 [frontend plan](frontend-architecture.md) estimates 25–30 focused commits for the
 whole migration.
@@ -26,7 +28,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1235 tests at 92.24% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1309 tests at 92.94% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -833,3 +835,25 @@ Sixteen new integration cases and the full offline gate pass: 1235 tests,
 Schema validation, Django system/migration checks, lint/formatting and dependency
 export checks pass. API-first development is recorded; next implement the Players
 catalogue before starting Vue/Vite.
+
+
+## Selected-season Players catalogue API — 2026-11-10
+
+`GET /api/v1/players/` now exposes a public typed skater/goalie catalogue using the
+shared SBS reader. Positive known games establish membership; snapshots, stored
+averages and another season never supply missing values. Named filters and
+allowlisted sorting run before pagination, season participation drives team
+filters, and deterministic NHL identity ties replace database insertion order.
+Skater totals/averages and goalie counts/rates have explicit discriminated OpenAPI
+shapes, documented units, nullable invalid values and current biography/media URLs.
+Private state and raw histories are excluded. No writes, upstream requests,
+dependencies or migrations are introduced; legacy tables remain unchanged.
+
+Seventy-four new cases extend the season fixtures. The focused run passes 201
+tests. The full repeat passes 1309 tests, 48 deselected, at 92.94% combined players
+coverage against the unchanged 35% gate/scope. The initial full run hit the existing
+loader child-process 10-second startup timeout; its 21-test file and the full
+repeat pass without changing that test or loader behavior. Schema/system/migration,
+formatting/lint and dependency-export checks pass. No frontend/browser change is
+introduced. See [Players API contract](players-api.md). Next add teams and
+selected-season team contributions, continuing API-first development.
