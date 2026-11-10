@@ -1,21 +1,9 @@
 """Private saved season rows and explicit membership changes under the owner lock."""
 
 from django.shortcuts import get_object_or_404
-from rest_framework.exceptions import NotFound
-
-from nhl_web_app.api.errors import FavoritesQuotaExceeded
-from players.models import Team
 from players.utils import FAVORITES_QUOTA
-from .catalogue import (
-    IDENTITY_FIELDS,
-    DEFAULT_ORDERING,
-    matches,
-    ordered_rows,
-    participating_teams,
-    public_identity,
-    resolve_season,
-)
-from .profiles import MAX_PLAYER_NHL_ID, player_model, season_packet
+from nhl_web_app.api.errors import FavoritesQuotaExceeded
+from .saved_lists import saved_rows
 
 
 FAVORITE_RELATIONS = {"skater": "favorite_skaters", "goalie": "favorite_goalies"}
@@ -36,43 +24,8 @@ def quota(owner):
 
 
 def favorite_rows(owner, query):
-    """The caller holds saved_actions.locked_user through response serialization."""
-    season = resolve_season(query)
-    player_type, mode = query["player_type"], query["mode"]
-    ordering = query.get("ordering", DEFAULT_ORDERING[player_type])
-    teams = (
-        {team.abbr: team for team in Team.objects.only("nhl_id", "abbr", "name", "slug")}
-        if season
-        else {}
-    )
-    candidates = getattr(owner, FAVORITE_RELATIONS[player_type]).only(*IDENTITY_FIELDS, "sbs_stats")
-    rows = []
-    for player in candidates:
-        saved = season_packet(player.sbs_stats, season, player_type, mode)
-        row = {
-            **public_identity(player),
-            "player_type": player_type,
-            **saved,
-            "teams": participating_teams(player.sbs_stats, season, teams)
-            if saved["stats"] is not None
-            else [],
-        }
-        if matches(row, query):
-            rows.append(row)
-    return ordered_rows(rows, ordering), {
-        "season_id": season,
-        "player_type": player_type,
-        "mode": mode,
-        "ordering": ordering,
-        "quota": quota(owner),
-    }
-
-
-def membership_target(player_type, nhl_id):
-    model = player_model(player_type)
-    if not 0 < nhl_id <= MAX_PLAYER_NHL_ID:
-        raise NotFound()
-    return model
+    rows, meta = saved_rows(owner, query, FAVORITE_RELATIONS[query["player_type"]])
+    return rows, {**meta, "quota": quota(owner)}
 
 
 def put_membership(owner, model, player_type, nhl_id):

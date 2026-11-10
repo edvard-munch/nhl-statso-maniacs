@@ -81,6 +81,7 @@ order. Idempotent PUT/DELETE makes retrying an intended state safe.
 
 ## Remaining work
 
-Aggregated favorite gamelogs are a separate API slice. Comparison membership,
-private notes/positions and account settings also remain before Vue/Vite work.
+The [comparison API](comparison-api.md) is implemented. Aggregated favorite
+gamelogs are a separate API slice. Private notes/positions and account settings
+also remain before Vue/Vite work.
 No NHL calls or application database changes are needed to run the offline tests.

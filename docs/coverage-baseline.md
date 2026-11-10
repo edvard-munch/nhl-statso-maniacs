@@ -1516,3 +1516,19 @@ both ordinary and over-limit lists.
 Schema validation, Django system/migration checks, lint/formatting, dependency
 export and local documentation-link checks pass. Chromium was not rerun for this
 backend-only slice; existing rendered saved-list regressions run offline.
+
+
+## Private comparison API — 2026-11-10
+
+The full offline gate passes **1729 tests**, 48 deselected, at **93.72% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Fifty-seven
+new comparison cases bring the focused API/legacy run to 821 tests. They cover
+season/career projection, missing/zero/unverified packets, ownership, filters,
+independent quotas, over-limit retention, idempotent membership/reset, CSRF,
+rollback and bounded queries. Real PostgreSQL races include API/legacy final-slot
+competition, typed resets competing with additions, repeated requests and
+independent accounts. Existing Favorites regressions cover the shared extraction.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and documentation-link checks pass. Chromium was not rerun for this
+backend-only slice; legacy rendered comparison/Favorites tests run offline.

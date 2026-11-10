@@ -7,8 +7,9 @@ The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api
 [player profiles/history/gamelogs](player-profile-api.md),
 [session/CSRF/login/logout](session-auth-api.md),
 [registration](registration-api.md), [password recovery](password-recovery-api.md)
-and the private [Favorites list/membership API](favorites-api.md) are implemented.
-Comparison, aggregated favorite gamelogs and account endpoints remain future work.
+and the private [Favorites list/membership API](favorites-api.md) and
+[comparison API](comparison-api.md) are implemented. Aggregated favorite gamelogs
+and account endpoints remain future work.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.
@@ -235,7 +236,9 @@ existing session-backed and HTTP-only CSRF configurations remain supported.
 The [JSON CSRF/session/login/logout lifecycle](session-auth-api.md) is implemented;
 registration and [password recovery](password-recovery-api.md) are also implemented.
 The private [Favorites list and membership API](favorites-api.md) is implemented.
-Comparison, aggregated favorite gamelogs and account editing remain pending. Statistics
+The private [comparison API](comparison-api.md) adds season/career reads, explicit
+membership and typed resets. Aggregated favorite gamelogs and account editing
+remain pending. Statistics
 resources use their explicit public read-only contracts above.
 The existing HTML login and JSON login share Django sessions during this transition.
 Future uploads must deliberately enable their multipart parser rather than

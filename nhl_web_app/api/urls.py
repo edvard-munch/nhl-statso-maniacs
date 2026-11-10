@@ -1,6 +1,11 @@
 """New API routes are independent of legacy page and AJAX contracts."""
 
 from django.urls import path, re_path
+from players.api.comparison_views import (
+    ComparisonView,
+    ComparisonMembershipView,
+    ComparisonGroupView,
+)
 from players.api.favorite_views import FavoritesView, FavoriteMembershipView
 from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, PlayerGamelogView
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
@@ -32,6 +37,15 @@ urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("schema/", SchemaView.as_view(), name="schema"),
+    path("me/comparison/", ComparisonView.as_view(), name="comparison"),
+    path(
+        "me/comparison/<str:player_type>/", ComparisonGroupView.as_view(), name="comparison-group"
+    ),
+    path(
+        "me/comparison/<str:player_type>/<int:nhl_id>/",
+        ComparisonMembershipView.as_view(),
+        name="comparison-membership",
+    ),
     path("me/favorites/", FavoritesView.as_view(), name="favorites"),
     path(
         "me/favorites/<str:player_type>/<int:nhl_id>/",

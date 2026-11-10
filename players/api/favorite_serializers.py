@@ -1,10 +1,9 @@
 """Private favorite rows reuse catalogue identity and nullable profile statistics."""
 
-from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from .catalogue_serializers import CatalogueMetaSerializer, CataloguePlayerSerializer
-from .profile_serializers import StatisticsPacketSerializer
+from .catalogue_serializers import CatalogueMetaSerializer
+from .saved_serializers import SavedPlayerSerializer
 
 
 class FavoriteQuotaSerializer(serializers.Serializer):
@@ -16,13 +15,8 @@ class FavoriteQuotaSerializer(serializers.Serializer):
     over_limit = serializers.BooleanField()
 
 
-class FavoritePlayerSerializer(CataloguePlayerSerializer):
-    stats = serializers.SerializerMethodField(allow_null=True)
-    availability = serializers.ChoiceField(choices=["complete", "partial", "missing", "unverified"])
-
-    @extend_schema_field(StatisticsPacketSerializer().fields["stats"])
-    def get_stats(self, row):
-        return row["stats"]
+class FavoritePlayerSerializer(SavedPlayerSerializer):
+    pass
 
 
 class FavoriteMetaSerializer(CatalogueMetaSerializer):

@@ -33,7 +33,8 @@ The API foundation/schema, saved scoreboard, game-detail, loaded seasons and
 Players catalogue, team metadata/contributions and public profiles/history/gamelogs
 are implemented. JSON CSRF/session discovery and login/logout are also implemented.
 Registration, password recovery and the private [Favorites list/membership API](favorites-api.md)
-are implemented. Comparison, aggregated favorite gamelogs, private notes/positions, account settings/uploads and search
+and [comparison API](comparison-api.md) are implemented. Aggregated favorite
+gamelogs, private notes/positions, account settings/uploads and search
 remain to migrate. Legacy HTML/AJAX endpoints do not complete these JSON contracts.
 
 The implementation order is **API first, frontend second**. Complete and test

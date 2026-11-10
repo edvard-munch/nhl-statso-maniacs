@@ -39,6 +39,12 @@ class InvalidCredentials(exceptions.APIException):
     default_code = "invalid_credentials"
 
 
+class ComparisonQuotaExceeded(exceptions.APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_code = "comparison_quota_exceeded"
+    default_detail = "Comparison limit reached for this player type."
+
+
 class FavoritesQuotaExceeded(exceptions.APIException):
     status_code = status.HTTP_409_CONFLICT
     default_code = "favorites_quota_exceeded"
@@ -103,7 +109,9 @@ def exception_handler(exc, context):
         code, message = "csrf_failed", "CSRF validation failed."
     elif isinstance(exc, InvalidCredentials):
         code, message = "invalid_credentials", "Unable to sign in with those credentials."
-    elif isinstance(exc, (InvalidResetToken, ResetUnavailable, FavoritesQuotaExceeded)):
+    elif isinstance(
+        exc, (InvalidResetToken, ResetUnavailable, FavoritesQuotaExceeded, ComparisonQuotaExceeded)
+    ):
         code, message = exc.default_code, str(exc.default_detail)
     elif isinstance(exc, exceptions.ParseError):
         code, message = "parse_error", "Malformed request body."

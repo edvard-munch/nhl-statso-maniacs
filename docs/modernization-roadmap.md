@@ -18,8 +18,9 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add the comparison API, then aggregated favorite gamelogs; the private
-[Favorites list and membership API](favorites-api.md) is implemented. Legacy projections need a separate provenance
+add aggregated favorite gamelogs; private
+[Favorites list/membership](favorites-api.md) and [comparison APIs](comparison-api.md)
+are implemented. Legacy projections need a separate provenance
 contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -1006,3 +1007,33 @@ Schema, Django system/migration, lint/formatting, dependency-export and local-li
 checks pass. No migrations, dependency changes or frontend work are introduced.
 See the [Favorites contract](favorites-api.md). Next add comparison APIs, then
 aggregated favorite gamelogs and remaining owned/account resources.
+
+
+## Private comparison API — 2026-11-10
+
+`GET /api/v1/me/comparison/` now reads one account's typed comparison selection
+with explicit season/career scope, mode, catalogue filters/order and pagination.
+Season packets retain missing/unverified/zero-game members. Career packets reuse
+the existing profile allowlist and do not fall back to snapshots or season data;
+career queries reject season/team selectors.
+
+Typed PUT/DELETE membership and DELETE group reset are session-private and
+CSRF-protected. Existing members remain idempotent at/over quota; excess new
+additions return 409 `comparison_quota_exceeded`. Each player type has an
+independent five-player limit. Owner locks cover reads, quotas, writes, resets
+and serialization, shared with legacy toggles/resets. Other accounts, Favorites
+and the opposite comparison group are preserved. Common saved-list projections,
+nullable serializers and request guards are shared with Favorites.
+
+See the [comparison contract](comparison-api.md). No migrations, new dependencies
+or frontend changes are introduced. Next add aggregated Favorites gamelogs, then
+remaining private notes/positions, account settings/uploads and search resources
+before Vue/Vite scaffolding.
+
+Validation: **1729 offline tests pass**, 48 deselected, at **93.72% combined
+players line/branch coverage**; scope and the 35% gate are unchanged. Fifty-seven
+new cases include real API/legacy quota/reset races and independent-owner checks;
+821 focused API/legacy tests pass. Schema, Django system/migration, lint/formatting,
+dependency-export and documentation-link checks pass. Chromium was not rerun for
+this backend-only slice; rendered legacy comparison/Favorites regressions remain
+in the offline gate.
