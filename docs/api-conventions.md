@@ -1,15 +1,15 @@
 # API conventions for the frontend migration
 
 Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
-The [foundation below](#implemented-api-foundation),
-[saved scoreboard](scoreboard-api.md), [game-detail](game-detail-api.md) and
-[loaded seasons](seasons-api.md), [Players catalogue](players-api.md) and
-[team metadata/contributions](teams-api.md) and
-[player profile/history/gamelog](player-profile-api.md) resources
-are implemented. Other statistics, account and saved-list endpoint families remain
-future migration work. Existing
-pages and legacy AJAX responses retain their contracts until a tested replacement
-is switched in. The [architecture plan](frontend-architecture.md) records the order.
+The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api.md),
+[game detail](game-detail-api.md), [seasons](seasons-api.md),
+[Players catalogue](players-api.md), [teams](teams-api.md),
+[player profiles/history/gamelogs](player-profile-api.md) and
+[session/CSRF/login/logout](session-auth-api.md) are implemented.
+Registration/recovery, account and saved-list endpoint families remain future work.
+Existing pages and legacy AJAX responses retain their contracts until a tested
+replacement is switched in. The [architecture plan](frontend-architecture.md)
+records the order.
 
 ## Transport and resources
 
@@ -121,7 +121,9 @@ throttling 429 with Retry-After where applicable. Login failure details and fiel
 responses are specified/tested with the auth endpoints, including enumeration
 protection for recovery. Any later change to this mapping is an API contract change.
 
-GET/HEAD never mutate application records or invoke loaders. Use explicit-state
+GET/HEAD never mutate player/owned/loader records or invoke loaders. CSRF bootstrap
+may establish framework cookie/session state, and session discovery applies
+Django's normal invalid-session handling; see [session API](session-auth-api.md). Use explicit-state
 membership PUT/DELETE operations in the new API: repeating add/remove must not
 flip a previously successful result. Specify success bodies/statuses with their
 serializers; delete succeeds with 204 even when membership is already absent.
@@ -192,6 +194,10 @@ No application migration is introduced.
 | --- | --- |
 | `GET /api/v1/` | Session-authenticated, private/no-store version metadata: `{"version":"v1"}`. Anonymous access returns JSON 403 `authentication_required`. This is not a service-health probe. |
 | `GET /api/v1/schema/` | Public read-only OpenAPI 3.0.3 JSON. Only implemented operations are described; no YAML, Swagger UI or browsable API is served. |
+| `GET /api/v1/auth/csrf/` | Private/no-store masked CSRF bootstrap, including HTTP-only/session-backed CSRF. See [session contract](session-auth-api.md). |
+| `GET /api/v1/auth/session/` | Public discovery returning current minimal identity or anonymous 200. |
+| `POST /api/v1/auth/login/` | CSRF-protected JSON credentials, generic failure, Django session login and fresh CSRF token. |
+| `POST /api/v1/auth/logout/` | CSRF-protected current-session logout and fresh anonymous CSRF token. |
 | `GET /api/v1/players/{player_type}/{nhl_id}/` | Public biography, selected SBS season and separate saved career packets. See [profile contract](player-profile-api.md). |
 | `GET /api/v1/players/{player_type}/{nhl_id}/seasons/` | Paginated NHL season history with overall statistics and exact team contributions. |
 | `GET /api/v1/players/{player_type}/{nhl_id}/gamelog/` | Paginated verified saved game statistics, orphan/missing availability, named filters/ordering. Omitted season means all saved dates. |
@@ -219,11 +225,11 @@ is no generated frontend client yet.
 New DRF views inherit JSON rendering/parsing, session authentication and
 `IsAuthenticated` by default. Public reads must explicitly opt into `AllowAny`.
 Session CSRF errors are distinguished from authentication/permission errors;
-existing session-backed and HTTP-only CSRF configurations remain supported. No
-JSON login/CSRF bootstrap or account endpoints are implemented yet; the
-[saved scoreboard](scoreboard-api.md) and [game detail](game-detail-api.md) are the
-first statistics resources.
-The existing HTML login continues to establish sessions during this transition.
+existing session-backed and HTTP-only CSRF configurations remain supported.
+The [JSON CSRF/session/login/logout lifecycle](session-auth-api.md) is implemented;
+registration, password recovery and account editing remain pending. Statistics
+resources use their explicit public read-only contracts above.
+The existing HTML login and JSON login share Django sessions during this transition.
 Future uploads must deliberately enable their multipart parser rather than
 loosening parser policy globally.
 

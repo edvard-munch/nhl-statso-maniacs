@@ -1,4 +1,4 @@
-"""Version/schema endpoints; no statistics or auth lifecycle migration yet."""
+"""Version/schema endpoints; resource and auth routes live in their own modules."""
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache

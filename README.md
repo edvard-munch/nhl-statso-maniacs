@@ -17,7 +17,9 @@ at `/api/v1/games/{nhl_id}/`. Loaded seasons are available at `/api/v1/seasons/`
 available at `/api/v1/players/`; see its [contract](docs/players-api.md).
 [Team metadata and season contributions](docs/teams-api.md) are available under
 `/api/v1/teams/`. Typed [player profiles, season histories and gamelogs](docs/player-profile-api.md)
-are available under `/api/v1/players/{player_type}/{nhl_id}/`. Remaining JSON APIs will be implemented
+are available under `/api/v1/players/{player_type}/{nhl_id}/`.
+[Session/CSRF bootstrap, login and logout](docs/session-auth-api.md) are available
+under `/api/v1/auth/`. Remaining JSON APIs will be implemented
 before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.

@@ -33,6 +33,12 @@ class CsrfFailed(exceptions.PermissionDenied):
     default_code = "csrf_failed"
 
 
+class InvalidCredentials(exceptions.APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = "Unable to sign in with those credentials."
+    default_code = "invalid_credentials"
+
+
 def payload(code, message, fields=None):
     detail = {"code": code, "message": message}
     if fields is not None:
@@ -77,6 +83,8 @@ def exception_handler(exc, context):
         code, message = "authentication_required", "Sign in required."
     elif isinstance(exc, CsrfFailed):
         code, message = "csrf_failed", "CSRF validation failed."
+    elif isinstance(exc, InvalidCredentials):
+        code, message = "invalid_credentials", "Unable to sign in with those credentials."
     elif isinstance(exc, exceptions.ParseError):
         code, message = "parse_error", "Malformed request body."
     response.data = payload(code, message, fields)

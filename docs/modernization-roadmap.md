@@ -16,8 +16,8 @@ resources are implemented; the remaining statistics, authentication, account and
 saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Complete
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
-implemented, along with public profiles, season histories and gamelogs. Next add
-session/CSRF authentication endpoints. Legacy projections need a separate provenance
+implemented, along with public profiles, season histories and gamelogs. JSON
+session/CSRF/login/logout is implemented; next add registration, then password recovery. Legacy projections need a separate provenance
 contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -30,7 +30,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1449 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1504 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -905,3 +905,26 @@ migration-drift, formatting/lint and dependency-export checks pass. No dependenc
 migrations, application writes or NHL requests are introduced. See the
 [player profile contract](player-profile-api.md). Next add session/CSRF auth APIs;
 private owned resources follow. Frontend scaffolding remains deferred.
+
+
+## JSON session/CSRF authentication — 2026-11-10
+
+`/api/v1/auth/csrf/`, `/session/`, `/login/` and `/logout/` now share Django users,
+backends and sessions with the HTML application. Anonymous login/logout undergo
+raw-request CSRF checks; success rotates CSRF and returns minimal identity/token
+JSON. Login retains username normalization, exact passwords, session fixation
+protection and existing backend/signals. Logout flushes only the current session;
+account switches flush prior session state. Credential failures are generic and
+preserve current identity. JSON media types are explicitly enforced even when
+CSRF middleware has consumed a form stream. Registration/recovery/account editing
+remain separate. See [session auth contract](session-auth-api.md).
+
+Fifty-five new cases and existing auth/API regressions pass: 516 focused tests and
+1504 offline tests, 48 deselected. Players line/branch coverage remains 93.42%,
+with the 35% gate/scope unchanged; new project API auth modules are outside that
+percentage and have explicit lifecycle/security tests. System/schema/migration,
+lint/formatting, dependency-export and documentation-link checks pass. An existing
+game-detail sentinel assertion now checks statistics rather than whole JSON, avoiding
+a false failure when a timestamp contains a stale-TOI sentinel. No dependencies,
+migrations or frontend changes are introduced. Next add registration, then password
+recovery, before owned/account resources and frontend scaffolding.

@@ -76,7 +76,15 @@ def test_saved_game_data_uses_actual_rosters_game_rows_and_numeric_units(client,
     assert f.players["away_bench"].nhl_id not in [
         row["nhl_id"] for row in data["rosters"]["away"]["goalies"]
     ]
-    assert "999" not in json.dumps(data) and "09:59" not in json.dumps(data)
+    # Restrict sentinel checks to statistics: timestamps can legitimately contain
+    # "09:59" or the digits "999", making whole-response substring checks flaky.
+    for roster in data["rosters"].values():
+        for group in roster.values():
+            for entry in group:
+                assert 999 not in entry["stats"].values()
+                assert 9999 not in entry["stats"].values()
+                for field in ("toi_seconds", "pp_toi_seconds", "sh_toi_seconds"):
+                    assert entry["stats"].get(field) != 599
     assert "no-store" in response["Cache-Control"]
 
 

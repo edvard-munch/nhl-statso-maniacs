@@ -135,6 +135,10 @@ def test_schema_is_public_json_valid_and_read_only(
     assert schema["openapi"] == "3.0.3"
     assert set(schema["paths"]) == {
         PREFIX,
+        PREFIX + "auth/csrf/",
+        PREFIX + "auth/session/",
+        PREFIX + "auth/login/",
+        PREFIX + "auth/logout/",
         PREFIX + "seasons/",
         PREFIX + "players/",
         PREFIX + "players/{player_type}/{nhl_id}/",
@@ -170,6 +174,10 @@ def test_schema_cli_validates_without_database_or_network(
     schema = json.loads(output.getvalue())
     assert set(schema["paths"]) == {
         PREFIX,
+        PREFIX + "auth/csrf/",
+        PREFIX + "auth/session/",
+        PREFIX + "auth/login/",
+        PREFIX + "auth/logout/",
         PREFIX + "seasons/",
         PREFIX + "players/",
         PREFIX + "players/{player_type}/{nhl_id}/",

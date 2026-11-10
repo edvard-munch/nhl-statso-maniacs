@@ -1454,3 +1454,19 @@ and bounded read-only query counts with larger histories.
 Schema validation, Django system/migration checks, lint/formatting, dependency
 export and documentation-link checks pass. Chromium was not rerun for this
 backend-only slice; legacy rendered profile/game tests are included offline.
+
+
+## Session/CSRF authentication API — 2026-11-10
+
+The full offline gate passes **1504 tests**, 48 deselected, at **93.42% combined
+players line/branch coverage**, with scope and the 35% gate unchanged. Fifty-five
+new lifecycle/security cases cover anonymous-login CSRF, token/session rotation,
+account switching, credential failures, expired/inactive sessions, media/body
+validation, username/password compatibility, HTTPS and alternate CSRF storage.
+The focused API/legacy run passes 516 tests. Auth code under `nhl_web_app.api`
+is tested explicitly but is outside the measured players scope.
+
+An existing game-detail sentinel check now targets statistics fields, avoiding
+false positives from timestamps containing `09:59` or `999`. Schema, Django
+system/migration, formatting/lint, dependency-export and local documentation-link
+checks pass. Chromium was not rerun for this backend-only slice.
