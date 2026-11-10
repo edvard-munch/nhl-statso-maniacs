@@ -2,7 +2,6 @@
 
 from collections.abc import Mapping
 
-from django.core.exceptions import NON_FIELD_ERRORS
 from drf_spectacular.utils import OpenApiTypes, extend_schema, extend_schema_field
 from rest_framework import serializers, status
 from rest_framework.exceptions import ValidationError
@@ -12,6 +11,7 @@ from users.forms import UserRegisterForm
 from users.registration import create_registered_user
 from .auth_serializers import SessionUserSerializer
 from .auth_views import AUTH_ERRORS, CSRF_HEADER, SessionLifecycleView, json_body, validate_query
+from .serializers import form_error_fields
 
 
 @extend_schema_field(OpenApiTypes.STR)
@@ -86,14 +86,7 @@ class RegistrationView(SessionLifecycleView):
         form = UserRegisterForm(credentials.validated_data)
         user = create_registered_user(form)
         if user is None:
-            raise ValidationError(
-                {
-                    "non_field_errors" if field == NON_FIELD_ERRORS else field: [
-                        message for error in errors for message in error.messages
-                    ]
-                    for field, errors in form.errors.as_data().items()
-                }
-            )
+            raise ValidationError(form_error_fields(form))
         return Response(
             RegistrationResponseSerializer({"user": user, "login_required": True}).data,
             status=status.HTTP_201_CREATED,

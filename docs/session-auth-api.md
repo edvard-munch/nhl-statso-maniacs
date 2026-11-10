@@ -2,8 +2,8 @@
 
 The JSON API now shares Django's existing users, authentication backends and
 session cookies with the HTML application. The four lifecycle routes below are
-also used by [JSON registration](registration-api.md). Password recovery and account
-editing remain separate migration work.
+also used by [JSON registration](registration-api.md) and
+[password recovery](password-recovery-api.md). Account editing remains separate work.
 Existing HTML login/logout/account routes keep their contracts.
 
 ## Routes
@@ -123,5 +123,5 @@ validation alongside legacy HTML auth tests. No NHL requests occur.
 Auth implementation lives under `nhl_web_app.api`; the existing coverage gate
 measures `players` and does not include these new modules in that percentage.
 Their lifecycle/security contracts are exercised explicitly. Registration uses
-this foundation; password recovery, `/me/` settings and owned-resource endpoints
-are still pending.
+this foundation, as does password recovery. `/me/` settings and owned-resource
+endpoints are still pending.

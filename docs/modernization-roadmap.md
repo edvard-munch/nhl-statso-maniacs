@@ -17,7 +17,8 @@ saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Comple
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
-session/CSRF/login/logout and registration are implemented; next add password recovery. Legacy projections need a separate provenance
+session/CSRF/login/logout, registration and password recovery are implemented. Next
+add private favorites/comparison APIs with their ownership contracts. Legacy projections need a separate provenance
 contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -30,7 +31,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1553 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1619 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -953,3 +954,30 @@ players coverage. Scope and the 35% gate are unchanged; users/project API module
 are tested explicitly outside that percentage. System/schema/migration, lint/format,
 dependency-export and documentation-link checks pass. No dependencies, migrations,
 loader activity or frontend changes are introduced. Next add password recovery.
+
+
+## Password recovery APIs and shared atomic confirmation — 2026-11-10
+
+JSON recovery request, link-validation and confirmation routes now use Django's
+email eligibility, token generator/expiry/fallbacks and SetPasswordForm rules.
+Request acknowledgements are uniform across account eligibility and delivery
+failure; links use a configured trusted origin, never request headers. Empty
+PASSWORD_RESET_PUBLIC_ORIGIN disables JSON email requests uniformly with 503.
+Default links keep the existing HTML page functional; a configured frontend path
+uses a fragment for future Vue UID/token handoff. Delivery remains synchronous,
+with timing limitations and asynchronous/rate-limit follow-ups explicitly recorded.
+
+API and HTML confirmations share a locked user reload/token recheck and atomic
+password/profile save. Concurrent confirmations cannot both consume a token.
+Profile edits now save only username/email so stale forms cannot restore an old
+password or last-login value. No auto-login, new dependencies or migrations are
+introduced. See [password recovery contract](password-recovery-api.md).
+
+Sixty-six new tests cover lifecycle, safe links, expiry/reuse, privacy, session
+invalidation, rollback, stale edits and real mixed API/HTML races. The focused run
+passes 631 tests; the full offline gate passes 1619 tests, 48 deselected, at 93.42%
+combined players coverage with the 35% gate/scope unchanged. Users/project API code
+is tested explicitly outside that percentage. All test mail is in memory. Schema,
+system/migration, formatting/lint, dependency-export and documentation-link checks
+pass. Next add private favorites/comparison APIs, followed by other owned/account
+resources. Email queue/timing hardening remains a pre-cutover follow-up.

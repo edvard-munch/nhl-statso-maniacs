@@ -6,6 +6,11 @@ from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
 from players.api.views import GameDetailView, ScoreboardView, SeasonsView, PlayersView
 
 from .registration import RegistrationView
+from .password_recovery import (
+    PasswordRecoveryRequestView,
+    PasswordRecoveryConfirmView,
+    ResetLinkView,
+)
 from .auth_views import CsrfView, SessionView, LoginView, LogoutView
 from . import schema  # noqa: F401 -- register the OpenAPI authentication extension
 from .views import ApiRootView, NotFoundView, SchemaView
@@ -13,6 +18,13 @@ from .views import ApiRootView, NotFoundView, SchemaView
 app_name = "api_v1"
 urlpatterns = [
     path("", ApiRootView.as_view(), name="root"),
+    path("auth/password-reset/", PasswordRecoveryRequestView.as_view(), name="password-reset"),
+    path("auth/password-reset/validate/", ResetLinkView.as_view(), name="password-reset-validate"),
+    path(
+        "auth/password-reset/confirm/",
+        PasswordRecoveryConfirmView.as_view(),
+        name="password-reset-confirm",
+    ),
     path("auth/register/", RegistrationView.as_view(), name="auth-register"),
     path("auth/csrf/", CsrfView.as_view(), name="auth-csrf"),
     path("auth/session/", SessionView.as_view(), name="auth-session"),

@@ -146,11 +146,15 @@ LOGIN_URL = "login"
 EMAIL_BACKEND = env(
     "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend", cast=str
 )
+# Canonical recovery link destination; empty disables JSON recovery email requests.
+PASSWORD_RESET_PUBLIC_ORIGIN = env("PASSWORD_RESET_PUBLIC_ORIGIN", default="", cast=str)
+PASSWORD_RESET_FRONTEND_PATH = env("PASSWORD_RESET_FRONTEND_PATH", default="", cast=str)
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", cast=str)
 EMAIL_HOST_PASSWORD = env("EMAIL_PASSWORD", cast=str)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="webmaster@localhost", cast=str)
 
 # SILKY_PYTHON_PROFILER = True
 

@@ -6,8 +6,8 @@ The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api
 [Players catalogue](players-api.md), [teams](teams-api.md),
 [player profiles/history/gamelogs](player-profile-api.md) and
 [session/CSRF/login/logout](session-auth-api.md) and
-[registration](registration-api.md) are implemented. Password recovery, account and
-saved-list endpoint families remain future work.
+[registration](registration-api.md) and [password recovery](password-recovery-api.md)
+are implemented. Account and saved-list endpoint families remain future work.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.
@@ -195,6 +195,9 @@ No application migration is introduced.
 | --- | --- |
 | `GET /api/v1/` | Session-authenticated, private/no-store version metadata: `{"version":"v1"}`. Anonymous access returns JSON 403 `authentication_required`. This is not a service-health probe. |
 | `GET /api/v1/schema/` | Public read-only OpenAPI 3.0.3 JSON. Only implemented operations are described; no YAML, Swagger UI or browsable API is served. |
+| `POST /api/v1/auth/password-reset/` | Generic recovery acknowledgement and trusted-origin email links. See [recovery contract](password-recovery-api.md), including synchronous delivery/timing limits. |
+| `POST /api/v1/auth/password-reset/validate/` | CSRF-protected link validation using JSON UID/token, without consuming it. |
+| `POST /api/v1/auth/password-reset/confirm/` | Locked single-use confirmation and Django password validation; requires separate login. |
 | `POST /api/v1/auth/register/` | CSRF-protected shared-form registration, atomic user/profile creation and case-insensitive web-flow locking; returns 201 and requires separate login. See [registration contract](registration-api.md). |
 | `GET /api/v1/auth/csrf/` | Private/no-store masked CSRF bootstrap, including HTTP-only/session-backed CSRF. See [session contract](session-auth-api.md). |
 | `GET /api/v1/auth/session/` | Public discovery returning current minimal identity or anonymous 200. |
@@ -229,7 +232,8 @@ New DRF views inherit JSON rendering/parsing, session authentication and
 Session CSRF errors are distinguished from authentication/permission errors;
 existing session-backed and HTTP-only CSRF configurations remain supported.
 The [JSON CSRF/session/login/logout lifecycle](session-auth-api.md) is implemented;
-registration is also implemented. Password recovery and account editing remain pending. Statistics
+registration and [password recovery](password-recovery-api.md) are also implemented.
+Account editing remains pending. Statistics
 resources use their explicit public read-only contracts above.
 The existing HTML login and JSON login share Django sessions during this transition.
 Future uploads must deliberately enable their multipart parser rather than

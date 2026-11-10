@@ -1485,3 +1485,19 @@ Registration code under `users` and `nhl_web_app.api` remains outside the measur
 players scope and is exercised explicitly. Schema, Django system/migration,
 formatting/lint, dependency-export and documentation-link checks pass. Chromium
 was not rerun; existing rendered auth/registration tests run in the offline gate.
+
+
+## Password recovery API — 2026-11-10
+
+The full offline gate passes **1619 tests**, 48 deselected, at **93.42% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Sixty-six
+new recovery cases bring the focused API/legacy run to 631 tests: eligibility,
+trusted destinations, token validation/expiry/reuse, password rules, session
+invalidation, stale-profile safety, failure rollback and real API/HTML reset races.
+All emails use the in-memory backend. Users/project API modules remain outside the
+players percentage and have explicit lifecycle/security tests.
+
+Schema, Django system/migration, formatting/lint, dependency-export and local
+link checks pass. Chromium was not rerun; legacy HTML recovery/auth regression
+coverage remains in the offline gate. Synchronous delivery's timing limitation is
+documented separately from response-level enumeration protection.

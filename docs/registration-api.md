@@ -111,4 +111,5 @@ regressions run alongside these contracts.
 Implementation under `users` and `nhl_web_app.api` is outside the existing
 `players` coverage percentage; these contracts are tested explicitly. Registration
 adds no dependencies, migrations, loader writes or frontend implementation.
-Password recovery and account/owned-resource APIs remain later migration work.
+[Password recovery](password-recovery-api.md) is implemented separately; account
+and owned-resource APIs remain later work.

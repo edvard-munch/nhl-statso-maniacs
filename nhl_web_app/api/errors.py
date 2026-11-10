@@ -39,6 +39,18 @@ class InvalidCredentials(exceptions.APIException):
     default_code = "invalid_credentials"
 
 
+class InvalidResetToken(exceptions.APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_code = "invalid_reset_token"
+    default_detail = "This password reset link is invalid or has expired."
+
+
+class ResetUnavailable(exceptions.APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_code = "password_reset_unavailable"
+    default_detail = "Password recovery is currently unavailable."
+
+
 def payload(code, message, fields=None):
     detail = {"code": code, "message": message}
     if fields is not None:
@@ -85,6 +97,11 @@ def exception_handler(exc, context):
         code, message = "csrf_failed", "CSRF validation failed."
     elif isinstance(exc, InvalidCredentials):
         code, message = "invalid_credentials", "Unable to sign in with those credentials."
+    elif getattr(exc, "default_code", None) in {
+        "invalid_reset_token",
+        "password_reset_unavailable",
+    }:
+        code, message = exc.default_code, str(exc.default_detail)
     elif isinstance(exc, exceptions.ParseError):
         code, message = "parse_error", "Malformed request body."
     response.data = payload(code, message, fields)
