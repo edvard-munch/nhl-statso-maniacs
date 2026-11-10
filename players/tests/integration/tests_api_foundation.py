@@ -133,7 +133,7 @@ def test_schema_is_public_json_valid_and_read_only(
     schema = response.json()
     validate_schema(schema)
     assert schema["openapi"] == "3.0.3"
-    assert set(schema["paths"]) == {PREFIX, PREFIX + "games/"}
+    assert set(schema["paths"]) == {PREFIX, PREFIX + "games/", PREFIX + "games/{nhl_id}/"}
     root = schema["paths"][PREFIX]["get"]
     assert root["security"] == [{"cookieAuth": []}]
     assert root["responses"]["403"]["content"]["application/json"]["schema"]["$ref"].endswith(
@@ -156,7 +156,7 @@ def test_schema_cli_validates_without_database_or_network(
             "spectacular", "--format", "openapi-json", "--validate", "--fail-on-warn", stdout=output
         )
     schema = json.loads(output.getvalue())
-    assert set(schema["paths"]) == {PREFIX, PREFIX + "games/"}
+    assert set(schema["paths"]) == {PREFIX, PREFIX + "games/", PREFIX + "games/{nhl_id}/"}
     assert not no_upstream.called
 
 

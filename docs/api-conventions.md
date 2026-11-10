@@ -1,9 +1,10 @@
 # API conventions for the frontend migration
 
 Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
-The [foundation below](#implemented-api-foundation) and
-[saved scoreboard resource](scoreboard-api.md) are implemented. Other statistics,
-account and saved-list endpoint families remain future migration work. Existing
+The [foundation below](#implemented-api-foundation),
+[saved scoreboard](scoreboard-api.md) and [game-detail](game-detail-api.md) resources
+are implemented. Other statistics, account and saved-list endpoint families remain
+future migration work. Existing
 pages and legacy AJAX responses retain their contracts until a tested replacement
 is switched in. The [architecture plan](frontend-architecture.md) records the order.
 
@@ -189,6 +190,7 @@ No application migration is introduced.
 | `GET /api/v1/` | Session-authenticated, private/no-store version metadata: `{"version":"v1"}`. Anonymous access returns JSON 403 `authentication_required`. This is not a service-health probe. |
 | `GET /api/v1/schema/` | Public read-only OpenAPI 3.0.3 JSON. Only implemented operations are described; no YAML, Swagger UI or browsable API is served. |
 | `GET /api/v1/games/?date=YYYY-MM-DD` | Public saved scoreboard JSON, with strict query validation, nullable verified legacy scores, pagination and freshness. See [resource contract](scoreboard-api.md). |
+| `GET /api/v1/games/{nhl_id}/` | Public saved game summary plus typed, verified game-date rosters/statistics. See [game-detail contract](game-detail-api.md). |
 | Unknown/slashless `/api/v1` paths | JSON 404, without a trailing-slash redirect or unsafe-request replay. |
 
 Public schema serving performs no database queries or upstream requests. Generate
@@ -208,7 +210,8 @@ New DRF views inherit JSON rendering/parsing, session authentication and
 Session CSRF errors are distinguished from authentication/permission errors;
 existing session-backed and HTTP-only CSRF configurations remain supported. No
 JSON login/CSRF bootstrap or account endpoints are implemented yet; the
-[saved scoreboard](scoreboard-api.md) is the first statistics resource.
+[saved scoreboard](scoreboard-api.md) and [game detail](game-detail-api.md) are the
+first statistics resources.
 The existing HTML login continues to establish sessions during this transition.
 Future uploads must deliberately enable their multipart parser rather than
 loosening parser policy globally.

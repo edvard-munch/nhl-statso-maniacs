@@ -66,29 +66,7 @@ def scoreboard(day):
             )
         )
     )
-    rows = []
-    for game in games:
-        sides = game.scoreboard_sides
-        scores = _scores(game, sides)
-        teams = {}
-        for label in (AWAY, HOME):
-            matches = [side for side in sides if side.side == label]
-            teams[label] = _team(matches[0]) if len(matches) == 1 else None
-        rows.append(
-            {
-                "nhl_id": game.nhl_id,
-                "slug": game.slug,
-                "date": day,
-                "is_final": game.game_finished,
-                "away_team": teams[AWAY],
-                "home_team": teams[HOME],
-                "away_score": scores[0] if scores else None,
-                "home_score": scores[1] if scores else None,
-                "score_outcome": scores[2] if scores else None,
-                "score_source": SCORE_SOURCE if scores else None,
-                "freshness": _freshness([game], checked_at, partial=scores is None),
-            }
-        )
+    rows = [game_summary(game, day, checked_at) for game in games]
     return rows, {
         "date": day,
         "freshness": _freshness(
@@ -97,4 +75,27 @@ def scoreboard(day):
             partial=any(row["freshness"]["partial"] for row in rows),
             kind="scoreboard",
         ),
+    }
+
+
+def game_summary(game, day, checked_at):
+    """Project a saved game with prefetched scoreboard_sides, without queries."""
+    sides = game.scoreboard_sides
+    scores = _scores(game, sides)
+    teams = {}
+    for label in (AWAY, HOME):
+        matches = [side for side in sides if side.side == label]
+        teams[label] = _team(matches[0]) if len(matches) == 1 else None
+    return {
+        "nhl_id": game.nhl_id,
+        "slug": game.slug,
+        "date": day,
+        "is_final": game.game_finished,
+        "away_team": teams[AWAY],
+        "home_team": teams[HOME],
+        "away_score": scores[0] if scores else None,
+        "home_score": scores[1] if scores else None,
+        "score_outcome": scores[2] if scores else None,
+        "score_source": SCORE_SOURCE if scores else None,
+        "freshness": _freshness([game], checked_at, partial=scores is None),
     }

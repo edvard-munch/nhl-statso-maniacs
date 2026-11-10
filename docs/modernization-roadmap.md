@@ -11,8 +11,9 @@ change at a time and validate before moving to the next stage.
 
 **Active development: migrate the frontend and JSON API incrementally.** The
 [API foundation](api-conventions.md#implemented-api-foundation) and
-[saved scoreboard JSON resource](scoreboard-api.md) are implemented; next design
-the saved game-detail JSON resource. The [frontend plan](frontend-architecture.md)
+[saved scoreboard](scoreboard-api.md) and [game-detail JSON](game-detail-api.md)
+resources are implemented. Next confirm frontend rendering and scaffold the
+frontend/client tooling. The [frontend plan](frontend-architecture.md)
 estimates 25–30 focused commits for the whole migration. Confirm the proposed
 Nuxt hybrid versus browser-only Vue/Vite rendering choice before scaffolding.
 Server activation/rehearsal and ambiguous legacy-data review remain deferred. The
@@ -22,7 +23,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1168 tests at 92.20% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1219 tests at 92.44% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -784,3 +785,23 @@ lint and dependency-export checks pass. All 26 Chromium cases pass on repeat
 after an initial local-script `net::ERR_NETWORK_CHANGED` failure, with no test or
 application change for the repeat. The next API slice is saved game detail;
 frontend rendering selection and actual service rollout remain separate decisions.
+
+
+## Saved game-detail JSON resource
+
+`GET /api/v1/games/{nhl_id}/` now shares the scoreboard's saved summary adapter
+and adds explicit typed away/home rosters and date-scoped statistics. It validates
+nested player identity and game markers, checks unstamped legacy team/appearance
+evidence in batches, and retains roster identities with null statistics when rows
+are missing or unverified. Counts/TOI/fractions have documented units and nullable
+validation; profile snapshots, other dates and private state are not fallbacks.
+
+PostgreSQL extracts only the requested gamelog date; prefetched roster groups use
+eight SELECTs, or at most ten with legacy collision checks. No loader, HTTP call,
+HTML rendering, application write or writer lock is introduced. Existing HTML
+pages, scoreboard JSON and authentication boundaries remain covered. See
+[game-detail contracts](game-detail-api.md). Fifty-one new cases and the full
+offline gate pass: 1219 tests, 48 deselected, 92.44% combined players coverage;
+35%/scope are unchanged. All 26 Chromium cases and schema/system/migration,
+lint and export checks pass. Frontend rendering/scaffolding and actual service
+activation remain separate work.

@@ -1385,3 +1385,16 @@ export checks pass. Validation uses synthetic PostgreSQL and mocked upstream dat
 All **26 Chromium cases** pass (**1190 deselected**) on rerun. The first browser
 run had a local-script `net::ERR_NETWORK_CHANGED` failure; no application/test
 change was made to obtain the passing repeat.
+
+
+## Follow-up: saved game-detail JSON endpoint
+
+The gate passes **1219 offline tests**, **48 deselected**, at **92.44% combined
+players coverage**, retaining the 35% gate/scope. Fifty-one new cases cover typed
+rosters, exact-date/identity verification, null/zero/unit handling, malformed data,
+legacy collisions, read-only eight/ten-query bounds, privacy and shared schema/
+scoreboard contracts. The focused run passed 146 related cases. System/migration,
+schema validation, lint and dependency-export checks pass; synthetic PostgreSQL
+and mocked NHL inputs are used, without accessing the application database.
+All **26 Chromium cases** also pass (**1241 deselected**); existing refresh,
+favorites/comparison and team workflows remain protected.
