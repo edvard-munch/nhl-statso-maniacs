@@ -1,6 +1,6 @@
 # Regression testing and modernization roadmap
 
-Reviewed: 2026-11-09. This records the work agreed in this chat and the remaining
+Reviewed: 2026-11-10. This records the work agreed in this chat and the remaining
 sequence. Update the status and evidence as each small commit lands.
 
 ## Goal and recommendation
@@ -12,10 +12,13 @@ change at a time and validate before moving to the next stage.
 **Active development: migrate the frontend and JSON API incrementally.** The
 [API foundation](api-conventions.md#implemented-api-foundation) and
 [saved scoreboard](scoreboard-api.md) and [game-detail JSON](game-detail-api.md)
-resources are implemented. Next confirm frontend rendering and scaffold the
-frontend/client tooling. The [frontend plan](frontend-architecture.md)
-estimates 25–30 focused commits for the whole migration. Confirm the proposed
-Nuxt hybrid versus browser-only Vue/Vite rendering choice before scaffolding.
+resources are implemented; the remaining statistics, authentication, account and
+saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Next
+scaffold frontend/client tooling and build the scoreboard/game pilot, then migrate
+API/UI workflows incrementally. Functionality takes priority over visual polish;
+mobile usability and viewport checks belong in each slice. The
+[frontend plan](frontend-architecture.md) estimates 25–30 focused commits for the
+whole migration.
 Server activation/rehearsal and ambiguous legacy-data review remain deferred. The
 [scheduling policy](loader-scheduling.md) records the proposed live/daily/weekly
 cadences, current loader limitations and always-on server requirements. The
@@ -805,3 +808,12 @@ offline gate pass: 1219 tests, 48 deselected, 92.44% combined players coverage;
 35%/scope are unchanged. All 26 Chromium cases and schema/system/migration,
 lint and export checks pass. Frontend rendering/scaffolding and actual service
 activation remain separate work.
+
+
+## Frontend choice confirmed — 2026-11-10
+
+Use Vue 3/Vite/TypeScript with browser rendering. Prioritize functional parity and
+mobile usability before visual polish. The game APIs support the first frontend
+pilot; they do not complete the API migration. Subsequent workflows still need
+their JSON endpoints and frontend replacements. See the current scope and mobile
+acceptance requirements in the [frontend plan](frontend-architecture.md).

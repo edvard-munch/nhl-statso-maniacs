@@ -8,7 +8,7 @@ The [legacy inventory](docs/legacy-audit.md) records command callers, dependency
 cleanup candidates and usage that must be confirmed outside the repository.
 The proposed [frontend architecture and migration plan](docs/frontend-architecture.md)
 and [API conventions](docs/api-conventions.md) describe the next development phase;
-Nuxt/Vue is not implemented yet. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
+Vue/Vite is selected; frontend scaffolding is not implemented yet. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. The
 [saved scoreboard endpoint](docs/scoreboard-api.md) is available at
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved game details](docs/game-detail-api.md)

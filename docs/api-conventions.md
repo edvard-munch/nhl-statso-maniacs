@@ -133,7 +133,7 @@ blind retries to unsafe operations; test lost-response/repeated-request behavior
 before configuring mutation retries.
 
 Use private/no-store responses for account-specific data. Keep public statistics
-responses independent of favorite flags/private text so shared SSR/public caches
+responses independent of favorite flags/private text so shared public caches
 cannot leak them. Clear private client caches on logout/account change and guard
 against responses arriving after a newer selection or mutation.
 
@@ -171,7 +171,7 @@ change or a new API version, not a silent change under old consumers.
 
 Contract tests cover data/units, zero versus missing, seasons, filtering/order,
 pagination, JSON errors, CSRF/ownership, idempotence/concurrency and read-only
-behavior. Browser tests cover public initial HTML/metadata, hydrated interaction,
+behavior. Browser tests cover browser-rendered public content/navigation, mobile usability,
 account workflows, polling/recovery and preservation of user state. Template
 assertions remain until their replacement workflow is tested and switched over.
 
