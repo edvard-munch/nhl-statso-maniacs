@@ -1470,3 +1470,18 @@ An existing game-detail sentinel check now targets statistics fields, avoiding
 false positives from timestamps containing `09:59` or `999`. Schema, Django
 system/migration, formatting/lint, dependency-export and local documentation-link
 checks pass. Chromium was not rerun for this backend-only slice.
+
+
+## Registration API — 2026-11-10
+
+The full offline gate passes **1553 tests**, 48 deselected, at **93.42% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Forty-nine
+new registration cases bring the focused API/legacy run to 565 tests. They cover
+shared form/password policy, normalization, hashing, privilege rejection, session
+preservation, CSRF/media errors, profile-failure rollback, real API/HTML case-variant
+races and an external exact-username constraint race.
+
+Registration code under `users` and `nhl_web_app.api` remains outside the measured
+players scope and is exercised explicitly. Schema, Django system/migration,
+formatting/lint, dependency-export and documentation-link checks pass. Chromium
+was not rerun; existing rendered auth/registration tests run in the offline gate.

@@ -19,7 +19,8 @@ available at `/api/v1/players/`; see its [contract](docs/players-api.md).
 `/api/v1/teams/`. Typed [player profiles, season histories and gamelogs](docs/player-profile-api.md)
 are available under `/api/v1/players/{player_type}/{nhl_id}/`.
 [Session/CSRF bootstrap, login and logout](docs/session-auth-api.md) are available
-under `/api/v1/auth/`. Remaining JSON APIs will be implemented
+under `/api/v1/auth/`, including [registration](docs/registration-api.md) at
+`/api/v1/auth/register/`. Remaining JSON APIs will be implemented
 before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.

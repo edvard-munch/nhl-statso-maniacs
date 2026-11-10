@@ -17,7 +17,7 @@ saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Comple
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
-session/CSRF/login/logout is implemented; next add registration, then password recovery. Legacy projections need a separate provenance
+session/CSRF/login/logout and registration are implemented; next add password recovery. Legacy projections need a separate provenance
 contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -30,7 +30,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1504 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1553 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -928,3 +928,28 @@ game-detail sentinel assertion now checks statistics rather than whole JSON, avo
 a false failure when a timestamp contains a stale-TOI sentinel. No dependencies,
 migrations or frontend changes are introduced. Next add registration, then password
 recovery, before owned/account resources and frontend scaffolding.
+
+
+## Atomic JSON registration — 2026-11-10
+
+`POST /api/v1/auth/register/` now reuses `UserRegisterForm`, password validators,
+CSRF enforcement and default profile signals. Success returns minimal new-account
+identity with a separate-login requirement; caller sessions remain unchanged.
+Existing email non-uniqueness and form content/error rules are preserved. JSON
+shape/type/privilege fields are allowlisted, and schema passwords are write-only.
+The form Meta now explicitly includes its already-inherited password2 field.
+
+API and HTML registration share an atomic user/profile service and a per-normalized
+username PostgreSQL transaction lock matching the form's database UPPER comparison.
+Concurrent case variants cannot both pass public web registration. Proven exact
+username-constraint races outside those flows become field errors after rollback;
+unrelated integrity failures remain server errors. No schema/data cleanup is added.
+See [registration contract](registration-api.md).
+
+Forty-nine new cases cover policy parity, atomic failure, account/session behavior,
+CSRF/media/schema and real API/HTML races in both directions. The focused run passes
+565 tests; the full offline gate passes 1553 tests, 48 deselected, at 93.42% combined
+players coverage. Scope and the 35% gate are unchanged; users/project API modules
+are tested explicitly outside that percentage. System/schema/migration, lint/format,
+dependency-export and documentation-link checks pass. No dependencies, migrations,
+loader activity or frontend changes are introduced. Next add password recovery.

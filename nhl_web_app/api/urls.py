@@ -5,6 +5,7 @@ from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, Play
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
 from players.api.views import GameDetailView, ScoreboardView, SeasonsView, PlayersView
 
+from .registration import RegistrationView
 from .auth_views import CsrfView, SessionView, LoginView, LogoutView
 from . import schema  # noqa: F401 -- register the OpenAPI authentication extension
 from .views import ApiRootView, NotFoundView, SchemaView
@@ -12,6 +13,7 @@ from .views import ApiRootView, NotFoundView, SchemaView
 app_name = "api_v1"
 urlpatterns = [
     path("", ApiRootView.as_view(), name="root"),
+    path("auth/register/", RegistrationView.as_view(), name="auth-register"),
     path("auth/csrf/", CsrfView.as_view(), name="auth-csrf"),
     path("auth/session/", SessionView.as_view(), name="auth-session"),
     path("auth/login/", LoginView.as_view(), name="auth-login"),

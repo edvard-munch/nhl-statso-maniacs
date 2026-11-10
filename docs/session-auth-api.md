@@ -1,8 +1,9 @@
 # Session and CSRF authentication API
 
 The JSON API now shares Django's existing users, authentication backends and
-session cookies with the HTML application. It exposes four same-origin routes;
-registration, password recovery and account editing remain separate migration work.
+session cookies with the HTML application. The four lifecycle routes below are
+also used by [JSON registration](registration-api.md). Password recovery and account
+editing remain separate migration work.
 Existing HTML login/logout/account routes keep their contracts.
 
 ## Routes
@@ -121,5 +122,6 @@ validation alongside legacy HTML auth tests. No NHL requests occur.
 
 Auth implementation lives under `nhl_web_app.api`; the existing coverage gate
 measures `players` and does not include these new modules in that percentage.
-Their lifecycle/security contracts are exercised explicitly. Registration,
-password recovery, `/me/` settings and owned-resource endpoints are still pending.
+Their lifecycle/security contracts are exercised explicitly. Registration uses
+this foundation; password recovery, `/me/` settings and owned-resource endpoints
+are still pending.
