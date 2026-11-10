@@ -1532,3 +1532,19 @@ independent accounts. Existing Favorites regressions cover the shared extraction
 Schema validation, Django system/migration checks, lint/formatting, dependency
 export and documentation-link checks pass. Chromium was not rerun for this
 backend-only slice; legacy rendered comparison/Favorites tests run offline.
+
+
+## Aggregated Favorites gamelog API — 2026-11-10
+
+The full offline gate passes **1769 tests**, 48 deselected, at **93.80% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Forty new
+cases cover aggregate/public parity, typed identity, ownership, all-history
+pagination beyond 200 rows, filters, ambiguous/orphan/malformed evidence,
+per-player collision rules and bounded queries as players/games grow. A real
+PostgreSQL race verifies reads wait for favorite removal and use the updated
+selection. The final targeted gamelog/profile/schema run passes 159 tests.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and local documentation-link checks pass. Chromium was not rerun for this
+backend-only slice; existing rendered Favorites/game/profile regressions run
+in the full offline gate.

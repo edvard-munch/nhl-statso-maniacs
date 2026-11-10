@@ -6,6 +6,7 @@ from players.api.comparison_views import (
     ComparisonMembershipView,
     ComparisonGroupView,
 )
+from players.api.favorite_gamelogs import FavoriteGamelogView
 from players.api.favorite_views import FavoritesView, FavoriteMembershipView
 from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, PlayerGamelogView
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
@@ -46,6 +47,7 @@ urlpatterns = [
         ComparisonMembershipView.as_view(),
         name="comparison-membership",
     ),
+    path("me/favorites/gamelog/", FavoriteGamelogView.as_view(), name="favorites-gamelog"),
     path("me/favorites/", FavoritesView.as_view(), name="favorites"),
     path(
         "me/favorites/<str:player_type>/<int:nhl_id>/",

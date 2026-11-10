@@ -18,9 +18,9 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add aggregated favorite gamelogs; private
-[Favorites list/membership](favorites-api.md) and [comparison APIs](comparison-api.md)
-are implemented. Legacy projections need a separate provenance
+add private notes/position overrides; private
+[Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md)
+and the [aggregated Favorites gamelog](favorites-gamelog-api.md) are implemented. Legacy projections need a separate provenance
 contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -1037,3 +1037,34 @@ new cases include real API/legacy quota/reset races and independent-owner checks
 dependency-export and documentation-link checks pass. Chromium was not rerun for
 this backend-only slice; rendered legacy comparison/Favorites regressions remain
 in the offline gate.
+
+
+## Aggregated Favorites gamelog API — 2026-11-10
+
+`GET /api/v1/me/favorites/gamelog/` combines the current account's typed favorite
+players' saved game rows, with public identity per row. It defaults to all stored
+seasons; optional game-ID season, date, team/opponent, literal player search and
+typed statistic filters apply before global ordering and pagination. There is
+no legacy 200-row cap and no season/current snapshot fallback.
+
+Public player gamelogs and private aggregation share row projection, verification,
+filters and ordering. Batch roster evidence keeps queries bounded as favorite
+players/games grow. Per-player legacy date collisions and stamped/duplicate
+identity rules remain intact; orphan/malformed/missing rows have explicit null
+statistics. Metadata counts unfiltered Favorites across both typed groups.
+
+Session authentication, private/no-store responses and the existing owner-row
+lock protect selection through serialization. A read waits for a competing
+favorite removal and sees the updated membership. No migrations, dependencies,
+loader calls or frontend changes are introduced. See the
+[Favorites gamelog contract](favorites-gamelog-api.md). Next implement private
+notes and position overrides, followed by remaining account/settings/uploads
+and search APIs before Vue/Vite scaffolding.
+
+Validation: **1769 offline tests pass**, 48 deselected, at **93.80% combined
+players line/branch coverage**; scope and the 35% gate are unchanged. Forty new
+cases include larger aggregate histories, bounded queries, parity with public
+player/game responses and a real read/removal race. The final targeted run passes
+159 tests. Schema, Django system/migration, lint/formatting, dependency-export and
+local documentation-link checks pass. Chromium was not rerun for this backend-only
+slice; legacy rendered regressions remain in the offline gate.

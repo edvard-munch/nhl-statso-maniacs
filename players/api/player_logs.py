@@ -1,6 +1,6 @@
 """Saved player gamelogs using the same identity checks as game detail."""
 
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date
 import re
 
@@ -84,16 +84,27 @@ def gamelog(player, player_type, query):
             )
         )
     )
+    return order_rows(
+        filter_rows(project_rows(player, player_type, games, relations), player_type, query), query
+    )
+
+
+def project_rows(player, player_type, games, relations, *, memberships=None, checked_at=None):
+    model = player_model(player_type)
     counts = Counter(game.gameday_id for game in games if game.gameday_id is not None)
     logs = player.gamelog_stats if isinstance(player.gamelog_stats, dict) else {}
     represented = set()
     rows = []
-    checked_at = timezone.now()
+    checked_at = checked_at or timezone.now()
     for game in games:
         day = game.gameday.day if game.gameday else None
         if day:
             represented.add(day.isoformat())
-        groups = [side for side, relation in relations if getattr(game, "api_" + relation)]
+        groups = (
+            memberships[game.pk]
+            if memberships is not None
+            else [side for side, relation in relations if getattr(game, "api_" + relation)]
+        )
         side = groups[0] if len(groups) == 1 else None
         summary = game_summary(game, day, checked_at)
         player.api_game_stats = logs.get(day.isoformat()) if day else None
@@ -139,6 +150,10 @@ def gamelog(player, player_type, query):
                 "stats": goalie_stats({}) if player_type == "goalie" else skater_stats({}),
             }
         )
+    return rows
+
+
+def filter_rows(rows, player_type, query):
     if "season_id" in query:
         rows = [
             row
@@ -165,8 +180,17 @@ def gamelog(player, player_type, query):
             if key not in query:
                 continue
             rows = [row for row in rows if matches(row["stats"][field], suffix, query[key])]
+    return rows
+
+
+def order_rows(rows, query):
     rows.sort(
-        key=lambda row: (row["date"] or date.min, row["game"]["nhl_id"] if row["game"] else 0)
+        key=lambda row: (
+            row["date"] or date.min,
+            row["game"]["nhl_id"] if row["game"] else 0,
+            row.get("player", {}).get("last_name", "").casefold(),
+            row.get("player", {}).get("nhl_id", 0),
+        )
     )
     for term in reversed(query["ordering"].split(",")):
         field = term.removeprefix("-")
@@ -194,3 +218,69 @@ def ordered_value(row, field):
         team = row[field.removesuffix("_abbr")]
         return team["abbr"].casefold() if team else None
     return row["stats"][field]
+
+
+def favorite_gamelogs(players, player_type, query):
+    """Batch roster evidence; date collisions are checked separately for each player."""
+    if not players:
+        return []
+    model = player_model(player_type)
+    relations = [
+        (side, relation) for side, _, group_model, relation in ROSTER_GROUPS if group_model is model
+    ]
+    player_ids = [player.pk for player in players]
+    membership = Q()
+    annotations = {}
+    through_relations = []
+    player_field = model._meta.model_name + "_id"
+    for side, relation in relations:
+        through = Game._meta.get_field(relation).remote_field.through
+        annotations["api_" + relation] = Exists(
+            through.objects.filter(game_id=OuterRef("pk"), **{player_field + "__in": player_ids})
+        )
+        membership |= Q(**{"api_" + relation: True})
+        through_relations.append((side, through))
+    games = list(
+        Game.objects.select_related("gameday")
+        .annotate(**annotations)
+        .filter(membership)
+        .prefetch_related(
+            Prefetch(
+                "side_set",
+                queryset=Side.objects.select_related("team").order_by("pk"),
+                to_attr="scoreboard_sides",
+            )
+        )
+    )
+    games_by_pk = {game.pk: game for game in games}
+    memberships = defaultdict(lambda: defaultdict(list))
+    if games:
+        for side, through in through_relations:
+            for game_pk, player_pk in through.objects.filter(
+                **{player_field + "__in": player_ids}
+            ).values_list("game_id", player_field):
+                if game_pk in games_by_pk:
+                    memberships[player_pk][game_pk].append(side)
+    checked_at = timezone.now()
+    rows = []
+    for player in players:
+        groups = memberships[player.pk]
+        player_games = [games_by_pk[pk] for pk in groups]
+        projected = project_rows(
+            player, player_type, player_games, relations, memberships=groups, checked_at=checked_at
+        )
+        rows.extend(
+            {**row, "player": player_identity(player, player_type)}
+            for row in filter_rows(projected, player_type, query)
+        )
+    return order_rows(rows, query)
+
+
+def player_identity(player, player_type):
+    return {
+        "player_type": player_type,
+        **{
+            field: getattr(player, field)
+            for field in ("nhl_id", "name", "last_name", "slug", "position_abbr")
+        },
+    }
