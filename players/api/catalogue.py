@@ -84,7 +84,12 @@ DEFAULT_ORDERING = {SKATER: "-points,last_name,nhl_id", GOALIE: "-wins,last_name
 
 
 def number(value, *, signed=False, integer=False):
-    if type(value) not in (int, float) or not math.isfinite(value):
+    if type(value) not in (int, float):
+        return None
+    try:
+        if not math.isfinite(value):
+            return None
+    except OverflowError:
         return None
     if not signed and value < 0:
         return None
@@ -191,13 +196,7 @@ def catalogue(query, *, team=None):
                 and not COMBINED_TEAM_PATTERN.fullmatch(abbr)
             ):
                 participation.add(abbr)
-        row = {
-            field: getattr(player, field)
-            for field in IDENTITY_FIELDS
-            if field not in ("image", "nation_flag")
-        }
-        row["weight_lb"] = row.pop("weight")
-        row.update({field: number(row[field]) for field in BIO_NUMBERS})
+        row = public_identity(player)
         row.update(
             _player=player,
             player_type=player_type,
@@ -266,3 +265,14 @@ def matches(row, query):
             if actual is None or (actual < query[key] if suffix == "min" else actual > query[key]):
                 return False
     return True
+
+
+def public_identity(player):
+    row = {
+        field: getattr(player, field)
+        for field in IDENTITY_FIELDS
+        if field not in ("image", "nation_flag")
+    }
+    row["weight_lb"] = row.pop("weight")
+    row.update({field: number(row[field]) for field in BIO_NUMBERS})
+    return {**row, "_player": player}

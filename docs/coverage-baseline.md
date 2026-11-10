@@ -1439,3 +1439,18 @@ bounded read-only queries with larger populations.
 
 Schema validation, Django system/migration checks, lint/formatting and dependency
 export checks pass. Chromium was not rerun for this backend-only slice.
+
+
+## Player profile/history/gamelog APIs — 2026-11-10
+
+The full offline gate passes **1449 tests**, 48 deselected, with **93.42% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Eighty new
+cases extend season/trade/game fixtures; 439 focused API/legacy tests pass.
+Coverage includes typed identity, separate season/career packets, historical team
+contributions, zero/missing/invalid data, orphan/ambiguous/undated gamelogs, shared
+game-detail verification, named filters/order/pagination, private-state exclusion
+and bounded read-only query counts with larger histories.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and documentation-link checks pass. Chromium was not rerun for this
+backend-only slice; legacy rendered profile/game tests are included offline.

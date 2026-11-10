@@ -16,7 +16,9 @@ resources are implemented; the remaining statistics, authentication, account and
 saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Complete
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
-implemented; the next API slice is player profiles and gamelogs. Functionality takes priority
+implemented, along with public profiles, season histories and gamelogs. Next add
+session/CSRF authentication endpoints. Legacy projections need a separate provenance
+contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
 [frontend plan](frontend-architecture.md) estimates 25–30 focused commits for the
@@ -28,7 +30,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1369 tests at 93.13% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1449 tests at 93.42% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -877,3 +879,29 @@ migration-drift, lint/formatting and dependency-export checks pass. Reads have
 bounded query counts and no writes or NHL calls. No dependencies, migrations or
 frontend changes are introduced. See [Teams API contract](teams-api.md). Next add
 public player profiles and gamelogs before frontend scaffolding.
+
+
+## Typed player profiles, season history and gamelogs — 2026-11-10
+
+Public typed profile, `/seasons/` and `/gamelog/` resources now expose biography,
+current team, selected SBS season and separate saved career packets. Season history
+uses the shared reader for overall statistics and exact contributions; career
+aggregates remain independent of SBS completeness and selection. Typed identity
+does not infer model type from position. Known profiles remain available with
+missing/zero-game seasons. Private state, raw JSON and legacy projections are
+excluded; projections need a separate season-provenance/derivation contract.
+
+Gamelogs share the game-detail verification helper, use batched typed roster
+membership/collision evidence, and retain orphan, missing and ambiguous rows with
+explicit availability and null statistics. Named statistic/date/team filters and
+ordering run before pagination. Invalid counts/rates and missing TOI remain null;
+actual game durations are seconds. Profile/history/gamelog schemas document typed,
+nullable responses. Legacy rendered views and existing APIs remain covered.
+
+Eighty new cases extend the existing season/trade/game fixtures. The focused run
+passes 439 tests; the full offline gate passes 1449 tests, 48 deselected, at 93.42%
+combined players coverage against the unchanged 35% gate/scope. Schema, system,
+migration-drift, formatting/lint and dependency-export checks pass. No dependencies,
+migrations, application writes or NHL requests are introduced. See the
+[player profile contract](player-profile-api.md). Next add session/CSRF auth APIs;
+private owned resources follow. Frontend scaffolding remains deferred.

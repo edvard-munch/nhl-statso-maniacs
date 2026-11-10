@@ -179,7 +179,7 @@ def _verified(row, player, model, game, side, summary, collisions, appearances):
     )
 
 
-def _player(player, model, game, side, summary, collisions, appearances):
+def game_player(player, model, game, side, summary, collisions, appearances):
     row = player.api_game_stats
     availability = "missing" if not isinstance(row, dict) else "complete"
     if isinstance(row, dict) and not _verified(
@@ -253,7 +253,8 @@ def game_detail(nhl_id):
     rosters = {"away": {}, "home": {}}
     for side, group, model, relation in ROSTER_GROUPS:
         rosters[side][group] = [
-            _player(p, model, game, side, result, collisions, appearances) for p in groups[relation]
+            game_player(p, model, game, side, result, collisions, appearances)
+            for p in groups[relation]
         ]
     partial = (
         result["freshness"]["partial"]

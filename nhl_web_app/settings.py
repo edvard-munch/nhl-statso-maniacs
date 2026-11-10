@@ -206,6 +206,9 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PUBLIC": True,
     "COMPONENT_SPLIT_REQUEST": True,
     "ENUM_NAME_OVERRIDES": {
+        "SkaterTotalsKindEnum": ["skater_totals"],
+        "SkaterAveragesKindEnum": ["skater_averages"],
+        "GoalieSeasonKindEnum": ["goalie_totals"],
         "CatalogueAvailabilityEnum": ["complete", "partial"],
         "GamePlayerAvailabilityEnum": ["complete", "partial", "missing", "unverified"],
     },
