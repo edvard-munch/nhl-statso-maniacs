@@ -2,7 +2,8 @@
 
 Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
 The [foundation below](#implemented-api-foundation),
-[saved scoreboard](scoreboard-api.md) and [game-detail](game-detail-api.md) resources
+[saved scoreboard](scoreboard-api.md), [game-detail](game-detail-api.md) and
+[loaded seasons](seasons-api.md) resources
 are implemented. Other statistics, account and saved-list endpoint families remain
 future migration work. Existing
 pages and legacy AJAX responses retain their contracts until a tested replacement
@@ -189,6 +190,7 @@ No application migration is introduced.
 | --- | --- |
 | `GET /api/v1/` | Session-authenticated, private/no-store version metadata: `{"version":"v1"}`. Anonymous access returns JSON 403 `authentication_required`. This is not a service-health probe. |
 | `GET /api/v1/schema/` | Public read-only OpenAPI 3.0.3 JSON. Only implemented operations are described; no YAML, Swagger UI or browsable API is served. |
+| `GET /api/v1/seasons/` | Public loaded NHL regular-season SBS seasons, pagination and global default season. See [resource contract](seasons-api.md). |
 | `GET /api/v1/games/?date=YYYY-MM-DD` | Public saved scoreboard JSON, with strict query validation, nullable verified legacy scores, pagination and freshness. See [resource contract](scoreboard-api.md). |
 | `GET /api/v1/games/{nhl_id}/` | Public saved game summary plus typed, verified game-date rosters/statistics. See [game-detail contract](game-detail-api.md). |
 | Unknown/slashless `/api/v1` paths | JSON 404, without a trailing-slash redirect or unsafe-request replay. |

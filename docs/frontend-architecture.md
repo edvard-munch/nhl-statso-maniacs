@@ -29,16 +29,16 @@ A visual redesign, final theme and extensive visual snapshots can follow later.
 
 ## Current API scope and next slice
 
-Only the API foundation/schema, saved scoreboard and saved game-detail resources
-are implemented. Seasons/players, teams, profiles/gamelogs, JSON authentication,
+The API foundation/schema, saved scoreboard, game-detail and loaded seasons resources
+are implemented. Players, teams, profiles/gamelogs, JSON authentication,
 favorites/comparison, private notes/positions, account settings/uploads and search
 remain to migrate. Legacy HTML/AJAX endpoints do not complete these JSON contracts.
 
-Next scaffold Vue/Vite and the generated API client, then build a read-only
-scoreboard/game pilot against the existing endpoints. Continue adding the API and
-frontend for each subsequent workflow together. Frontend scaffolding does not mean
-the backend API migration is complete; existing pages remain until their tested
-replacements are ready.
+The implementation order is **API first, frontend second**. Complete and test
+seasons/players, teams, profiles/gamelogs, authentication, saved lists/private
+fields, account settings/uploads and search before scaffolding Vue/Vite and its
+generated client. Small API adjustments may still follow frontend integration.
+Existing pages remain usable until their tested replacements are ready.
 
 ## Boundaries
 
@@ -108,8 +108,10 @@ mutation retry semantics must be explicitly defined and tested.
 ## Migration sequence and commit budget
 
 Each range is an estimate for small, reviewable commits, not a single broad patch.
-The first concrete queue is: this document/API conventions, API foundation/schema,
-frontend scaffolding, generated-client checks, then a scoreboard/game API/UI pilot.
+The current queue completes the remaining JSON API families with regression and
+OpenAPI tests first, then introduces frontend scaffolding, generated-client checks
+and the scoreboard/game UI pilot. The phase estimates below group API/UI scope;
+they do not require implementing the two halves in the same commit.
 
 | Phase | Estimated commits | Acceptance evidence |
 | --- | --- | --- |

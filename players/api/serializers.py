@@ -1,4 +1,4 @@
-"""Explicit scoreboard request/response contract, independent of ORM serialization."""
+"""Explicit saved-statistics request/response contracts, independent of ORM serialization."""
 
 import re
 
@@ -18,6 +18,10 @@ class StrictDateField(serializers.DateField):
 
 
 class QueryIntegerField(serializers.IntegerField):
+    def get_value(self, dictionary):
+        # QueryDict's HTML handling otherwise replaces explicit blanks with defaults.
+        return dictionary.get(self.field_name, serializers.empty)
+
     def to_internal_value(self, data):
         if not isinstance(data, str) or INTEGER_PATTERN.fullmatch(data) is None:
             self.fail("invalid")
@@ -37,13 +41,36 @@ class StrictQuerySerializer(serializers.Serializer):
         return super().to_internal_value(data)
 
 
-class ScoreboardQuerySerializer(StrictQuerySerializer):
+class PaginationQuerySerializer(StrictQuerySerializer):
+    page = QueryIntegerField(min_value=1, default=1)
+    page_size = QueryIntegerField(min_value=1, max_value=MAX_PAGE_SIZE, default=DEFAULT_PAGE_SIZE)
+
+
+class ScoreboardQuerySerializer(PaginationQuerySerializer):
     date = StrictDateField(
         input_formats=["iso-8601"],
         help_text="Required Pacific NHL schedule date, exactly YYYY-MM-DD; never falls back to another day.",
     )
-    page = QueryIntegerField(min_value=1, default=1)
-    page_size = QueryIntegerField(min_value=1, max_value=MAX_PAGE_SIZE, default=DEFAULT_PAGE_SIZE)
+
+
+class SeasonSerializer(serializers.Serializer):
+    season_id = serializers.CharField()
+    label = serializers.CharField()
+
+
+class SeasonsMetaSerializer(serializers.Serializer):
+    default_season_id = serializers.CharField(
+        allow_null=True,
+        help_text="Newest loaded NHL regular-season SBS season across skaters and goalies; null when none exist. Independent of pagination and calendar date.",
+    )
+
+
+class SeasonsResponseSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = SeasonSerializer(many=True)
+    meta = SeasonsMetaSerializer()
 
 
 class FreshnessSerializer(serializers.Serializer):

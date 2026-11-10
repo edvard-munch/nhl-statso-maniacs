@@ -13,9 +13,9 @@ change at a time and validate before moving to the next stage.
 [API foundation](api-conventions.md#implemented-api-foundation) and
 [saved scoreboard](scoreboard-api.md) and [game-detail JSON](game-detail-api.md)
 resources are implemented; the remaining statistics, authentication, account and
-saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Next
-scaffold frontend/client tooling and build the scoreboard/game pilot, then migrate
-API/UI workflows incrementally. Functionality takes priority over visual polish;
+saved-list APIs are still pending. Vue 3/Vite/TypeScript is now selected. Complete
+the JSON API first, then scaffold frontend/client tooling and migrate the UI.
+Loaded-season discovery is implemented; the next API slice is the Players catalogue. Functionality takes priority over visual polish;
 mobile usability and viewport checks belong in each slice. The
 [frontend plan](frontend-architecture.md) estimates 25–30 focused commits for the
 whole migration.
@@ -26,7 +26,7 @@ cadences, current loader limitations and always-on server requirements. The
 Hosted uv CI and dependency-graph
 runs have succeeded; deployment backup/restore rehearsal remains deferred.
 Django 5.2.18 reached the planned LTS endpoint on Python 3.12.16; the current
-offline suite passes 1219 tests at 92.44% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
+offline suite passes 1235 tests at 92.24% combined coverage. The final framework step includes compatible Bootstrap 4 forms, task-result
 migrations, removal of broken debug middleware and timezone/storage/auth regressions.
 CI reads the same interpreter pin as local uv. The hosted uv dependency graph
 completed successfully after the Python transition.
@@ -817,3 +817,19 @@ mobile usability before visual polish. The game APIs support the first frontend
 pilot; they do not complete the API migration. Subsequent workflows still need
 their JSON endpoints and frontend replacements. See the current scope and mobile
 acceptance requirements in the [frontend plan](frontend-architecture.md).
+
+
+## Loaded seasons API — 2026-11-10
+
+`GET /api/v1/seasons/` exposes normalized, deduplicated loaded NHL regular-season
+SBS seasons with pagination and a global nullable default. Discovery and labels
+are extracted into `players.seasons`, shared with legacy pages; snapshot fields,
+averages and calendar dates do not establish availability. Strict pagination now
+rejects explicit blanks instead of silently substituting defaults. The contract
+and limitations are documented in [loaded seasons API](seasons-api.md).
+
+Sixteen new integration cases and the full offline gate pass: 1235 tests,
+48 deselected, 92.24% combined players coverage against the unchanged 35% gate.
+Schema validation, Django system/migration checks, lint/formatting and dependency
+export checks pass. API-first development is recorded; next implement the Players
+catalogue before starting Vue/Vite.

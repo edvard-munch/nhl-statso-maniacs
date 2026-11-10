@@ -13,6 +13,7 @@ from django.core import serializers
 from django.utils.html import format_html
 from django.urls import reverse
 
+from .seasons import available_seasons, season_label
 from . import utils
 from .models import Goalie, Skater, Team
 from .season_stats import (
@@ -78,31 +79,6 @@ SECONDS_PER_MINUTE = 60
 MISSING_VALUE = "—"
 FAVORITES = "favorites"
 COMPARISON = "comparison"
-
-
-def season_label(season_id):
-    return "{}-{}".format(season_id[:4], season_id[-2:]) if season_id else None
-
-
-def available_seasons():
-    seasons = set()
-    for model in (Skater, Goalie):
-        for rows in model.objects.values_list("sbs_stats", flat=True).iterator():
-            if not isinstance(rows, list):
-                continue
-            for row in rows:
-                if not isinstance(row, dict):
-                    continue
-                if (
-                    row.get("leagueAbbrev", NHL_LEAGUE) != NHL_LEAGUE
-                    or row.get("gameTypeId", REGULAR_SEASON) != REGULAR_SEASON
-                ):
-                    continue
-                try:
-                    seasons.add(normalize_season_id(row.get("season")))
-                except ValueError:
-                    continue
-    return sorted(seasons, reverse=True)
 
 
 def selected_season(value, seasons=None):

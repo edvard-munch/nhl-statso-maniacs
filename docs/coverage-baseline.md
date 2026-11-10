@@ -1398,3 +1398,15 @@ schema validation, lint and dependency-export checks pass; synthetic PostgreSQL
 and mocked NHL inputs are used, without accessing the application database.
 All **26 Chromium cases** also pass (**1241 deselected**); existing refresh,
 favorites/comparison and team workflows remain protected.
+
+
+## Loaded seasons API — 2026-11-10
+
+The dedicated synthetic PostgreSQL offline run passes **1235 tests**, with
+48 external/browser tests deselected, at **92.24% combined players line/branch
+coverage**. The existing scope and 35% gate are unchanged. Sixteen new cases cover
+loaded SBS discovery, shared legacy defaults, missing/malformed rows, pagination,
+query validation, public/read-only behavior and OpenAPI. Shared discovery moved
+from `player_table` into `players.seasons`; historical coverage figures above are
+retained. Django system/migration checks, schema validation, formatting/lint and
+dependency export checks pass. Chromium was not rerun for this backend-only slice.

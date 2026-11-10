@@ -12,7 +12,9 @@ Vue/Vite is selected; frontend scaffolding is not implemented yet. The [JSON API
 now provides versioned routing and an OpenAPI schema. The
 [saved scoreboard endpoint](docs/scoreboard-api.md) is available at
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved game details](docs/game-detail-api.md)
-at `/api/v1/games/{nhl_id}/`. Other resources will migrate incrementally.
+at `/api/v1/games/{nhl_id}/`. Loaded seasons are available at `/api/v1/seasons/`; see the
+[seasons contract](docs/seasons-api.md). Remaining JSON APIs will be implemented
+before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.
 
