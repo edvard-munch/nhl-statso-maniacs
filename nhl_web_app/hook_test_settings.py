@@ -13,5 +13,6 @@ DATABASES = {
         "PASSWORD": os.environ["NHL_TEST_DB_PASSWORD"],
         "HOST": os.environ["NHL_TEST_DB_HOST"],
         "PORT": os.environ["NHL_TEST_DB_PORT"],
+        "TEST": {"NAME": os.environ.get("NHL_TEST_DB_RUN_NAME")},
     }
 }

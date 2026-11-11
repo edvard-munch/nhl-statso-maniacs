@@ -6,12 +6,14 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import uuid
 
 
 ROOT = Path(__file__).resolve().parent.parent
 CONFIG_VARIABLE = "NHL_TEST_DATABASE_CONFIG"
 CONFIG_FILENAME = "test-database.local.json"
 TEST_DATABASE_PREFIX = "nhl_test_"
+RUN_DATABASE_PREFIX = "test_nhl_test_run_"
 CONFIG_ERROR_EXIT = 2
 COVERAGE_THRESHOLD = 35
 MIN_PORT = 1
@@ -75,6 +77,8 @@ def main(argv=None):
         EMAIL_PASSWORD="unused",
     )
     env.update({"NHL_TEST_DB_" + key.upper(): value for key, value in database.items()})
+    # Separate invocations must never create, flush or drop each other's database.
+    env["NHL_TEST_DB_RUN_NAME"] = RUN_DATABASE_PREFIX + uuid.uuid4().hex
     # Inherited flags must not narrow the suite, enable live tests, or bypass migrations.
     env.pop("PYTEST_ADDOPTS", None)
     command = [

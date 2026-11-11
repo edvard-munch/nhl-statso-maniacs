@@ -140,9 +140,15 @@ cp test-database.example.json test-database.local.json
 
 Edit `test-database.local.json` to use that role's password. All values, including
 the port, are JSON strings. The file is ignored by Git and is the only credential
-source for hook tests. The default database name `nhl_test_base` produces the
-migrated test database `test_nhl_test_base`. The role must be able to create/drop
-that test database. A name beginning with `nhl_test_` is required for the base
+source for hook tests. The configured `nhl_test_base` remains the base connection
+name. Each runner invocation creates and migrates a unique
+`test_nhl_test_run_<uuid>` database and drops it on normal completion. The role
+must be able to create/drop these databases. Concurrent commit, push and manual
+runner invocations therefore cannot flush or drop each other's database. A killed
+process may leave its disposable database behind; remove only a confirmed inactive
+run database. Direct `make test*` commands using application settings retain
+Django's usual test-database naming and should not run concurrently against the
+same database. A name beginning with `nhl_test_` is required for the base
 configuration; do not use application data or credentials.
 
 The runner also accepts an alternate config path through

@@ -2,6 +2,7 @@
 
 import json
 import os
+import importlib.util
 
 import pytest
 
@@ -31,6 +32,7 @@ def test_runner_uses_explicit_test_credentials_and_preserves_exit_code(
     monkeypatch.setenv("PYTEST_ADDOPTS", "--nomigrations -m external --lf")
     monkeypatch.setenv("DJANGO_SETTINGS_MODULE", "unrelated_settings")
     monkeypatch.setenv("VIRTUAL_ENV", "/old/venv")
+    monkeypatch.setenv("NHL_TEST_DB_RUN_NAME", "application")
     calls = []
 
     def run(command, cwd, env):
@@ -41,6 +43,8 @@ def test_runner_uses_explicit_test_credentials_and_preserves_exit_code(
         assert env["POSTGRES_DB_PASSWORD"] == env["NHL_TEST_DB_PASSWORD"] == "test-secret"
         assert env["NHL_TEST_DB_HOST"] == "localhost"
         assert env["NHL_TEST_DB_PORT"] == "5432"
+        assert env["NHL_TEST_DB_RUN_NAME"].startswith(runner.RUN_DATABASE_PREFIX)
+        assert len(env["NHL_TEST_DB_RUN_NAME"].encode("ascii")) <= 63
         assert env["DJANGO_SETTINGS_MODULE"] == runner.SETTINGS_MODULE
         assert "PYTEST_ADDOPTS" not in env
         assert "--ds=" + runner.SETTINGS_MODULE in command
@@ -125,3 +129,51 @@ def test_missing_uv_fails_clearly_without_python_fallback(monkeypatch, database_
     monkeypatch.setattr(runner.subprocess, "call", missing)
     assert runner.main([]) == runner.EXECUTABLE_ERROR_EXIT
     assert "uv is required on PATH" in capsys.readouterr().err
+
+
+def test_each_invocation_uses_a_distinct_database_in_django_settings(monkeypatch, database_config):
+    monkeypatch.setenv(runner.CONFIG_VARIABLE, str(database_config))
+    names = []
+
+    def run(command, cwd, env):
+        with monkeypatch.context() as context:
+            for key, value in env.items():
+                context.setenv(key, value)
+            spec = importlib.util.spec_from_file_location(
+                "nhl_web_app.isolated_hook_settings",
+                runner.ROOT / "nhl_web_app/hook_test_settings.py",
+            )
+            settings = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(settings)
+        database = settings.DATABASES["default"]
+        assert database["NAME"] == "nhl_test_fixture"
+        assert database["TEST"]["NAME"] == env["NHL_TEST_DB_RUN_NAME"]
+        names.append(database["TEST"]["NAME"])
+        return 0
+
+    monkeypatch.setattr(runner.subprocess, "call", run)
+    before = database_config.read_bytes()
+    assert runner.main([]) == 0
+    assert runner.main(["--coverage"]) == 0
+    assert runner.main(["--browser"]) == 0
+    assert len(set(names)) == 3
+    assert database_config.read_bytes() == before
+
+
+def test_child_settings_accept_explicit_database_without_a_runner_run_name(monkeypatch):
+    monkeypatch.delenv("NHL_TEST_DB_RUN_NAME", raising=False)
+    for key, value in {
+        "NAME": "test_nhl_test_child",
+        "USER": "test_role",
+        "PASSWORD": "test-secret",
+        "HOST": "localhost",
+        "PORT": "5432",
+    }.items():
+        monkeypatch.setenv("NHL_TEST_DB_" + key, value)
+    spec = importlib.util.spec_from_file_location(
+        "nhl_web_app.child_hook_settings", runner.ROOT / "nhl_web_app/hook_test_settings.py"
+    )
+    settings = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(settings)
+    assert settings.DATABASES["default"]["NAME"] == "test_nhl_test_child"
+    assert settings.DATABASES["default"]["TEST"]["NAME"] is None
