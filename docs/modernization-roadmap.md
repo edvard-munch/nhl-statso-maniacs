@@ -19,7 +19,8 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-review API workflow coverage and remaining provenance decisions; private
+implement season-scoped Players filter metadata, then the remaining parity gaps
+from the [API completeness review](api-completeness-review.md); private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md),
 [private notes/position APIs](private-player-data-api.md),
@@ -1201,3 +1202,24 @@ literal edge cases, type filters and schema contracts. The focused API/legacy/
 catalogue run passes 262 tests. Schema, Django system/migration, lint/formatting,
 dependency-export and local-link checks pass. Chromium was not rerun for this
 backend-only slice; rendered legacy search regressions remain in the offline gate.
+
+
+## API completeness review before Vue/Vite — 2026-11-11
+
+The [review](api-completeness-review.md) maps existing page/AJAX workflows to the
+31 documented API paths/39 operations and distinguishes available composition
+from missing parity contracts. The backend foundation is ready, but full UI parity
+is not established merely by the implemented endpoint families.
+
+Recommended API-first queue: season-scoped Players filter metadata; saved game-date
+discovery/navigation; explicit saved live-state evidence; and Favorites gamelog
+player-identity ordering. Private membership flags/preferences and comparison
+composition already have usable contracts. Projections/admin scope and recovery
+configuration/delivery protection remain decisions or pre-cutover work.
+
+Offline OpenAPI export validates with warnings treated as failures, and 39 API
+foundation tests pass with the isolated synthetic database. This documentation-only
+review did not rerun the full suite or change the recorded coverage baseline. It
+did not access application data, NHL, email, workers or hosted deployment/CI.
+Next implement the filter-metadata slice; keep Vue/Vite scaffolding and client/CI
+generation in their later focused commits. No fixes or removals are included here.

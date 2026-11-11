@@ -13,7 +13,8 @@ and the private [Favorites list/membership API](favorites-api.md) and
 [Private notes and position overrides](private-player-data-api.md) are implemented.
 [Account settings GET/PATCH](account-api.md) and the
 [multipart profile image API](account-image-api.md) are implemented. [Search/autocomplete](search-api.md) are also implemented.
-Review remaining workflow coverage before frontend scaffolding.
+The [completeness review](api-completeness-review.md) records remaining parity gaps
+and the API-first queue before frontend scaffolding.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.
@@ -177,8 +178,8 @@ never start commands/Celery tasks or make upstream NHL calls.
 The backend OpenAPI schema is authoritative for request/response shapes and
 error/status variants. Generate clients reproducibly from a reviewed schema;
 fix serializers/schema declarations rather than patching generated application
-code. CI validates schema, regeneration drift, types and frontend production
-build alongside backend tests. A breaking contract requires a coordinated client
+code. Backend CI currently validates schema and regression tests. Frontend CI must add
+regeneration drift, types and production build checks when that tooling is introduced. A breaking contract requires a coordinated client
 change or a new API version, not a silent change under old consumers.
 
 Contract tests cover data/units, zero versus missing, seasons, filtering/order,

@@ -39,6 +39,12 @@ and [comparison API](comparison-api.md), plus the
 [Account settings](account-api.md) and the [profile image API](account-image-api.md)
 and [search/autocomplete](search-api.md) are implemented. Review workflow coverage
 and outstanding provenance decisions before introducing the Vue/Vite scaffold.
+The [2026-11-11 completeness review](api-completeness-review.md) found four
+remaining parity contracts: Players filter metadata, saved game-date navigation,
+explicit live-state evidence and Favorites gamelog player-identity ordering. Close
+these focused API slices before the scaffold under the API-first preference.
+Projection/admin decisions and auth deployment hardening precede their affected
+cutovers. Existing API families being present does not yet establish full UI parity.
 Legacy HTML/AJAX endpoints stay available until their tested replacements cut over.
 
 The implementation order is **API first, frontend second**. Complete and test

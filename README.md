@@ -34,7 +34,8 @@ are available under `/api/v1/me/players/{player_type}/{nhl_id}/`.
 DELETE at `/api/v1/me/image/`.
 [Public search and autocomplete](docs/search-api.md) are available at
 `/api/v1/search/` and `/api/v1/search/suggestions/`. Review remaining workflow
-contracts before frontend scaffolding.
+contracts before frontend scaffolding; the [API completeness review](docs/api-completeness-review.md)
+records four remaining parity gaps and the proposed fix order.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.
 
