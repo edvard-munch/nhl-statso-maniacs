@@ -13,6 +13,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  schema:
+    name: Reviewed OpenAPI contract
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    # Intentionally no database service, deployment environment or test credentials.
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          version: '0.10.10'
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - name: Install locked dependencies
+        run: uv sync --locked
+      - name: Check reviewed schema drift
+        run: make schema-check
+
   tests:
     # Keep this interpreter in sync with .python-version.
     runs-on: ubuntu-22.04

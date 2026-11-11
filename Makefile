@@ -1,4 +1,4 @@
-.PHONY: sync lock-check requirements requirements-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
+.PHONY: sync lock-check requirements requirements-check schema schema-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
 
 .DEFAULT_GOAL := format
 
@@ -17,6 +17,12 @@ requirements:
 
 requirements-check:
 	$(UV_RUN) python scripts/export_requirements.py --check
+
+schema:
+	$(UV_RUN) python scripts/export_openapi.py
+
+schema-check:
+	$(UV_RUN) python scripts/export_openapi.py --check
 
 format:
 	$(UV_RUN) python -m ruff format .

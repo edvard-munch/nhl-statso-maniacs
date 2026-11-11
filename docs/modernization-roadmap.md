@@ -19,7 +19,7 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-review remaining pre-cutover decisions and reproducible schema/client generation
+review remaining pre-cutover decisions and select reproducible TypeScript client generation
 from the [API completeness review](api-completeness-review.md); private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md),
@@ -1285,3 +1285,24 @@ Validation: 195 focused tests; 2157 full offline tests, 48 deselected, 94.11%
 combined players coverage. Schema, Django system/migration checks, lint/formatting,
 dependency export and documentation links pass. Existing 14/12 query bounds remain
 unchanged for skater/goalie Favorites gamelogs. No migrations or dependencies changed.
+
+
+## Reviewed offline OpenAPI export and drift checks
+
+Implemented `make schema` and non-mutating `make schema-check`, with a canonical
+UTF-8/LF `api/openapi.json` generated from real API declarations. The isolated
+exporter skips `.env`, uses tooling-only dummy database settings, blocks network/
+database access and fails on schema warnings or validation errors. Failed export
+never truncates the reviewed copy. A separate CI job has no database service or
+application credentials. See the [workflow](openapi-workflow.md).
+Next select/pin a TypeScript generator against the actual reviewed schema, validate
+its contract coverage and add reproducible client-generation checks. Projection/
+admin and auth deployment decisions remain scoped to their affected cutovers.
+
+Validation: 78 focused checks; 2178 full offline tests, 48 deselected, 94.11%
+combined players coverage with unchanged scope/gate. The reviewed schema has
+33 paths / 41 operations and matches the real public endpoint. Local drift,
+schema validation, normal startup, Django system/migration, lint/formatting,
+dependency export and documentation checks pass. Copied-checkout fixtures exclude
+coverage startup instrumentation, avoiding duplicate source paths. Hosted schema
+job execution remains a post-push check.

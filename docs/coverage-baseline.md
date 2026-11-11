@@ -1683,3 +1683,26 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export, local documentation links and diff checks pass. No models, migrations,
 dependencies, loaders or frontend behavior changed. Chromium was not rerun for
 this backend API slice; legacy rendered regressions remain in the offline gate.
+
+## Reviewed offline OpenAPI export — 2026-11-11
+
+The corrected full offline gate passes **2178 tests**, 48 deselected, at **94.11%
+combined players line/branch coverage**. Measurement scope and the 35% gate are
+unchanged. Twenty-one new tests cover deterministic UTF-8/LF output, non-mutating
+matching/missing/stale checks, validation/JSON/write failures preserving the copy,
+atomic cleanup, isolated environment, database/network/dotenv guards, unchanged
+normal dotenv defaults, public endpoint parity and clean-checkout reproducibility.
+The broader exporter/startup/hook/API-foundation run passes 78 tests. Exporter and
+settings code are outside the players metric and have explicit regressions.
+
+The initial coverage run registered the copied fixture checkout as duplicate
+unexecuted players sources. Fixture subprocesses now exclude inherited coverage
+startup variables; the targeted coverage run and corrected full gate confirm only
+the real checkout is measured. No source/omit configuration or gate was changed.
+
+The reviewed OpenAPI 3.0.3 artifact contains 33 paths and 41 operations. Local
+schema drift/validation, Django system/migration checks, lint/formatting, dependency
+export, documentation links and diff checks pass. CI adds a separate schema job
+without a database service or deployment credentials; hosted execution follows
+push. No migrations, dependencies or frontend code changed; browser tests were
+not rerun for this tooling-only slice.

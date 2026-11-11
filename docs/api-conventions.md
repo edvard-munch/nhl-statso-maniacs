@@ -180,8 +180,11 @@ never start commands/Celery tasks or make upstream NHL calls.
 The backend OpenAPI schema is authoritative for request/response shapes and
 error/status variants. Generate clients reproducibly from a reviewed schema;
 fix serializers/schema declarations rather than patching generated application
-code. Backend CI currently validates schema and regression tests. Frontend CI must add
-regeneration drift, types and production build checks when that tooling is introduced. A breaking contract requires a coordinated client
+code. The [reviewed schema workflow](openapi-workflow.md) exports `api/openapi.json`
+with `make schema`; the database-free CI job runs `make schema-check` to detect
+backend/schema drift. Backend CI also validates schema and regression tests.
+Frontend CI must add generated-client drift, types and production build checks
+when that tooling is introduced. A breaking contract requires a coordinated client
 change or a new API version, not a silent change under old consumers.
 
 Contract tests cover data/units, zero versus missing, seasons, filtering/order,

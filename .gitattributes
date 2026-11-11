@@ -1,0 +1,2 @@
+# Keep the reviewed API artifact byte-identical across Git/platform settings.
+api/openapi.json text eol=lf

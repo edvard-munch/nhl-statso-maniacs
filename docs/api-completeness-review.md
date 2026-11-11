@@ -262,9 +262,10 @@ search ranking and bounded image formats must be reflected in UI acceptance test
 
 ## Schema/client/CI readiness and recommended queue
 
-Schema export and backend contracts are in place. The repository has no Vue/Vite
-application, pnpm frontend lockfile, checked frontend client or schema regeneration
-CI check. `browser/package.json` is the existing npm/Playwright legacy smoke harness,
+The [reviewed offline schema workflow](openapi-workflow.md) is now implemented,
+with a checked `api/openapi.json` and a separate database-free drift-check CI job.
+The repository still has no Vue/Vite application, pnpm frontend lockfile, checked
+frontend client or generated-client regeneration CI check. `browser/package.json` is the existing npm/Playwright legacy smoke harness,
 not a frontend scaffold. Current CI validates backend/schema contracts and legacy
 Chromium flows; frontend lint/types/component tests/build/drift checks are future work.
 
@@ -274,8 +275,9 @@ Recommended focused commits, following the user's API-first preference:
 2. **Saved game-date discovery/navigation** (G2) — implemented.
 3. **Explicit saved game-state evidence** (G3) — implemented for legacy sources.
 4. **Aggregated Favorites gamelog identity ordering** (G4) — implemented.
-5. Record projection/admin decisions before their affected cutovers; review the
-   resulting schema delta and establish reproducible schema/client generation.
+5. Record projection/admin decisions before their affected cutovers. Reviewed
+   schema export/drift checks are implemented; select and validate reproducible
+   TypeScript client generation next.
 6. Introduce Vue/Vite/TypeScript with pinned compatible tooling, same-origin dev
    proxy and frontend CI; then migrate the scoreboard/game pilot at desktop/mobile
    sizes. Keep dependencies and page implementation in focused commits.

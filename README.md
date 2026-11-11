@@ -9,7 +9,9 @@ cleanup candidates and usage that must be confirmed outside the repository.
 The proposed [frontend architecture and migration plan](docs/frontend-architecture.md)
 and [API conventions](docs/api-conventions.md) describe the next development phase;
 Vue/Vite is selected; frontend scaffolding is not implemented yet. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
-now provides versioned routing and an OpenAPI schema. The
+now provides versioned routing and an OpenAPI schema. A
+[reviewed offline schema workflow](docs/openapi-workflow.md) supplies
+`make schema` / `make schema-check` and the checked `api/openapi.json` contract. The
 [saved scoreboard endpoint](docs/scoreboard-api.md) is available at
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved-date navigation](docs/game-dates-api.md)
 at `/api/v1/games/dates/` and [saved game details](docs/game-detail-api.md)

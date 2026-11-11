@@ -45,7 +45,8 @@ remaining parity contracts. Players filter metadata is now implemented via
 is implemented at `/api/v1/games/dates/`. Shared [saved game-state evidence](game-state-api.md)
 is also implemented, together with [Favorites gamelog player-identity ordering](favorites-gamelog-api.md#player-identity-ordering).
 The G1–G4 API parity slices are complete; the next checkpoint is remaining
-pre-cutover decisions and reproducible schema/client tooling. Close
+pre-cutover decisions and client tooling. The [reviewed offline schema](openapi-workflow.md)
+is checked into Git and checked for drift in CI; TypeScript client generation is next. Close
 these focused API slices before the scaffold under the API-first preference.
 Projection/admin decisions and auth deployment hardening precede their affected
 cutovers. Existing API families being present does not yet establish full UI parity.
