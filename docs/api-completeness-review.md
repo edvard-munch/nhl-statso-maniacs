@@ -125,9 +125,12 @@ API parity.
 Acceptance: noncontiguous dates, empty store, edges/windows, valid unsaved days,
 invalid dates, timezone semantics, bounded queries, no loader calls/writes.
 
-### G3 — Live versus nonfinal state cannot be reproduced reliably
+### G3 — Saved game-state evidence (implemented after review)
 
-**Priority: before displaying status on scoreboard/game replacement pages.**
+**Resolved for conservative legacy evidence:** shared game summaries now expose
+a typed state/source/observation/conflict object. See the
+[implemented contract](game-state-api.md). Qualified scheduler observations remain
+a separate future enhancement. The observations below describe the review snapshot.
 
 Legacy `upd_gms.get_score()` stores ` (Live)` in `Game.result`, and the scoreboard
 renders that result string. The new [score projection](../players/api/scoreboard.py)
@@ -265,7 +268,7 @@ Recommended focused commits, following the user's API-first preference:
 
 1. **Season-scoped Players filter metadata** (G1) — implemented for public Players.
 2. **Saved game-date discovery/navigation** (G2) — implemented.
-3. **Explicit saved game-state evidence** (G3).
+3. **Explicit saved game-state evidence** (G3) — implemented for legacy sources.
 4. **Aggregated Favorites gamelog identity ordering** (G4).
 5. Record projection/admin decisions before their affected cutovers; review the
    resulting schema delta and establish reproducible schema/client generation.

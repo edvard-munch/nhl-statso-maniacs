@@ -210,6 +210,10 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PUBLIC": True,
     "COMPONENT_SPLIT_REQUEST": True,
     "ENUM_NAME_OVERRIDES": {
+        "SavedGameStateValueEnum": "players.api.game_state.STATE_VALUES",
+        "SavedGameStateSourceEnum": "players.api.game_state.STATE_SOURCES",
+        # Preserve the existing private-data enum name alongside state.source.
+        "SourceEnum": "players.owned_data.SOURCES",
         "SearchEntityTypeEnum": "players.api.search.ENTITY_TYPES",
         "SkaterTotalsKindEnum": ["skater_totals"],
         "SkaterAveragesKindEnum": ["skater_averages"],

@@ -113,3 +113,11 @@ and units, and normal offline tests validate schema export without network calls
 Synthetic tests cover loader-produced data, conflicting snapshots/history,
 identity collisions, missing/null/malformed values, read-only bounded queries,
 legacy ambiguity and preservation of the existing scoreboard/page contracts.
+
+
+## Shared saved-state evidence
+
+Game detail includes the same [state object](game-state-api.md) as the scoreboard
+and linked gamelog summaries. Live/final assertions require qualified saved
+evidence; unknown/conflicting states are explicit. Observation time remains null
+for legacy evidence and is independent of storage freshness and roster completeness.

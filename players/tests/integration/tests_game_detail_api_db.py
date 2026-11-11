@@ -346,6 +346,7 @@ def test_summary_and_freshness_rules_are_shared_with_scoreboard(client, game_pag
         "home_score",
         "is_final",
         "score_source",
+        "state",
     ):
         assert detail[key] == summary[key]
     assert detail["freshness"]["is_final"] and not detail["freshness"]["is_stale"]

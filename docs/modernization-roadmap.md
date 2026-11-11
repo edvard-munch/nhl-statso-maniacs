@@ -19,7 +19,7 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-implement explicit saved game-state evidence, then the remaining parity gaps
+implement Favorites gamelog player-identity ordering, then review remaining parity decisions
 from the [API completeness review](api-completeness-review.md); private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md),
@@ -1252,3 +1252,19 @@ and observation/freshness evidence (G3).
 Validation: 163 focused tests; 2081 full offline tests, 48 deselected, 94.07%
 combined players coverage. Schema, Django system/migration checks, lint/formatting,
 dependency export and local documentation links pass. No migrations or dependencies changed.
+
+
+## Explicit saved game-state evidence
+
+Implemented a shared `state` object for scoreboard, game detail and linked public/
+Favorites gamelog summaries. Verified live and OT/SO results and the saved final
+flag provide qualified assertions; contradictory live/final evidence is unknown
+with an explicit conflict. Unqualified nonfinal/scheduled records stay unknown.
+Legacy observation time remains null, independent of storage freshness. Scheduler
+records do not silently override boxscore evidence. See the [contract](game-state-api.md).
+G3 is resolved for legacy sources. Next: Favorites gamelog identity ordering (G4).
+
+Validation: 290 focused tests; 2121 full offline tests, 48 deselected, 94.10%
+combined players coverage. Warning-free schema, Django system/migration checks,
+lint/formatting, dependency export and documentation links pass. No migrations,
+loader changes or dependencies are introduced.

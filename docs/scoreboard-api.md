@@ -33,6 +33,8 @@ per-game team queries. The collection is day-scoped; this is not an all-history 
 Each game contains:
 
 - `nhl_id`, `slug`, `date` and saved `is_final`.
+- `state`: shared [saved state evidence](game-state-api.md), with source, nullable
+  observation time and conflict flag. Nonfinal alone does not mean live.
 - `away_team` and `home_team`: `nhl_id`, `name`, `abbr`, `slug`, or null when the
   relevant saved side is missing/duplicated. Side relations identify the teams;
   current player rosters are not consulted. Team names are current saved metadata.

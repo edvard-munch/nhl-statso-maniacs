@@ -1,19 +1,30 @@
 """Saved scoreboard projection; no loaders, upstream calls or HTML rendering."""
 
 import re
+from typing import NamedTuple
 
 from django.db.models import Prefetch
 from django.utils import timezone
 
 from players.game_refresh import freshness
 from players.models import Game, Side
+from .game_state import LEGACY_RESULT_SOURCE, state_evidence
 
 AWAY = "away"
 HOME = "home"
 # Exact suffixes currently emitted by upd_gms.get_score; arbitrary legacy text
 # and reordered/renamed/ambiguous teams must not become guessed scores.
-SAVED_SCORE = re.compile(r"(0|[1-9][0-9]*):(0|[1-9][0-9]*)(?: \(Live\)| (OT|SO))?")
-SCORE_SOURCE = "legacy_result"
+SAVED_SCORE = re.compile(
+    r"(0|[1-9][0-9]*):(0|[1-9][0-9]*)(?:(?P<live> \(Live\))| (?P<outcome>OT|SO))?"
+)
+SCORE_SOURCE = LEGACY_RESULT_SOURCE
+
+
+class SavedScore(NamedTuple):
+    away: int
+    home: int
+    outcome: str | None
+    is_live: bool
 
 
 def _team(side):
@@ -34,7 +45,11 @@ def _scores(game, sides):
     if not game.result.startswith(prefix):
         return None
     match = SAVED_SCORE.fullmatch(game.result[len(prefix) :])
-    return (int(match[1]), int(match[2]), match[3]) if match else None
+    return (
+        SavedScore(int(match[1]), int(match[2]), match["outcome"], match["live"] is not None)
+        if match
+        else None
+    )
 
 
 def _freshness(games, checked_at, *, partial=False, kind="game"):
@@ -91,11 +106,16 @@ def game_summary(game, day, checked_at):
         "slug": game.slug,
         "date": day,
         "is_final": game.game_finished,
+        "state": state_evidence(
+            game.game_finished,
+            is_live=scores.is_live if scores else False,
+            final_result=scores is not None and scores.outcome is not None,
+        ),
         "away_team": teams[AWAY],
         "home_team": teams[HOME],
-        "away_score": scores[0] if scores else None,
-        "home_score": scores[1] if scores else None,
-        "score_outcome": scores[2] if scores else None,
+        "away_score": scores.away if scores else None,
+        "home_score": scores.home if scores else None,
+        "score_outcome": scores.outcome if scores else None,
         "score_source": SCORE_SOURCE if scores else None,
         "freshness": _freshness([game], checked_at, partial=scores is None),
     }

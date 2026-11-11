@@ -1648,3 +1648,21 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export, local documentation file links and diff whitespace checks pass. No models,
 migrations, dependencies or frontend code changed. Chromium was not rerun for this
 backend API slice; existing rendered scoreboard regressions remain in the offline gate.
+
+## Shared saved game-state evidence — 2026-11-11
+
+The full offline gate passes **2121 tests**, 48 deselected, at **94.10% combined
+players line/branch coverage**. Measurement scope and the 35% gate are unchanged.
+Forty new cases cover verified live/final results, final-publication flags,
+conflicting assertions, scheduled/nonfinal ambiguity, malformed result/side/team
+evidence, unknown observation times, stale/future storage timestamps, scheduler
+clock isolation, unchanged data and bounded queries. Existing detail and public/
+Favorites gamelog parity assertions also verify the shared object. The focused
+state/scoreboard/detail/profile/Favorites/schema run passes 290 tests.
+
+Schema validation is warning-free, with explicitly named state enums and the
+existing private-data SourceEnum preserved. Django system/migration checks,
+lint/formatting, dependency export, documentation links and diff checks pass.
+No models, migrations, dependencies, loaders or frontend behavior changed. Chromium
+was not rerun for this backend API slice; legacy rendered regressions remain in
+the offline gate. Legacy state observation time remains explicitly unknown.

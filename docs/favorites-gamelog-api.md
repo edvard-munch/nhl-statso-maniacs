@@ -29,6 +29,9 @@ This is current public identity metadata, not historical biography or a private
 position override. Statistics, game position and sweater number come from the
 verified saved game row. Durations are seconds and save percentages are fractions.
 No raw JSON, snapshot fields, notes or other accounts' state are exposed.
+Linked game summaries use the same [saved state evidence](game-state-api.md) as
+public gamelogs, game detail and the scoreboard, including explicit conflict and
+unknown observation time. Unlinked summaries remain null.
 
 Metadata includes selected `player_type`, optional `season_id`, `ordering`,
 `date_min`, `date_max` and the unfiltered combined Favorites `quota` described in

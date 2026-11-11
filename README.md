@@ -13,7 +13,9 @@ now provides versioned routing and an OpenAPI schema. The
 [saved scoreboard endpoint](docs/scoreboard-api.md) is available at
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved-date navigation](docs/game-dates-api.md)
 at `/api/v1/games/dates/` and [saved game details](docs/game-detail-api.md)
-at `/api/v1/games/{nhl_id}/`. Loaded seasons are available at `/api/v1/seasons/`; see the
+at `/api/v1/games/{nhl_id}/`. Saved game summaries include shared
+[state evidence](docs/game-state-api.md), with explicit unknown/conflict and observation-time semantics.
+Loaded seasons are available at `/api/v1/seasons/`; see the
 [seasons contract](docs/seasons-api.md). The selected-season Players catalogue is
 available at `/api/v1/players/`, with complete filter metadata at
 `/api/v1/players/filters/`; see its [contract](docs/players-api.md).

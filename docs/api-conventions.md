@@ -2,7 +2,8 @@
 
 Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
 The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api.md),
-[game detail](game-detail-api.md), [saved-date navigation](game-dates-api.md),
+[game detail](game-detail-api.md), [saved game-state evidence](game-state-api.md),
+[saved-date navigation](game-dates-api.md),
 [seasons](seasons-api.md),
 [Players catalogue and filter metadata](players-api.md), [teams](teams-api.md),
 [player profiles/history/gamelogs](player-profile-api.md),

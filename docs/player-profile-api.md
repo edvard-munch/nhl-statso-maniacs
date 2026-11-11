@@ -122,7 +122,9 @@ requested season (null means all), ordering and date bounds. Entries contain
 [Game-detail names/units](game-detail-api.md) apply, including actual game TOI and
 PP/SH seconds rather than season averages. No source arithmetic invents missing
 game statistics. A game summary's freshness concerns saved game metadata; player
-row availability is separate.
+row availability is separate. Linked summaries also share the
+[saved state evidence](game-state-api.md) object; unlinked game summaries remain
+null, and storage freshness never supplies a state observation timestamp.
 
 Known game membership comes from the typed game M2M relations. Date-specific rows
 reuse the game-detail verification helper: nested player identity, explicit game

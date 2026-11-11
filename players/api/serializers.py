@@ -5,6 +5,7 @@ import re
 from rest_framework import serializers
 
 from nhl_web_app.api.pagination import DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE
+from .game_state import STATE_SOURCES, STATE_VALUES
 
 DATE_PATTERN = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 INTEGER_PATTERN = re.compile(r"[0-9]+")
@@ -93,11 +94,29 @@ class ScoreboardTeamSerializer(serializers.Serializer):
     slug = serializers.CharField()
 
 
+class SavedGameStateSerializer(serializers.Serializer):
+    value = serializers.ChoiceField(
+        choices=STATE_VALUES,
+        help_text="Last saved legacy assertion, not a current NHL observation. Unknown includes ambiguous scheduled/nonfinal records.",
+    )
+    source = serializers.ChoiceField(choices=STATE_SOURCES, allow_null=True)
+    observed_at = serializers.DateTimeField(
+        allow_null=True,
+        help_text="Null for legacy evidence: generic Game save time does not establish when NHL observed this state. Storage freshness is separate.",
+    )
+    conflict = serializers.BooleanField(
+        help_text="True when a verified live result conflicts with the saved final flag; value is then unknown."
+    )
+
+
 class ScoreboardGameSerializer(serializers.Serializer):
     nhl_id = serializers.IntegerField()
     slug = serializers.CharField()
     date = serializers.DateField()
-    is_final = serializers.BooleanField()
+    is_final = serializers.BooleanField(
+        help_text="Saved loader completion flag. False does not disprove final-result evidence; state reports qualified assertions and conflicts.",
+    )
+    state = SavedGameStateSerializer()
     away_team = ScoreboardTeamSerializer(allow_null=True)
     home_team = ScoreboardTeamSerializer(allow_null=True)
     away_score = serializers.IntegerField(allow_null=True)

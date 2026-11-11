@@ -81,6 +81,7 @@ def test_saved_rows_equal_public_gamelogs_and_game_detail_with_explicit_identity
     first = next(
         row for row in linked(data) if row["player"]["nhl_id"] == f.players["away_forward"].nhl_id
     )
+    assert first["game"]["state"] == detail["state"]
     assert first["stats"] == detail["rosters"]["away"]["forwards"][0]["stats"]
     assert "private" in response["Cache-Control"] and "no-store" in response["Cache-Control"]
     assert "cookie" in response["Vary"].lower() and response["X-Request-ID"]
