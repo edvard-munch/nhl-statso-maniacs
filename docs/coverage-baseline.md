@@ -1601,3 +1601,19 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export and local-link checks pass. Chromium was not rerun for this backend-only
 slice; legacy rendered image/account/auth regressions remain in the offline gate.
 No migrations, dependencies or storage backend changes are introduced.
+
+
+## Public search and suggestions APIs — 2026-11-11
+
+The full offline gate passes **2019 tests**, 48 deselected, at **93.97% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Sixty-seven
+new cases cover literal/Unicode matching, team abbreviations, relevance and stable
+typed ties, cross-model IDs, global pagination, bounded previews, empty-query
+zero reads, strict validation, private-state exclusion and metadata-only storage
+URLs. Larger mixed datasets verify SQL LIMIT/OFFSET and one-query limit+1 previews
+without COUNT. The focused API/legacy/catalogue run passes 262 tests.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and local documentation-link checks pass. Chromium was not rerun for this
+backend-only slice; existing rendered search/navigation regressions run offline.
+No migrations, indexes, dependencies or frontend changes are introduced.

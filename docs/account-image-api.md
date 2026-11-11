@@ -92,5 +92,5 @@ file cleanup, post-commit old-file deletion and generated storage names. An inva
 combined form leaves the account and stored avatar intact.
 
 No migrations, dependency changes, new storage backend or frontend implementation
-are introduced. Remaining search contracts precede Vue/Vite scaffolding; legacy
-projection provenance remains a separate review.
+are introduced. [Search/autocomplete](search-api.md) is implemented; review API workflow
+coverage before Vue/Vite scaffolding. Legacy projection provenance remains separate.

@@ -112,5 +112,5 @@ new storage lifecycle and preserve their form policy. Compensating cleanup does
 not provide a durable distributed database/storage transaction.
 
 No migrations, dependency changes, loader calls or frontend implementation are
-introduced here. Complete remaining search contracts before
-Vue/Vite scaffolding. Legacy projection provenance remains a separate review.
+introduced here. [Search/autocomplete](search-api.md) is implemented; review
+remaining workflow contracts before Vue/Vite scaffolding. Legacy projection provenance remains a separate review.

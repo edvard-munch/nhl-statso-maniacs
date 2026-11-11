@@ -210,6 +210,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_PUBLIC": True,
     "COMPONENT_SPLIT_REQUEST": True,
     "ENUM_NAME_OVERRIDES": {
+        "SearchEntityTypeEnum": "players.api.search.ENTITY_TYPES",
         "SkaterTotalsKindEnum": ["skater_totals"],
         "SkaterAveragesKindEnum": ["skater_averages"],
         "GoalieSeasonKindEnum": ["goalie_totals"],

@@ -32,8 +32,9 @@ are available under `/api/v1/me/players/{player_type}/{nhl_id}/`.
 [Account settings](docs/account-api.md) support private GET/PATCH at `/api/v1/me/`.
 [Profile images](docs/account-image-api.md) use dedicated multipart PUT and default-reset
 DELETE at `/api/v1/me/image/`.
-Remaining JSON APIs will be implemented
-before frontend scaffolding.
+[Public search and autocomplete](docs/search-api.md) are available at
+`/api/v1/search/` and `/api/v1/search/suggestions/`. Review remaining workflow
+contracts before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.
 

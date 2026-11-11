@@ -10,6 +10,7 @@ from players.api.owned_player_data import PrivateNoteView, PrivatePositionsView
 from players.api.favorite_gamelogs import FavoriteGamelogView
 from players.api.favorite_views import FavoritesView, FavoriteMembershipView
 from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, PlayerGamelogView
+from players.api.search_views import SearchView, SearchSuggestionsView
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
 from players.api.views import GameDetailView, ScoreboardView, SeasonsView, PlayersView
 
@@ -69,6 +70,8 @@ urlpatterns = [
         FavoriteMembershipView.as_view(),
         name="favorite-membership",
     ),
+    path("search/", SearchView.as_view(), name="search"),
+    path("search/suggestions/", SearchSuggestionsView.as_view(), name="search-suggestions"),
     path("teams/", TeamsView.as_view(), name="teams"),
     path("teams/<int:nhl_id>/", TeamDetailView.as_view(), name="team-detail"),
     path("teams/<int:nhl_id>/players/", TeamPlayersView.as_view(), name="team-players"),

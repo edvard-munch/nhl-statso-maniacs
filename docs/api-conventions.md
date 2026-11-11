@@ -12,8 +12,8 @@ and the private [Favorites list/membership API](favorites-api.md) and
 [aggregated Favorites gamelog](favorites-gamelog-api.md), are implemented.
 [Private notes and position overrides](private-player-data-api.md) are implemented.
 [Account settings GET/PATCH](account-api.md) and the
-[multipart profile image API](account-image-api.md) are implemented. Search
-endpoints remain future work.
+[multipart profile image API](account-image-api.md) are implemented. [Search/autocomplete](search-api.md) are also implemented.
+Review remaining workflow coverage before frontend scaffolding.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.

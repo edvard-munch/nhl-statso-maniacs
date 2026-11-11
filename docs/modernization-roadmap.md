@@ -12,18 +12,19 @@ change at a time and validate before moving to the next stage.
 **Active development: migrate the frontend and JSON API incrementally.** The
 [API foundation](api-conventions.md#implemented-api-foundation) and
 [saved scoreboard](scoreboard-api.md) and [game-detail JSON](game-detail-api.md)
-resources are implemented; the remaining account and saved-list API slices
-are still pending. Vue 3/Vite/TypeScript is now selected. Complete
+resources are implemented, together with the account and saved-list API slices
+listed below. Review workflow coverage before frontend scaffolding.
+Vue 3/Vite/TypeScript is now selected. Complete
 the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add remaining search contracts; private
+review API workflow coverage and remaining provenance decisions; private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
-the [aggregated Favorites gamelog](favorites-gamelog-api.md) and
-[private notes/position APIs](private-player-data-api.md) and
-[account settings](account-api.md) and [profile image uploads](account-image-api.md)
-are implemented. Legacy projections need a separate provenance
+the [aggregated Favorites gamelog](favorites-gamelog-api.md),
+[private notes/position APIs](private-player-data-api.md),
+[account settings](account-api.md), [profile image uploads](account-image-api.md)
+and [search/autocomplete](search-api.md) are implemented. Legacy projections need a separate provenance
 contract; private notes/position overrides now have typed owned resources. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -1170,3 +1171,33 @@ account/auth run passed 300. Users/project API modules are explicitly tested
 outside the players percentage. Schema, Django system/migration, lint/formatting,
 dependency-export and local-link checks pass. Chromium was not rerun; existing
 rendered regressions run in the offline gate.
+
+
+## Public search and bounded suggestions API — 2026-11-11
+
+`GET /api/v1/search/` now returns typed skater/goalie/team identity results with
+global PostgreSQL ranking, count and pagination. Saved names and team abbreviations
+match literal case-insensitive queries; missing/blank queries are empty without
+entity reads. Exact, prefix and substring rank is followed by stable name/type/ID
+ties. Equal IDs across models remain distinct and no season/statistics requirement
+hides existing identities.
+
+`GET /api/v1/search/suggestions/` shares the DTO/matching/rank and reads at most
+limit+1 rows in one query, with a maximum preview of 20 and `has_more` rather than
+a total-count query. Main search uses two queries on a matching page; SQL performs
+combined slicing rather than loading all results or slicing each model separately.
+
+Public views disable session authentication and fetch only identity columns. They
+return no private notes/positions, saved flags, raw stats or HTML labels/sentinels.
+The existing HTML/AJAX search contracts remain untouched. No migrations, indexes,
+dependencies or frontend changes are introduced. See the [search contract](search-api.md).
+Next review API workflow coverage and outstanding provenance decisions, then
+introduce Vue/Vite scaffolding and generated-client checks in focused commits.
+
+Validation: **2019 offline tests pass**, 48 deselected, at **93.97% combined
+players line/branch coverage**; scope and the 35% gate are unchanged. Sixty-seven
+new search cases include global SQL slicing, query bounds, identity/privacy,
+literal edge cases, type filters and schema contracts. The focused API/legacy/
+catalogue run passes 262 tests. Schema, Django system/migration, lint/formatting,
+dependency-export and local-link checks pass. Chromium was not rerun for this
+backend-only slice; rendered legacy search regressions remain in the offline gate.

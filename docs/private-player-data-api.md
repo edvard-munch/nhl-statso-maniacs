@@ -132,4 +132,5 @@ order. Notes and positions never appear in public cached statistics responses.
 
 No migrations, dependencies, loader calls or frontend changes are introduced.
 [Account settings](account-api.md) and [profile images](account-image-api.md) are
-implemented. Remaining search APIs precede Vue/Vite scaffolding.
+implemented, as is [search/autocomplete](search-api.md). Review remaining workflow
+contracts before Vue/Vite scaffolding.

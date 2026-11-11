@@ -37,7 +37,9 @@ and [comparison API](comparison-api.md), plus the
 [aggregated Favorites gamelog](favorites-gamelog-api.md), are implemented.
 [Private notes and position overrides](private-player-data-api.md) are implemented.
 [Account settings](account-api.md) and the [profile image API](account-image-api.md)
-are implemented. Search remains to migrate. Legacy HTML/AJAX endpoints do not complete these JSON contracts.
+and [search/autocomplete](search-api.md) are implemented. Review workflow coverage
+and outstanding provenance decisions before introducing the Vue/Vite scaffold.
+Legacy HTML/AJAX endpoints stay available until their tested replacements cut over.
 
 The implementation order is **API first, frontend second**. Complete and test
 seasons/players, teams, profiles/gamelogs, authentication, saved lists/private
