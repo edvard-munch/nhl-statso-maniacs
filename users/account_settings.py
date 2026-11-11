@@ -5,10 +5,12 @@ from dataclasses import dataclass
 
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.db import IntegrityError, transaction
 
 from .forms import UserUpdateForm, ProfileUpdateForm, MeasurementsFormatEdit
 from .models import Profile
+from .profile_images import image_changes
 from .registration import lock_username, username_constraint_violation
 
 PROFILE_UNAVAILABLE_MESSAGE = "Account profile is missing and requires review."
@@ -44,12 +46,12 @@ def edit_account(user, data, *, files=None, full_profile=False):
             username = UserUpdateForm().fields["username"].clean(data["username"])
         except ValidationError:
             pass  # The bound form below supplies the original validation errors.
-    with transaction.atomic():
+    with image_changes() as images, transaction.atomic():
         if username is not None:
             lock_username(username)
         owner = model.objects.select_for_update().get(pk=user.pk)
         profile = profile_for(owner, lock=True)
-        # The User post-save signal must see this fresh profile, not a stale copy.
+        # Bind the fresh profile for any model/signal paths used during editing.
         if profile is not None:
             owner.profile = profile
         uf = (
@@ -79,6 +81,13 @@ def edit_account(user, data, *, files=None, full_profile=False):
         if valid:
             try:
                 with transaction.atomic():
+                    upload = pf.cleaned_data.get("image") if pf is not None else None
+                    if isinstance(upload, UploadedFile):
+                        # Form validation placed an uncommitted upload on the
+                        # shared instance; restore its stored name before staging.
+                        old_name = Profile.objects.only("image").get(pk=profile.pk).image.name
+                        profile.image = old_name
+                        images.stage(profile, upload)
                     if uf is not None:
                         uf.save()
                     if pf is not None:
@@ -102,5 +111,6 @@ def edit_account(user, data, *, files=None, full_profile=False):
             # Model.clean() may normalize omitted fields in memory; expose only
             # the persisted values after a PATCH, not those transient changes.
             owner.refresh_from_db()
+        if profile is not None:
             profile.refresh_from_db()
         yield AccountEdit(owner, profile, uf, pf, mf, valid)

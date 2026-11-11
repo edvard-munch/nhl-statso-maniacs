@@ -11,5 +11,9 @@ def create_profile(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=User)
-def save_profile(sender, instance, **kwargs):
+def save_profile(sender, instance, created, update_fields=None, **kwargs):
+    # Login and field-limited account saves must not persist a stale cached
+    # profile. Explicit profile editors save their own freshly locked instance.
+    if not created and update_fields is not None:
+        return
     instance.profile.save()

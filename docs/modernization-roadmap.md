@@ -18,11 +18,12 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add image upload APIs, then remaining search contracts; private
+add remaining search contracts; private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md) and
 [private notes/position APIs](private-player-data-api.md) and
-[account settings](account-api.md) are implemented. Legacy projections need a separate provenance
+[account settings](account-api.md) and [profile image uploads](account-image-api.md)
+are implemented. Legacy projections need a separate provenance
 contract; private notes/position overrides now have typed owned resources. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -1135,3 +1136,37 @@ API/HTML/registration races; the focused suite passes 254 tests. Schema, Django
 system/migration, lint/formatting, dependency-export and local-link checks pass.
 Chromium was not rerun for this backend-only slice; rendered regressions remain
 in the offline gate.
+
+
+## Dedicated profile image API — 2026-11-11
+
+`PUT/DELETE /api/v1/me/image/` now provides session-private, CSRF-protected multipart
+upload and default reset. PUT accepts one fully decoded still PNG/JPEG/WebP image
+with 5 MiB, 20M-pixel and 8192-dimension limits. Generated storage names use the
+detected format; account PATCH remains JSON-only. Other account fields/sessions
+are preserved, and missing profiles are not repaired.
+
+API and HTML image writes share staging and compensating cleanup. Unreferenced
+new files from failed saves, serialization or handled savepoints are removed; old
+managed files are considered for deletion after commit and only when no profile
+references them. Defaults, shared references and unmanaged legacy paths remain
+protected. Storage-returned names work without local `.path` access. Cleanup
+failures are logged without turning committed updates into false failures; crash
+recovery/orphan sweeping remains outside this request-lifetime mechanism.
+
+Field-limited User saves now skip the legacy implicit Profile save, preventing
+login or stale user updates from restoring cached avatar data. HTML forms retain
+their existing format validation/original bytes while sharing the new lifecycle.
+No migrations, dependencies, storage backend or frontend changes are introduced.
+See the [profile image contract](account-image-api.md). Next add remaining search
+contracts before Vue/Vite scaffolding; legacy projection provenance remains separate.
+
+Validation: **1952 offline tests pass**, 48 deselected, at **93.87% combined
+players line/branch coverage**; scope and the 35% gate are unchanged. Forty-seven
+new avatar/lifecycle cases include real API/HTML/reset races, failure cleanup,
+shared/default file protection, pathless storage and stale-signal protection.
+The final targeted avatar/HTML/schema run passes 108 tests; the earlier broader
+account/auth run passed 300. Users/project API modules are explicitly tested
+outside the players percentage. Schema, Django system/migration, lint/formatting,
+dependency-export and local-link checks pass. Chromium was not rerun; existing
+rendered regressions run in the offline gate.

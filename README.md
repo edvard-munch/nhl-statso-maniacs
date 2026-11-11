@@ -30,6 +30,8 @@ The private [aggregated Favorites gamelog](docs/favorites-gamelog-api.md) is ava
 at `/api/v1/me/favorites/gamelog/`. [Private notes and position overrides](docs/private-player-data-api.md)
 are available under `/api/v1/me/players/{player_type}/{nhl_id}/`.
 [Account settings](docs/account-api.md) support private GET/PATCH at `/api/v1/me/`.
+[Profile images](docs/account-image-api.md) use dedicated multipart PUT and default-reset
+DELETE at `/api/v1/me/image/`.
 Remaining JSON APIs will be implemented
 before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is

@@ -11,8 +11,9 @@ and the private [Favorites list/membership API](favorites-api.md) and
 [comparison API](comparison-api.md), plus the
 [aggregated Favorites gamelog](favorites-gamelog-api.md), are implemented.
 [Private notes and position overrides](private-player-data-api.md) are implemented.
-[Account settings GET/PATCH](account-api.md) are implemented; image uploads and
-search endpoints remain future work.
+[Account settings GET/PATCH](account-api.md) and the
+[multipart profile image API](account-image-api.md) are implemented. Search
+endpoints remain future work.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.
@@ -243,11 +244,12 @@ The private [comparison API](comparison-api.md) adds season/career reads, explic
 membership and typed resets. The
 [aggregated Favorites gamelog](favorites-gamelog-api.md) is also implemented.
 [Private notes and position overrides](private-player-data-api.md) are implemented;
-[account settings](account-api.md) are implemented. Image uploads remain pending. Statistics
+[account settings](account-api.md) and [image uploads](account-image-api.md) are
+implemented. Statistics
 resources use their explicit public read-only contracts above.
 The existing HTML login and JSON login share Django sessions during this transition.
-Future uploads must deliberately enable their multipart parser rather than
-loosening parser policy globally.
+The image resource enables multipart parsing locally; ordinary JSON endpoints
+retain their existing parser policy.
 
 The API boundary normalizes Django/middleware failures as well as DRF exceptions,
 including debug-mode errors. API errors have private/no-store cache headers;

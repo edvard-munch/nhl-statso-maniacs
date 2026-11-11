@@ -1582,3 +1582,22 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export and local documentation-link checks pass. No migrations/dependencies are
 introduced. Chromium was not rerun for this backend-only slice; existing rendered
 auth, preferences and image-handling regressions run in the full offline gate.
+
+
+## Profile image API and shared storage lifecycle — 2026-11-11
+
+The full offline gate passes **1952 tests**, 48 deselected, at **93.87% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Image/account
+code under users/project API modules is outside the players metric and has explicit
+regressions. Forty-seven new cases cover actual-content validation, byte/pixel/
+dimension/frame limits, strict multipart input, ownership/CSRF, reset, shared/default
+file protection, post-commit deletion, failed-save/serialization/storage cleanup,
+non-filesystem storage, handled HTML constraint races and stale-profile signals.
+Real PostgreSQL races cover API/HTML uploads, upload/reset ordering, preference
+updates and independent owners. The final avatar/HTML/schema run passes 108 tests;
+the earlier broader account/auth run passed 300 tests.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and local-link checks pass. Chromium was not rerun for this backend-only
+slice; legacy rendered image/account/auth regressions remain in the offline gate.
+No migrations, dependencies or storage backend changes are introduced.

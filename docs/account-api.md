@@ -2,7 +2,8 @@
 
 `/api/v1/me/` reads and partially edits the current session account. Existing HTML
 profile editing remains available and uses the same atomic edit service. This
-slice does not introduce image uploads, password changes or account deletion.
+JSON settings resource does not accept uploads, password changes or account deletion.
+Image writes use the separate [multipart image resource](account-image-api.md).
 
 ## GET and response
 
@@ -104,12 +105,12 @@ case-insensitive database constraint or duplicate-account cleanup is introduced.
 
 ## Upload boundary and remaining work
 
-The JSON endpoint exposes only a read-only image URL. A dedicated multipart avatar
-endpoint is the next account slice; do not enable multipart parsing globally.
-Existing HTML uploads remain on their current form/storage path. Database atomicity
-does not make legacy storage writes transactional or provide file cleanup on a
-later database failure; upload lifecycle work belongs to that separate slice.
+The JSON settings endpoint exposes only a read-only image URL. The dedicated
+[multipart avatar endpoint](account-image-api.md) now handles upload and default
+reset. Multipart parsing is not enabled globally. Existing HTML uploads share the
+new storage lifecycle and preserve their form policy. Compensating cleanup does
+not provide a durable distributed database/storage transaction.
 
 No migrations, dependency changes, loader calls or frontend implementation are
-introduced here. Complete image upload and remaining search contracts before
+introduced here. Complete remaining search contracts before
 Vue/Vite scaffolding. Legacy projection provenance remains a separate review.

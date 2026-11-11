@@ -1,4 +1,4 @@
-"""Current-account JSON settings; file uploads have a separate future boundary."""
+"""Current-account JSON settings; image uploads use a separate multipart resource."""
 
 from collections.abc import Mapping
 
