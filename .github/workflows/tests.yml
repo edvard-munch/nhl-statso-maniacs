@@ -33,6 +33,26 @@ jobs:
       - name: Check reviewed schema drift
         run: make schema-check
 
+  client:
+    name: TypeScript API client
+    needs: schema
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    # Uses only the reviewed schema; no Django/database/NHL service is needed.
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: frontend/.node-version
+      - name: Install pinned client dependencies
+        run: make frontend-sync
+      - name: Check generated client drift
+        run: make api-client-check
+      - name: Check TypeScript contracts
+        run: make frontend-typecheck
+      - name: Test client transport and generation
+        run: make frontend-test
+
   tests:
     # Keep this interpreter in sync with .python-version.
     runs-on: ubuntu-22.04

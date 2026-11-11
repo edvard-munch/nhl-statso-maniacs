@@ -1,0 +1,2 @@
+# Scripts must never silently install dependencies or rewrite the lockfile.
+verifyDepsBeforeRun: error

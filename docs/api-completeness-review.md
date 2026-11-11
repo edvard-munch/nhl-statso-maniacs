@@ -15,7 +15,7 @@ The current OpenAPI 3.0.3 export validates with `--validate --fail-on-warn`:
 **31 documented paths, 39 operations** (21 GET, 6 POST, 5 PUT, 1 PATCH, 6 DELETE).
 The public schema-serving route is intentionally omitted from its own document;
 HEAD/OPTIONS and the catch-all 404 route are not extra documented operations.
-There is no generated frontend client or Vue application yet.
+The [generated TypeScript client](typescript-client.md) is implemented; there is no Vue application yet.
 
 ## Scope and evidence
 
@@ -264,10 +264,11 @@ search ranking and bounded image formats must be reflected in UI acceptance test
 
 The [reviewed offline schema workflow](openapi-workflow.md) is now implemented,
 with a checked `api/openapi.json` and a separate database-free drift-check CI job.
-The repository still has no Vue/Vite application, pnpm frontend lockfile, checked
-frontend client or generated-client regeneration CI check. `browser/package.json` is the existing npm/Playwright legacy smoke harness,
-not a frontend scaffold. Current CI validates backend/schema contracts and legacy
-Chromium flows; frontend lint/types/component tests/build/drift checks are future work.
+The [TypeScript client foundation](typescript-client.md) now has a frozen pnpm
+lockfile, checked SDK, transport tests, compilation and generation drift CI checks.
+There is still no Vue/Vite application. `browser/package.json` remains the existing
+npm/Playwright legacy smoke harness. Vue component/build checks follow scaffolding;
+existing backend/schema contracts and legacy Chromium flows remain covered.
 
 Recommended focused commits, following the user's API-first preference:
 
@@ -276,8 +277,8 @@ Recommended focused commits, following the user's API-first preference:
 3. **Explicit saved game-state evidence** (G3) — implemented for legacy sources.
 4. **Aggregated Favorites gamelog identity ordering** (G4) — implemented.
 5. Record projection/admin decisions before their affected cutovers. Reviewed
-   schema export/drift checks are implemented; select and validate reproducible
-   TypeScript client generation next.
+   schema export/drift checks and reproducible TypeScript client generation are
+   implemented.
 6. Introduce Vue/Vite/TypeScript with pinned compatible tooling, same-origin dev
    proxy and frontend CI; then migrate the scoreboard/game pilot at desktop/mobile
    sizes. Keep dependencies and page implementation in focused commits.

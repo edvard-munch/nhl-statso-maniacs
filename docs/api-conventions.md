@@ -270,3 +270,11 @@ and error/CSRF contracts.
 The existing coverage gate still measures `players`; foundation modules under
 `nhl_web_app.api` have explicit contract tests but are not added to that percentage
 by this commit. Extending coverage scope is a separate reporting decision.
+
+
+## Implemented TypeScript client foundation
+
+The [generated client workflow](typescript-client.md) pins Node/pnpm and Kubb,
+checks all reviewed operations and owns the same-origin session/CSRF transport.
+Client generation, TypeScript contracts and mocked transport tests run in a separate
+CI job. Vue/Vite application scaffolding and page migration remain the next phase.

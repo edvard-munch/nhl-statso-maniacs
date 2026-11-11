@@ -11,7 +11,9 @@ and [API conventions](docs/api-conventions.md) describe the next development pha
 Vue/Vite is selected; frontend scaffolding is not implemented yet. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. A
 [reviewed offline schema workflow](docs/openapi-workflow.md) supplies
-`make schema` / `make schema-check` and the checked `api/openapi.json` contract. The
+`make schema` / `make schema-check` and the checked `api/openapi.json` contract.
+The [TypeScript client foundation](docs/typescript-client.md) provides a generated
+SDK, same-origin session/CSRF transport and pinned pnpm checks under `frontend/`. The
 [saved scoreboard endpoint](docs/scoreboard-api.md) is available at
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved-date navigation](docs/game-dates-api.md)
 at `/api/v1/games/dates/` and [saved game details](docs/game-detail-api.md)

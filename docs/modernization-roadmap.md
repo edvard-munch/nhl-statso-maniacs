@@ -1306,3 +1306,30 @@ schema validation, normal startup, Django system/migration, lint/formatting,
 dependency export and documentation checks pass. Copied-checkout fixtures exclude
 coverage startup instrumentation, avoiding duplicate source paths. Hosted schema
 job execution remains a post-push check.
+
+
+## Reproducible TypeScript API client
+
+Implemented the [client foundation](typescript-client.md) against the reviewed
+OpenAPI snapshot: named SDK functions for all 41 operations, DTOs preserving
+nullable/discriminated statistics and string dates, and an app-owned Fetch
+transport. The transport enforces same-origin API requests, session cookies,
+in-memory CSRF rotation, multipart uploads, contentless responses, cancellation
+and structured errors. Unsafe requests are never automatically replayed.
+
+Node 24.13.0, pnpm 10.34.9 and exact generator/compiler/test dependencies are pinned
+with a frozen lockfile. Make targets install, generate, check drift, compile and
+test. A separate CI client job depends on the schema job and requires no database.
+Generation rejects external references and schema errors; check mode never rewrites
+reviewed files. Failed generation preserves existing files.
+
+Validation: 35 mocked transport/generation tests pass, TypeScript contract checks
+pass, output reproduces in another checkout directory, and frozen offline install,
+schema drift, dependency export and Python lint/format checks pass. The preceding
+2178-test Python baseline and 94.11% players coverage were not remeasured for this
+frontend tooling change. No backend behavior, migrations or coverage scope changed.
+Hosted CI remains to be verified after push.
+
+Next scaffold Vue/Vite with a same-origin development proxy and mobile-friendly
+functional layout, then migrate the scoreboard/game pilot. Projection/admin and
+auth deployment decisions stay attached to their affected cutovers.

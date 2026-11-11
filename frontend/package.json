@@ -1,0 +1,28 @@
+{
+  "name": "nhl-frontend",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Typed API client foundation for the Vue/Vite frontend",
+  "packageManager": "pnpm@10.34.9",
+  "engines": {
+    "node": ">=24.13.0 <25"
+  },
+  "scripts": {
+    "api:generate": "node scripts/generate-api.mjs",
+    "api:check": "node scripts/generate-api.mjs --check",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@kubb/adapter-oas": "5.18.3",
+    "@kubb/core": "5.18.3",
+    "@kubb/parser-ts": "5.18.3",
+    "@kubb/plugin-client": "5.11.1",
+    "@kubb/plugin-ts": "5.4.2",
+    "@kubb/renderer-jsx": "5.18.3",
+    "@types/node": "24.19.2",
+    "typescript": "6.0.2",
+    "vitest": "5.1.0"
+  }
+}

@@ -2,8 +2,9 @@
 
 The backend serializers and API declarations produce the live JSON schema at
 `/api/v1/schema/`. The reviewed, generated snapshot is
-[`api/openapi.json`](../api/openapi.json). It is the reproducible input for future
-TypeScript client generation; frontend/client tooling is not introduced here.
+[`api/openapi.json`](../api/openapi.json). It is the reproducible input for the
+[generated TypeScript client](typescript-client.md). Regenerate and review the SDK
+with schema changes using `make api-client`; `make api-client-check` checks drift.
 
 ## Commands
 

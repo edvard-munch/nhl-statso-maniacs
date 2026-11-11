@@ -186,3 +186,11 @@ Use the LMS projects as architectural references, not an application starter clo
 - [Vue framework guidance](https://vuejs.org/guide/quick-start), [Nuxt rendering modes](https://learn.nuxt.com/en/concepts/rendering-modes), and [DRF session authentication](https://www.django-rest-framework.org/api-guide/authentication/#sessionauthentication).
 
 The application-specific contract is in [API conventions](api-conventions.md).
+
+
+## Implemented TypeScript client foundation
+
+The [generated client workflow](typescript-client.md) pins Node/pnpm and Kubb,
+checks all reviewed operations and owns the same-origin session/CSRF transport.
+Client generation, TypeScript contracts and mocked transport tests run in a separate
+CI job. Vue/Vite application scaffolding and page migration remain the next phase.

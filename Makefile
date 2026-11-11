@@ -1,10 +1,11 @@
-.PHONY: sync lock-check requirements requirements-check schema schema-check format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
+.PHONY: sync lock-check requirements requirements-check schema schema-check frontend-sync api-client api-client-check frontend-typecheck frontend-test format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
 
 .DEFAULT_GOAL := format
 
 UV ?= uv
 UV_RUN = $(UV) run --locked
 PYTHON ?= $(UV_RUN) python
+PNPM ?= corepack pnpm
 
 sync:
 	$(UV) sync --locked
@@ -23,6 +24,21 @@ schema:
 
 schema-check:
 	$(UV_RUN) python scripts/export_openapi.py --check
+
+frontend-sync:
+	cd frontend && $(PNPM) install --frozen-lockfile --ignore-scripts
+
+api-client:
+	cd frontend && $(PNPM) api:generate
+
+api-client-check:
+	cd frontend && $(PNPM) api:check
+
+frontend-typecheck:
+	cd frontend && $(PNPM) typecheck
+
+frontend-test:
+	cd frontend && $(PNPM) test
 
 format:
 	$(UV_RUN) python -m ruff format .
