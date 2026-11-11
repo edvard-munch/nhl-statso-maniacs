@@ -13,6 +13,7 @@ from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, Play
 from players.api.search_views import SearchView, SearchSuggestionsView
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
 from players.api.views import (
+    GameDatesView,
     GameDetailView,
     ScoreboardView,
     SeasonsView,
@@ -97,6 +98,7 @@ urlpatterns = [
     path("players/filters/", PlayersFiltersView.as_view(), name="players-filters"),
     path("players/", PlayersView.as_view(), name="players"),
     path("seasons/", SeasonsView.as_view(), name="seasons"),
+    path("games/dates/", GameDatesView.as_view(), name="game-dates"),
     path("games/", ScoreboardView.as_view(), name="games"),
     path("games/<int:nhl_id>/", GameDetailView.as_view(), name="game-detail"),
     # Resolve invalid/slashless API paths directly, avoiding HTML debug 404s and

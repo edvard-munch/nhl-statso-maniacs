@@ -101,9 +101,12 @@ semantics, read-only bounded queries and schema tests. Favorites can reuse a
 private scoped contract or derive facets from a deliberately complete private
 collection; never derive them from an arbitrary visible page.
 
-### G2 — Saved game-date navigation is missing
+### G2 — Saved game-date navigation (implemented after review)
 
-**Priority: before the scoreboard UI pilot preserves the existing date strip.**
+**Resolved:** `/api/v1/games/dates/` now provides paginated saved dates, explicit
+selection/fallback, adjacent saved dates and a six-date window. See the
+[implemented contract](game-dates-api.md). The observations below describe the
+original review snapshot.
 
 Legacy `games()` reads `Gameday`, chooses a saved-date fallback when a requested
 day is absent, and `utils.get_adjacent()` supplies a six-date saved-day window.
@@ -261,7 +264,7 @@ Chromium flows; frontend lint/types/component tests/build/drift checks are futur
 Recommended focused commits, following the user's API-first preference:
 
 1. **Season-scoped Players filter metadata** (G1) — implemented for public Players.
-2. **Saved game-date discovery/navigation** (G2).
+2. **Saved game-date discovery/navigation** (G2) — implemented.
 3. **Explicit saved game-state evidence** (G3).
 4. **Aggregated Favorites gamelog identity ordering** (G4).
 5. Record projection/admin decisions before their affected cutovers; review the

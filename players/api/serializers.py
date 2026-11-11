@@ -196,3 +196,39 @@ class GameDetailSerializer(ScoreboardGameSerializer):
     date = serializers.DateField(allow_null=True)
     freshness = GameDetailFreshnessSerializer()
     rosters = GameRostersSerializer()
+
+
+class GameDatesQuerySerializer(PaginationQuerySerializer):
+    date = StrictDateField(
+        required=False,
+        help_text="Optional exact Pacific schedule date used only for navigation. Omission uses today's Pacific date; an unsaved reference selects the latest saved gameday. Does not change list ordering or scoreboard behavior.",
+    )
+
+    def to_internal_value(self, data):
+        if data.get("date") == "":
+            raise serializers.ValidationError({"date": ["Supply a nonempty value."]})
+        return super().to_internal_value(data)
+
+
+class SavedGameDateSerializer(serializers.Serializer):
+    date = serializers.DateField(source="day")
+
+
+class GameDatesMetaSerializer(serializers.Serializer):
+    requested_date = serializers.DateField(allow_null=True)
+    reference_date = serializers.DateField()
+    schedule_timezone = serializers.CharField()
+    latest_date = serializers.DateField(allow_null=True)
+    selected_date = serializers.DateField(allow_null=True)
+    used_fallback = serializers.BooleanField()
+    previous_date = serializers.DateField(allow_null=True)
+    next_date = serializers.DateField(allow_null=True)
+    window = serializers.ListField(child=serializers.DateField())
+
+
+class GameDatesResponseSerializer(serializers.Serializer):
+    count = serializers.IntegerField()
+    next = serializers.URLField(allow_null=True)
+    previous = serializers.URLField(allow_null=True)
+    results = SavedGameDateSerializer(many=True)
+    meta = GameDatesMetaSerializer()

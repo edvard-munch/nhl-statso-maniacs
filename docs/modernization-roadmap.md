@@ -19,7 +19,7 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-implement saved game-date navigation, then the remaining parity gaps
+implement explicit saved game-state evidence, then the remaining parity gaps
 from the [API completeness review](api-completeness-review.md); private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md),
@@ -1238,3 +1238,17 @@ facets still require explicit private composition. Next: saved game-date navigat
 Validation: 232 focused tests; 2048 full offline tests, 48 deselected, 94.02%
 combined players coverage. Schema, Django system/migration checks, lint/formatting
 and dependency export pass; no migrations or dependencies changed.
+
+
+## Saved game-date discovery and navigation
+
+Implemented `/api/v1/games/dates/` with database pagination, explicit Pacific
+reference/selection/fallback, previous/next saved neighbors and a six-date window.
+Saved Gameday entries remain distinct from proof of loaded game statistics;
+scoreboard exact-date behavior is unchanged. See the [contract](game-dates-api.md).
+G2 from the completeness review is resolved. Next: explicit saved game-state
+and observation/freshness evidence (G3).
+
+Validation: 163 focused tests; 2081 full offline tests, 48 deselected, 94.07%
+combined players coverage. Schema, Django system/migration checks, lint/formatting,
+dependency export and local documentation links pass. No migrations or dependencies changed.

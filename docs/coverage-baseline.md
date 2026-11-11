@@ -1633,3 +1633,18 @@ and migration checks, lint/formatting, dependency export, local documentation fi
 links and diff whitespace checks pass. No migrations, dependencies or frontend
 changes are introduced. Chromium was not rerun for this backend API slice;
 existing rendered catalogue regressions remain part of the offline gate.
+
+## Saved game-date navigation — 2026-11-11
+
+The full offline gate passes **2081 tests**, 48 deselected, at **94.07% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Thirty-three
+new cases cover saved dates with no games, noncontiguous neighbors, six-date window
+edges, latest-date fallback, unchanged exact-date scoreboards, independent paging,
+empty/short/large histories, Pacific daylight-saving boundaries, typed JSON,
+strict query validation, public/private parity and bounded read-only queries.
+The focused navigation/scoreboard/game-detail/schema run passes 163 tests.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export, local documentation file links and diff whitespace checks pass. No models,
+migrations, dependencies or frontend code changed. Chromium was not rerun for this
+backend API slice; existing rendered scoreboard regressions remain in the offline gate.

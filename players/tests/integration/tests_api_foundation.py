@@ -165,6 +165,7 @@ def test_schema_is_public_json_valid_and_read_only(
         PREFIX + "teams/{nhl_id}/",
         PREFIX + "teams/{nhl_id}/players/",
         PREFIX + "games/",
+        PREFIX + "games/dates/",
         PREFIX + "games/{nhl_id}/",
     }
     root = schema["paths"][PREFIX]["get"]
@@ -221,6 +222,7 @@ def test_schema_cli_validates_without_database_or_network(
         PREFIX + "teams/{nhl_id}/",
         PREFIX + "teams/{nhl_id}/players/",
         PREFIX + "games/",
+        PREFIX + "games/dates/",
         PREFIX + "games/{nhl_id}/",
     }
     assert not no_upstream.called

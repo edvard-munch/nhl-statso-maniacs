@@ -11,7 +11,8 @@ and [API conventions](docs/api-conventions.md) describe the next development pha
 Vue/Vite is selected; frontend scaffolding is not implemented yet. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. The
 [saved scoreboard endpoint](docs/scoreboard-api.md) is available at
-`/api/v1/games/?date=YYYY-MM-DD`, with [saved game details](docs/game-detail-api.md)
+`/api/v1/games/?date=YYYY-MM-DD`, with [saved-date navigation](docs/game-dates-api.md)
+at `/api/v1/games/dates/` and [saved game details](docs/game-detail-api.md)
 at `/api/v1/games/{nhl_id}/`. Loaded seasons are available at `/api/v1/seasons/`; see the
 [seasons contract](docs/seasons-api.md). The selected-season Players catalogue is
 available at `/api/v1/players/`, with complete filter metadata at

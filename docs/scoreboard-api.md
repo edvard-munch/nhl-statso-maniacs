@@ -4,6 +4,8 @@
 schedule date. This is a public, read-only resource: it does not start loaders,
 contact the NHL, create missing gamedays, render templates or modify saved data.
 The existing HTML scoreboard and its AJAX endpoint remain operational.
+[Saved-date navigation](game-dates-api.md) is separately available at
+`/api/v1/games/dates/`; clients explicitly choose whether to follow its fallback.
 
 ## Request and pagination
 
