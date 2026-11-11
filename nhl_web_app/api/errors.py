@@ -39,6 +39,12 @@ class InvalidCredentials(exceptions.APIException):
     default_code = "invalid_credentials"
 
 
+class AccountProfileUnavailable(exceptions.APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_code = "account_profile_unavailable"
+    default_detail = "Account profile is missing and requires review."
+
+
 class PrivatePlayerDataConflict(exceptions.APIException):
     status_code = status.HTTP_409_CONFLICT
     default_code = "private_player_data_conflict"
@@ -123,6 +129,7 @@ def exception_handler(exc, context):
             FavoritesQuotaExceeded,
             ComparisonQuotaExceeded,
             PrivatePlayerDataConflict,
+            AccountProfileUnavailable,
         ),
     ):
         code, message = exc.default_code, str(exc.default_detail)

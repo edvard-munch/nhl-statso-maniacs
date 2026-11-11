@@ -9,6 +9,12 @@ REGISTRATION_LOCK_NAMESPACE = 0x4E485552
 REGISTRATION_LOCK_SQL = "SELECT pg_advisory_xact_lock(%s, hashtext(UPPER(%s::text)))"
 
 
+def lock_username(username):
+    """Acquire the shared web-flow name lock inside an existing transaction."""
+    with connection.cursor() as cursor:
+        cursor.execute(REGISTRATION_LOCK_SQL, [REGISTRATION_LOCK_NAMESPACE, username])
+
+
 def create_registered_user(form):
     """Return the created user, or None with field errors on the supplied form.
 
@@ -23,8 +29,7 @@ def create_registered_user(form):
         return None
     try:
         with transaction.atomic():
-            with connection.cursor() as cursor:
-                cursor.execute(REGISTRATION_LOCK_SQL, [REGISTRATION_LOCK_NAMESPACE, username])
+            lock_username(username)
             if not form.is_valid():
                 return None
             return form.save()

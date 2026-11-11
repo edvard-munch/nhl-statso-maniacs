@@ -13,6 +13,7 @@ from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, Play
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
 from players.api.views import GameDetailView, ScoreboardView, SeasonsView, PlayersView
 
+from .account import AccountView
 from .registration import RegistrationView
 from .password_recovery import (
     PasswordRecoveryRequestView,
@@ -38,6 +39,7 @@ urlpatterns = [
     path("auth/session/", SessionView.as_view(), name="auth-session"),
     path("auth/login/", LoginView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
+    path("me/", AccountView.as_view(), name="account"),
     path("schema/", SchemaView.as_view(), name="schema"),
     path(
         "me/players/<str:player_type>/<int:nhl_id>/note/",

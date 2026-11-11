@@ -36,7 +36,8 @@ Registration, password recovery and the private [Favorites list/membership API](
 and [comparison API](comparison-api.md), plus the
 [aggregated Favorites gamelog](favorites-gamelog-api.md), are implemented.
 [Private notes and position overrides](private-player-data-api.md) are implemented.
-Account settings/uploads and search remain to migrate. Legacy HTML/AJAX endpoints do not complete these JSON contracts.
+[Account settings](account-api.md) are implemented. Image uploads and search remain
+to migrate. Legacy HTML/AJAX endpoints do not complete these JSON contracts.
 
 The implementation order is **API first, frontend second**. Complete and test
 seasons/players, teams, profiles/gamelogs, authentication, saved lists/private
@@ -93,7 +94,7 @@ and media routing separate. Do not deploy the Vite development server.
 
 Retain Django session authentication and existing accounts. JSON CSRF/session
 bootstrap, login/logout, registration and password recovery are implemented;
-account endpoints follow. Enforce CSRF on login as well as authenticated unsafe requests. The session cookie remains
+account settings GET/PATCH are implemented; uploads follow. Enforce CSRF on login as well as authenticated unsafe requests. The session cookie remains
 HTTP-only, with deployment security attributes configured for the public origin.
 Do not introduce JWT/local-storage tokens simply because the UI is separate.
 

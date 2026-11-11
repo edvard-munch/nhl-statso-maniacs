@@ -1564,3 +1564,21 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export and local documentation-link checks pass. No migrations or dependencies
 are introduced. Chromium was not rerun for this backend-only slice; existing
 rendered private-data and saved-list regressions remain in the offline gate.
+
+
+## Account settings API — 2026-11-11
+
+The full offline gate passes **1905 tests**, 48 deselected, at **93.87% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Account code
+in `users` and `nhl_web_app.api` is outside that measured scope and is exercised
+explicitly: 56 new cases cover partial updates, form normalization/policy, owner
+isolation, missing profiles, invalid legacy preferences, CSRF/session retention,
+rollback and concurrent API/HTML edits. Username races cover both registration
+lock orders and external exact database collisions. The focused account/auth/HTML
+run passes 254 tests. The shared race harness now handles HTML validation responses
+without attempting JSON parsing.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and local documentation-link checks pass. No migrations/dependencies are
+introduced. Chromium was not rerun for this backend-only slice; existing rendered
+auth, preferences and image-handling regressions run in the full offline gate.

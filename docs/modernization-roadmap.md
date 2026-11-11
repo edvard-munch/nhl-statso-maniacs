@@ -18,10 +18,11 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add account/settings APIs; private
+add image upload APIs, then remaining search contracts; private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md) and
-[private notes/position APIs](private-player-data-api.md) are implemented. Legacy projections need a separate provenance
+[private notes/position APIs](private-player-data-api.md) and
+[account settings](account-api.md) are implemented. Legacy projections need a separate provenance
 contract; private notes/position overrides now have typed owned resources. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
@@ -1102,3 +1103,35 @@ cases include legacy attribution, validation, rollback, clear semantics and real
 API/legacy writer races; the focused API/legacy run passed 276 tests. Schema,
 Django system/migration, lint/formatting, dependency-export and local-link checks
 pass. Chromium was not rerun; existing rendered regressions run in the offline gate.
+
+
+## Account settings JSON API — 2026-11-11
+
+`GET/PATCH /api/v1/me/` now exposes only the current account's username/email and
+measurement preference, with a read-only image URL. PATCH is strict partial JSON:
+omitted fields remain unchanged and an empty object is a no-op. Missing profiles
+are null on reads and return 409 on writes; invalid saved units remain unknown
+until explicitly replaced. No profile repair or image upload is inferred.
+
+JSON and HTML profile editing share an atomic service. Normalized target-name
+locks coordinate with registration, followed by fresh user/profile locks. Username
+renames now use registration-compatible Unicode normalization and case-insensitive
+uniqueness for both web editors. Omitted user fields are excluded from saves;
+responses serialize inside the transaction. Proven external exact-username races
+become validation errors, while other failures roll back and surface normally.
+
+Existing HTML preference behavior and image forms remain available. The JSON
+endpoint never opens or writes image bytes; a dedicated multipart upload endpoint
+is next. Database atomicity does not provide rollback for legacy storage writes.
+No migrations, dependency changes or frontend implementation are introduced. See
+the [account contract](account-api.md). Complete image uploads and remaining search
+contracts before Vue/Vite scaffolding; projection provenance remains separate.
+
+Validation: **1905 offline tests pass**, 48 deselected, at **93.87% combined
+players line/branch coverage**; scope and the 35% gate are unchanged. Account code
+under users/project API modules is explicitly tested outside the players metric.
+Fifty-six new cases include partial-update preservation, rollback and real
+API/HTML/registration races; the focused suite passes 254 tests. Schema, Django
+system/migration, lint/formatting, dependency-export and local-link checks pass.
+Chromium was not rerun for this backend-only slice; rendered regressions remain
+in the offline gate.

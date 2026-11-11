@@ -131,4 +131,5 @@ responses are not a revision protocol and frontend responses can arrive out of
 order. Notes and positions never appear in public cached statistics responses.
 
 No migrations, dependencies, loader calls or frontend changes are introduced.
-Remaining account/settings/uploads and search APIs precede Vue/Vite scaffolding.
+[Account settings](account-api.md) are implemented. Image uploads and remaining
+search APIs precede Vue/Vite scaffolding.

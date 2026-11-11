@@ -376,7 +376,12 @@ def concurrent_changes(
                 response = getattr(client, method)(
                     target, b"", content_type="", HTTP_X_CSRFTOKEN=token
                 )
-            return response.status_code, response.json() if response.content else None
+            return response.status_code, (
+                response.json()
+                if response.content
+                and response.get("Content-Type", "").startswith("application/json")
+                else None
+            )
         finally:
             connections.close_all()
 

@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm, MeasurementsFormatEdit
 from .registration import create_registered_user
+from .account_settings import edit_account
 from django.contrib.auth.views import PasswordResetConfirmView
 
 
@@ -27,17 +28,13 @@ def bookmark_message(request):
 @login_required
 def profile(request):
     if request.method == "POST":
-        u_form = UserUpdateForm(request.POST, instance=request.user)
-        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
-        ms_form = MeasurementsFormatEdit(request.POST, instance=request.user.profile)
-
-        if u_form.is_valid() and p_form.is_valid() and ms_form.is_valid():
-            u_form.save()
-            p_form.save()
-            ms_form.save()
-            username = u_form.cleaned_data.get("username")
-            messages.success(request, f"{username}, your account has been updated!")
-            return redirect("profile")
+        with edit_account(
+            request.user, request.POST, files=request.FILES, full_profile=True
+        ) as edit:
+            u_form, p_form, ms_form = edit.user_form, edit.image_form, edit.measurements_form
+            if edit.valid:
+                messages.success(request, f"{edit.user.username}, your account has been updated!")
+                return redirect("profile")
 
     else:
         u_form = UserUpdateForm(instance=request.user)
