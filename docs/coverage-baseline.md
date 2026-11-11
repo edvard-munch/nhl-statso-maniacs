@@ -1548,3 +1548,19 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export and local documentation-link checks pass. Chromium was not rerun for this
 backend-only slice; existing rendered Favorites/game/profile regressions run
 in the full offline gate.
+
+
+## Private notes and position APIs — 2026-11-11
+
+The full offline gate passes **1849 tests**, 48 deselected, at **93.87% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Eighty new
+cases cover strict JSON/form policy, typed ownership, safe legacy lookup/upgrade,
+ambiguous and invalid records, explicit clear without legacy-value resurrection,
+CSRF, rollback, private caching and public-statistics exclusion. Real PostgreSQL
+races cover API/legacy creates, replacement/clear ordering, reads waiting for
+writes and independent owners. The focused API/legacy run passed 276 tests.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export and local documentation-link checks pass. No migrations or dependencies
+are introduced. Chromium was not rerun for this backend-only slice; existing
+rendered private-data and saved-list regressions remain in the offline gate.

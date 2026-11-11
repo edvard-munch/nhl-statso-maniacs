@@ -27,7 +27,8 @@ are available under `/api/v1/me/favorites/`, including explicit PUT/DELETE membe
 changes. Private [comparison APIs](docs/comparison-api.md) support season/career
 statistics, explicit membership and typed resets under `/api/v1/me/comparison/`.
 The private [aggregated Favorites gamelog](docs/favorites-gamelog-api.md) is available
-at `/api/v1/me/favorites/gamelog/`. Remaining JSON APIs will be implemented
+at `/api/v1/me/favorites/gamelog/`. [Private notes and position overrides](docs/private-player-data-api.md)
+are available under `/api/v1/me/players/{player_type}/{nhl_id}/`. Remaining JSON APIs will be implemented
 before frontend scaffolding.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.

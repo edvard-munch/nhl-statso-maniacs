@@ -18,10 +18,11 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-add private notes/position overrides; private
-[Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md)
-and the [aggregated Favorites gamelog](favorites-gamelog-api.md) are implemented. Legacy projections need a separate provenance
-contract; private notes/position overrides follow in their owned-resource phase. Functionality takes priority
+add account/settings APIs; private
+[Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
+the [aggregated Favorites gamelog](favorites-gamelog-api.md) and
+[private notes/position APIs](private-player-data-api.md) are implemented. Legacy projections need a separate provenance
+contract; private notes/position overrides now have typed owned resources. Functionality takes priority
 over visual polish;
 mobile usability and viewport checks belong in each slice. The
 [frontend plan](frontend-architecture.md) estimates 25–30 focused commits for the
@@ -1068,3 +1069,36 @@ player/game responses and a real read/removal race. The final targeted run passe
 159 tests. Schema, Django system/migration, lint/formatting, dependency-export and
 local documentation-link checks pass. Chromium was not rerun for this backend-only
 slice; legacy rendered regressions remain in the offline gate.
+
+
+## Private notes and position APIs — 2026-11-11
+
+Typed note and position resources under `/api/v1/me/players/{player_type}/{nhl_id}/`
+now provide session-private GET/PUT/DELETE contracts. Explicit serializers reject
+unknown fields/queries, use existing note/position form policy and distinguish
+saved overrides from official position metadata. Empty values clear; public
+statistics and official player fields remain unchanged.
+
+A shared private-record reader/writer serves the APIs and legacy editors. API
+reads/writes and legacy writes use the existing transactional owner lock, preventing
+duplicate cooperating creates across workers. Responses serialize inside the
+transaction. Unrelated accounts and typed players remain isolated.
+
+Single safely attributable untyped rows remain readable and upgrade on edit;
+ambiguous untyped rows stay hidden and untouched. Duplicate typed rows stay hidden
+and reject writes with 409 `private_player_data_conflict`. Explicit clear also
+removes a single safely attributable shadowed legacy value so it cannot reappear.
+Invalid saved position arrays use the official fallback without repair on reads.
+No database uniqueness migration or broad legacy-data backfill is introduced.
+
+See the [private player-data contract](private-player-data-api.md). No migrations,
+new dependencies, loader calls or frontend changes are introduced. Next implement
+account/profile settings and upload APIs, then remaining search contracts before
+Vue/Vite scaffolding. Legacy projections still need a separate provenance contract.
+
+Validation: **1849 offline tests pass**, 48 deselected, at **93.87% combined
+players line/branch coverage**; scope and the 35% gate are unchanged. Eighty new
+cases include legacy attribution, validation, rollback, clear semantics and real
+API/legacy writer races; the focused API/legacy run passed 276 tests. Schema,
+Django system/migration, lint/formatting, dependency-export and local-link checks
+pass. Chromium was not rerun; existing rendered regressions run in the offline gate.

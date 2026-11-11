@@ -83,6 +83,6 @@ order. Idempotent PUT/DELETE makes retrying an intended state safe.
 
 The [comparison API](comparison-api.md) and
 [aggregated Favorites gamelog](favorites-gamelog-api.md) are implemented.
-Private notes/positions and account settings
-also remain before Vue/Vite work.
+[Private notes/positions](private-player-data-api.md) are also implemented.
+Account settings and search remain before Vue/Vite work.
 No NHL calls or application database changes are needed to run the offline tests.

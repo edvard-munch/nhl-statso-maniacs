@@ -13,7 +13,15 @@ from django.utils.html import format_html
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET, require_POST
 
-from . import game_refresh, player_table, saved_actions, saved_players, team_tables, utils
+from . import (
+    game_refresh,
+    player_table,
+    saved_actions,
+    saved_players,
+    team_tables,
+    utils,
+    owned_data,
+)
 from .forms import NoteForm, PositionsForm
 from .models import Game, Gameday, Goalie, Note, Position, Skater, Team
 
@@ -672,17 +680,17 @@ def player_note(request, slug, nhl_id):
                 return JsonResponse(
                     {"authenticated": True, "errors": form.errors.get_json_data()}, status=400
                 )
-            note = utils.get_object(request, player, Note)
-            text = form.cleaned_data["text"]
-            if text:
-                if note is None:
-                    note = Note(author=user)
-                note.text = text
-                note.player_name = player.name
-                note.content_object = player
-                note.save()
-            elif note is not None:
-                note.delete()
+            with saved_actions.locked_user(user) as owner:
+                try:
+                    owned_data.replace(owner, player, Note, form.cleaned_data["text"])
+                except owned_data.OwnedDataConflict:
+                    return JsonResponse(
+                        {
+                            "authenticated": True,
+                            "error": "Multiple private player records require review.",
+                        },
+                        status=409,
+                    )
         data["message"] = "Note is saved!"
     else:
         data["authenticated"] = False
@@ -705,17 +713,18 @@ def player_positions(request, nhl_id, slug):
                 return JsonResponse(
                     {"authenticated": True, "errors": form.errors.get_json_data()}, status=400
                 )
-            positions = utils.get_object(request, player, Position)
             checked_data = list(dict.fromkeys(form.cleaned_data["check"]))
-            if checked_data:
-                if positions is None:
-                    positions = Position(author=user)
-                positions.data = checked_data
-                positions.player_name = player.name
-                positions.content_object = player
-                positions.save()
-            elif positions is not None:
-                positions.delete()
+            with saved_actions.locked_user(user) as owner:
+                try:
+                    owned_data.replace(owner, player, Position, checked_data)
+                except owned_data.OwnedDataConflict:
+                    return JsonResponse(
+                        {
+                            "authenticated": True,
+                            "error": "Multiple private player records require review.",
+                        },
+                        status=409,
+                    )
         positions_extra = utils.get_object(request, player, Position)
         data.update(
             ajax_upd_pos=utils.unpack_list_positions(player, positions_extra),

@@ -39,6 +39,12 @@ class InvalidCredentials(exceptions.APIException):
     default_code = "invalid_credentials"
 
 
+class PrivatePlayerDataConflict(exceptions.APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_code = "private_player_data_conflict"
+    default_detail = "Multiple private player records require review."
+
+
 class ComparisonQuotaExceeded(exceptions.APIException):
     status_code = status.HTTP_409_CONFLICT
     default_code = "comparison_quota_exceeded"
@@ -110,7 +116,14 @@ def exception_handler(exc, context):
     elif isinstance(exc, InvalidCredentials):
         code, message = "invalid_credentials", "Unable to sign in with those credentials."
     elif isinstance(
-        exc, (InvalidResetToken, ResetUnavailable, FavoritesQuotaExceeded, ComparisonQuotaExceeded)
+        exc,
+        (
+            InvalidResetToken,
+            ResetUnavailable,
+            FavoritesQuotaExceeded,
+            ComparisonQuotaExceeded,
+            PrivatePlayerDataConflict,
+        ),
     ):
         code, message = exc.default_code, str(exc.default_detail)
     elif isinstance(exc, exceptions.ParseError):

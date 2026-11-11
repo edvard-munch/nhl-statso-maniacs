@@ -10,7 +10,8 @@ The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api
 and the private [Favorites list/membership API](favorites-api.md) and
 [comparison API](comparison-api.md), plus the
 [aggregated Favorites gamelog](favorites-gamelog-api.md), are implemented.
-Private notes/positions and account/search endpoints remain future work.
+[Private notes and position overrides](private-player-data-api.md) are implemented.
+Account/search endpoints remain future work.
 Existing pages and legacy AJAX responses retain their contracts until a tested
 replacement is switched in. The [architecture plan](frontend-architecture.md)
 records the order.
@@ -240,7 +241,8 @@ The private [Favorites list and membership API](favorites-api.md) is implemented
 The private [comparison API](comparison-api.md) adds season/career reads, explicit
 membership and typed resets. The
 [aggregated Favorites gamelog](favorites-gamelog-api.md) is also implemented.
-Private notes/positions and account editing remain pending. Statistics
+[Private notes and position overrides](private-player-data-api.md) are implemented;
+account editing remains pending. Statistics
 resources use their explicit public read-only contracts above.
 The existing HTML login and JSON login share Django sessions during this transition.
 Future uploads must deliberately enable their multipart parser rather than

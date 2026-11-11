@@ -87,7 +87,7 @@ again, including selections added since the previous reset.
 ## Remaining work
 
 The [aggregated Favorites gamelog](favorites-gamelog-api.md) is implemented.
-Remaining private notes/positions, account settings/uploads and search APIs
-precede Vue/Vite scaffolding. No migrations,
+[Private notes/positions](private-player-data-api.md) are also implemented.
+Account settings/uploads and search APIs precede Vue/Vite scaffolding. No migrations,
 new dependencies, application DB changes or frontend implementation are required
 for this API slice.

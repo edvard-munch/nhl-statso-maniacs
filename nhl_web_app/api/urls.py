@@ -6,6 +6,7 @@ from players.api.comparison_views import (
     ComparisonMembershipView,
     ComparisonGroupView,
 )
+from players.api.owned_player_data import PrivateNoteView, PrivatePositionsView
 from players.api.favorite_gamelogs import FavoriteGamelogView
 from players.api.favorite_views import FavoritesView, FavoriteMembershipView
 from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, PlayerGamelogView
@@ -38,6 +39,16 @@ urlpatterns = [
     path("auth/login/", LoginView.as_view(), name="auth-login"),
     path("auth/logout/", LogoutView.as_view(), name="auth-logout"),
     path("schema/", SchemaView.as_view(), name="schema"),
+    path(
+        "me/players/<str:player_type>/<int:nhl_id>/note/",
+        PrivateNoteView.as_view(),
+        name="player-note",
+    ),
+    path(
+        "me/players/<str:player_type>/<int:nhl_id>/positions/",
+        PrivatePositionsView.as_view(),
+        name="player-positions",
+    ),
     path("me/comparison/", ComparisonView.as_view(), name="comparison"),
     path(
         "me/comparison/<str:player_type>/", ComparisonGroupView.as_view(), name="comparison-group"
