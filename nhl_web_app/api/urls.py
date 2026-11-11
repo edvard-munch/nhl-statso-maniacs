@@ -12,7 +12,13 @@ from players.api.favorite_views import FavoritesView, FavoriteMembershipView
 from players.api.profile_views import PlayerProfileView, PlayerSeasonsView, PlayerGamelogView
 from players.api.search_views import SearchView, SearchSuggestionsView
 from players.api.team_views import TeamDetailView, TeamPlayersView, TeamsView
-from players.api.views import GameDetailView, ScoreboardView, SeasonsView, PlayersView
+from players.api.views import (
+    GameDetailView,
+    ScoreboardView,
+    SeasonsView,
+    PlayersView,
+    PlayersFiltersView,
+)
 
 from .account_image import AccountImageView
 from .account import AccountView
@@ -88,6 +94,7 @@ urlpatterns = [
         PlayerGamelogView.as_view(),
         name="player-gamelog",
     ),
+    path("players/filters/", PlayersFiltersView.as_view(), name="players-filters"),
     path("players/", PlayersView.as_view(), name="players"),
     path("seasons/", SeasonsView.as_view(), name="seasons"),
     path("games/", ScoreboardView.as_view(), name="games"),

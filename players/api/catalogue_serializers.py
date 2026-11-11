@@ -305,3 +305,44 @@ class PlayersResponseSerializer(serializers.Serializer):
     previous = serializers.URLField(allow_null=True)
     results = CataloguePlayerSerializer(many=True)
     meta = CatalogueMetaSerializer()
+
+
+class PlayersFiltersQuerySerializer(PlayersQuerySerializer):
+    def get_fields(self):
+        fields = super().get_fields()
+        for name in ("page", "page_size", "ordering"):
+            fields.pop(name)
+        return fields
+
+
+class FilterOptionSerializer(serializers.Serializer):
+    code = serializers.CharField()
+    label = serializers.CharField()
+
+
+class NumericRangeSerializer(serializers.Serializer):
+    min = serializers.FloatField(allow_null=True)
+    max = serializers.FloatField(allow_null=True)
+
+
+class PlayersFilterOptionsSerializer(serializers.Serializer):
+    teams = CatalogueTeamSerializer(many=True)
+    nations = FilterOptionSerializer(many=True)
+    positions = FilterOptionSerializer(many=True)
+
+
+class PlayersFiltersMetaSerializer(serializers.Serializer):
+    season_id = serializers.CharField(allow_null=True)
+    player_type = serializers.ChoiceField(choices=[SKATER, GOALIE])
+    mode = serializers.ChoiceField(choices=[TOTALS, AVERAGES])
+
+
+class PlayersFiltersResponseSerializer(serializers.Serializer):
+    meta = PlayersFiltersMetaSerializer()
+    initial_count = serializers.IntegerField()
+    options_count = serializers.IntegerField()
+    filtered_count = serializers.IntegerField()
+    options = PlayersFilterOptionsSerializer()
+    initial_ranges = serializers.DictField(child=NumericRangeSerializer())
+    filtered_ranges = serializers.DictField(child=NumericRangeSerializer())
+    height_values_cm = serializers.ListField(child=serializers.FloatField())

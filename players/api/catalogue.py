@@ -140,7 +140,7 @@ def resolve_season(query):
     return seasons[0] if seasons else None
 
 
-def catalogue(query, *, team=None):
+def catalogue_population(query, *, team=None):
     season = resolve_season(query)
     player_type, mode = query["player_type"], query["mode"]
     ordering = query.get("ordering", DEFAULT_ORDERING[player_type])
@@ -189,9 +189,8 @@ def catalogue(query, *, team=None):
             if any(value is None for value in projected.values())
             else "complete",
         )
-        if matches(row, query):
-            rows.append(row)
-    return ordered_rows(rows, ordering), meta
+        rows.append(row)
+    return rows, meta
 
 
 def ordered_rows(rows, ordering):
@@ -285,3 +284,8 @@ def participating_teams(rows, season, teams, *, team=None):
         }
         for abbr in sorted(participation)
     ]
+
+
+def catalogue(query, *, team=None):
+    rows, meta = catalogue_population(query, team=team)
+    return ordered_rows([row for row in rows if matches(row, query)], meta["ordering"]), meta

@@ -19,7 +19,7 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-implement season-scoped Players filter metadata, then the remaining parity gaps
+implement saved game-date navigation, then the remaining parity gaps
 from the [API completeness review](api-completeness-review.md); private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md),
@@ -1223,3 +1223,18 @@ review did not rerun the full suite or change the recorded coverage baseline. It
 did not access application data, NHL, email, workers or hosted deployment/CI.
 Next implement the filter-metadata slice; keep Vue/Vite scaffolding and client/CI
 generation in their later focused commits. No fixes or removals are included here.
+
+
+## Season-scoped Players filter metadata
+
+Implemented `/api/v1/players/filters/` using the shared catalogue population and
+season reader. Structured options describe the complete population after
+noncategorical filters; initial ranges ignore filters and filtered ranges apply
+all filters. Zero and unknown values remain distinct. No pages, private data,
+HTML or NHL calls are involved. See the [contract](players-api.md#complete-filter-metadata).
+G1 from the completeness review is resolved for public Players; private list
+facets still require explicit private composition. Next: saved game-date navigation (G2).
+
+Validation: 232 focused tests; 2048 full offline tests, 48 deselected, 94.02%
+combined players coverage. Schema, Django system/migration checks, lint/formatting
+and dependency export pass; no migrations or dependencies changed.

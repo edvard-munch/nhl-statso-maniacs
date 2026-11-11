@@ -11,9 +11,12 @@ from rest_framework.views import APIView
 from nhl_web_app.api.pagination import ApiPagination
 from nhl_web_app.api.serializers import ErrorResponseSerializer
 from players.seasons import available_seasons, season_label
+from .catalogue_filters import catalogue_filters
 from .catalogue import catalogue
 from .catalogue_serializers import (
     CataloguePlayerSerializer,
+    PlayersFiltersQuerySerializer,
+    PlayersFiltersResponseSerializer,
     PlayersQuerySerializer,
     PlayersResponseSerializer,
 )
@@ -147,4 +150,30 @@ class PlayersView(APIView):
         return paginator.get_paginated_response(
             CataloguePlayerSerializer(page, many=True, context={"mode": meta["mode"]}).data,
             meta=meta,
+        )
+
+
+@method_decorator(never_cache, name="dispatch")
+class PlayersFiltersView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    @extend_schema(
+        operation_id="players_filters_retrieve",
+        tags=["players"],
+        parameters=[PlayersFiltersQuerySerializer],
+        responses={
+            status.HTTP_200_OK: PlayersFiltersResponseSerializer,
+            status.HTTP_400_BAD_REQUEST: ErrorResponseSerializer,
+            status.HTTP_405_METHOD_NOT_ALLOWED: ErrorResponseSerializer,
+            status.HTTP_406_NOT_ACCEPTABLE: ErrorResponseSerializer,
+            status.HTTP_500_INTERNAL_SERVER_ERROR: ErrorResponseSerializer,
+        },
+        description="Complete selected-season Players filter metadata. Same filters as Players, excluding pagination and ordering. Initial ranges ignore all filters; options apply all noncategorical filters but ignore team/nation/position selections together; filtered ranges and heights apply every filter. Null bounds mean no known values; zero is retained. Numeric keys and units follow the selected type/mode. Public positive-GP membership only, current biography, no writes or upstream calls.",
+    )
+    def get(self, request):
+        query = PlayersFiltersQuerySerializer(data=request.query_params)
+        query.is_valid(raise_exception=True)
+        return Response(
+            PlayersFiltersResponseSerializer(catalogue_filters(query.validated_data)).data
         )

@@ -14,7 +14,8 @@ now provides versioned routing and an OpenAPI schema. The
 `/api/v1/games/?date=YYYY-MM-DD`, with [saved game details](docs/game-detail-api.md)
 at `/api/v1/games/{nhl_id}/`. Loaded seasons are available at `/api/v1/seasons/`; see the
 [seasons contract](docs/seasons-api.md). The selected-season Players catalogue is
-available at `/api/v1/players/`; see its [contract](docs/players-api.md).
+available at `/api/v1/players/`, with complete filter metadata at
+`/api/v1/players/filters/`; see its [contract](docs/players-api.md).
 [Team metadata and season contributions](docs/teams-api.md) are available under
 `/api/v1/teams/`. Typed [player profiles, season histories and gamelogs](docs/player-profile-api.md)
 are available under `/api/v1/players/{player_type}/{nhl_id}/`.
@@ -35,7 +36,7 @@ DELETE at `/api/v1/me/image/`.
 [Public search and autocomplete](docs/search-api.md) are available at
 `/api/v1/search/` and `/api/v1/search/suggestions/`. Review remaining workflow
 contracts before frontend scaffolding; the [API completeness review](docs/api-completeness-review.md)
-records four remaining parity gaps and the proposed fix order.
+records the parity gaps and fix order; Players filter metadata is now implemented.
 Documentation is maintained as Markdown files in `docs/`; no Sphinx build is
 required. The obsolete Sphinx setup and its unused dependencies have been retired.
 

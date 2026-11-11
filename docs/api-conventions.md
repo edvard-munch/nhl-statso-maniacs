@@ -3,7 +3,7 @@
 Recorded: 2026-11-09. These are **target contracts for new `/api/v1/` endpoints**.
 The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api.md),
 [game detail](game-detail-api.md), [seasons](seasons-api.md),
-[Players catalogue](players-api.md), [teams](teams-api.md),
+[Players catalogue and filter metadata](players-api.md), [teams](teams-api.md),
 [player profiles/history/gamelogs](player-profile-api.md),
 [session/CSRF/login/logout](session-auth-api.md),
 [registration](registration-api.md), [password recovery](password-recovery-api.md)

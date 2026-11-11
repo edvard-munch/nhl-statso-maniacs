@@ -67,9 +67,13 @@ cells or templates are **not** suitable JSON fallbacks for missing contracts.
 
 ## Contract gaps and focused fixes
 
-### G1 — Players filter metadata is missing
+### G1 — Players filter metadata (implemented after review)
 
-**Priority: before Players-table cutover; recommended next API commit.**
+**Resolved for public Players:** `/api/v1/players/filters/` now supplies complete
+structured options and initial/filtered numeric ranges. See the
+[implemented contract](players-api.md#complete-filter-metadata). Private scoped
+facets still need explicit composition. The observations below describe the
+review snapshot before this implementation.
 
 Legacy `player_table.build_table()` publishes `all_teams`, `all_nations`,
 `all_positions`, initial/current age/weight/height ranges and available height
@@ -256,7 +260,7 @@ Chromium flows; frontend lint/types/component tests/build/drift checks are futur
 
 Recommended focused commits, following the user's API-first preference:
 
-1. **Season-scoped Players filter metadata** (G1).
+1. **Season-scoped Players filter metadata** (G1) — implemented for public Players.
 2. **Saved game-date discovery/navigation** (G2).
 3. **Explicit saved game-state evidence** (G3).
 4. **Aggregated Favorites gamelog identity ordering** (G4).

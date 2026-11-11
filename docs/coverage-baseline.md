@@ -1617,3 +1617,19 @@ Schema validation, Django system/migration checks, lint/formatting, dependency
 export and local documentation-link checks pass. Chromium was not rerun for this
 backend-only slice; existing rendered search/navigation regressions run offline.
 No migrations, indexes, dependencies or frontend changes are introduced.
+
+## Players filter metadata — 2026-11-11
+
+The full offline gate passes **2048 tests**, 48 deselected, at **94.02% combined
+players line/branch coverage**. Measurement scope and the 35% gate are unchanged.
+Twenty-seven new cases cover complete season populations beyond a page, typed
+and mode-specific ranges, checkbox/noncategorical filter scopes, empty seasons,
+zero versus unknown values, traded/historical teams, missing registry metadata,
+label fallbacks, strict query validation and read-only constant query counts.
+The focused filter/catalogue/team/legacy/schema run passes 232 tests.
+
+OpenAPI export validates without warnings (32 paths, 40 operations). Django system
+and migration checks, lint/formatting, dependency export, local documentation file
+links and diff whitespace checks pass. No migrations, dependencies or frontend
+changes are introduced. Chromium was not rerun for this backend API slice;
+existing rendered catalogue regressions remain part of the offline gate.

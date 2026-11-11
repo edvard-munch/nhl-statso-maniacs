@@ -121,3 +121,46 @@ supported; unsupported methods return 405, HTML negotiation 406. OpenAPI describ
 filters, errors and discriminated statistics variants. Tests use synthetic
 PostgreSQL fixtures and mocked NHL requests, extending the existing season fixtures.
 The existing HTML/AJAX Players tables remain unchanged.
+
+## Complete filter metadata
+
+`GET /api/v1/players/filters/` returns the full selected-season filter population,
+independent of catalogue pages. It accepts the same validated filters, type and
+mode as `/players/`, but rejects `page`, `page_size` and `ordering`. Default season
+resolution, positive known GP membership, current biography, partial statistics,
+team participation and missing registry fallbacks are shared with the catalogue.
+No private state, upstream calls or database writes are involved.
+
+The response contains:
+
+- `meta`: resolved `season_id` (nullable), `player_type`, `mode`.
+- `initial_count` and `initial_ranges`: before any filters, after season/type/mode
+  selection. These establish the slider domains.
+- `options_count` and `options`: after all filters **except** `team`, `nation` and
+  `position`. All three categorical selections are ignored together so selecting
+  one checkbox does not hide alternatives. Search, rookie, birth date and numeric
+  filters still affect options. Teams use the catalogue identity DTO; nations and
+  positions are `{code, label}`. Values are sorted by code, empty codes omitted,
+  empty labels fall back to the code. Conflicting biography labels use the lowest
+  NHL identity's label, deterministically.
+- `filtered_count` and `filtered_ranges`: after every filter, matching the
+  catalogue's unpaginated count. Each range is `{min, max}`. Numeric keys cover all
+  allowlisted fields for the selected player type, including biography, GP and
+  mode-specific statistics; unknown values are excluded and known zero retained.
+  No known values produces two null bounds. TOI is seconds, save percentage a
+  fraction, height centimetres and weight explicitly kg/lb. Counts are numeric
+  range bounds, not formatted labels.
+- `height_values_cm`: sorted distinct known heights after every filter, for a
+  discrete height control. Empty populations return `[]`.
+
+For example `/api/v1/players/filters/?season_id=20262027&nation=CAN` retains
+all nations in the options population, while the filtered ranges describe only
+Canadian players. Changing `mode=averages` changes the statistic ranges as well.
+The resource is not paginated; its bounded option sets and range keys describe the
+complete population. An explicit season uses two read queries regardless of row
+count; default season discovery adds its usual queries. Player rows are projected
+in memory just as for the catalogue, so work grows with the saved player population.
+
+These are **public Players** facets. Favorites retain missing/zero-season members;
+private filters must use a private scoped contract or an explicitly complete
+private collection, rather than silently using these public membership rules.

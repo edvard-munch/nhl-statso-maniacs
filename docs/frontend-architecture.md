@@ -40,7 +40,8 @@ and [comparison API](comparison-api.md), plus the
 and [search/autocomplete](search-api.md) are implemented. Review workflow coverage
 and outstanding provenance decisions before introducing the Vue/Vite scaffold.
 The [2026-11-11 completeness review](api-completeness-review.md) found four
-remaining parity contracts: Players filter metadata, saved game-date navigation,
+remaining parity contracts. Players filter metadata is now implemented via
+`/api/v1/players/filters/`; next are saved game-date navigation,
 explicit live-state evidence and Favorites gamelog player-identity ordering. Close
 these focused API slices before the scaffold under the API-first preference.
 Projection/admin decisions and auth deployment hardening precede their affected
