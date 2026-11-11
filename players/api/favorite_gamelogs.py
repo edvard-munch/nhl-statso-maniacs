@@ -9,19 +9,30 @@ from players.season_stats import SKATER, GOALIE
 from .catalogue_serializers import MAX_SEARCH_LENGTH
 from .favorites import FAVORITE_RELATIONS, quota
 from .game_detail import PLAYER_FIELDS
-from .player_logs import favorite_gamelogs
+from .player_logs import FAVORITE_PLAYER_ORDER_FIELDS, favorite_gamelogs
 from .profile_serializers import GamelogQuerySerializer, GamelogEntrySerializer
 from .favorite_serializers import FavoriteQuotaSerializer
 from .saved_views import PrivateSavedListView, SAVED_LIST_ERRORS
 
 
 class FavoriteGamelogQuerySerializer(GamelogQuerySerializer):
+    extra_ordering_fields = frozenset(FAVORITE_PLAYER_ORDER_FIELDS)
+
     player_type = serializers.ChoiceField(choices=[SKATER, GOALIE], default=SKATER)
     search = serializers.CharField(
         required=False,
         max_length=MAX_SEARCH_LENGTH,
         help_text="Literal case-insensitive favorite player name substring.",
     )
+
+    def get_fields(self):
+        fields = super().get_fields()
+        fields["ordering"].help_text += (
+            " Favorites additionally allow player_name, player_last_name and player_nhl_id."
+            " Names use Unicode casefold; empty/whitespace-only names sort last in either direction."
+            " Identity sorting is global before pagination; player_type selects one group."
+        )
+        return fields
 
     def validate(self, attrs):
         self.context["player_type"] = attrs["player_type"]
@@ -64,7 +75,7 @@ class FavoriteGamelogView(PrivateSavedListView):
         tags=["favorites"],
         parameters=[FavoriteGamelogQuerySerializer],
         responses={status.HTTP_200_OK: FavoriteGamelogResponseSerializer, **SAVED_LIST_ERRORS},
-        description="Current account's aggregated typed Favorites gamelog, all saved seasons by default. Each row includes explicit player identity. Optional canonical season filters verified regular-season game IDs; date/team/opponent/statistic filters and named ordering precede pagination. Reuses public gamelog/game-detail verification; orphan or ambiguous rows have explicit null statistics, no guesses or snapshot fallback. Literal search filters favorite names. Quotas count both unfiltered favorite groups. Owner-locked reads and serialization, bounded roster queries, no domain writes or NHL calls.",
+        description="Current account's aggregated typed Favorites gamelog, all saved seasons by default. Each row includes explicit player identity. Optional canonical season filters verified regular-season game IDs; date/team/opponent/statistic filters and named ordering precede pagination. Reuses public gamelog/game-detail verification; orphan or ambiguous rows have explicit null statistics, no guesses or snapshot fallback. Literal search filters favorite names. Favorites-only player_name/player_last_name/player_nhl_id ordering is global before pagination; names use Unicode casefold and blank names sort last. Quotas count both unfiltered favorite groups. Owner-locked reads and serialization, bounded roster queries, no domain writes or NHL calls.",
     )
     def get(self, request):
         query = FavoriteGamelogQuerySerializer(data=request.query_params)

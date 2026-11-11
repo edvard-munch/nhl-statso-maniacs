@@ -28,6 +28,11 @@ GOALIE_LOG_NUMBERS = frozenset(
 )
 ALL_LOG_NUMBERS = SKATER_LOG_NUMBERS | GOALIE_LOG_NUMBERS
 LOG_IDENTITIES = frozenset({"date", "game_id", "team_abbr", "opponent_abbr"})
+FAVORITE_PLAYER_ORDER_FIELDS = {
+    "player_name": "name",
+    "player_last_name": "last_name",
+    "player_nhl_id": "nhl_id",
+}
 
 
 def numeric_fields(player_type):
@@ -189,6 +194,7 @@ def order_rows(rows, query):
             row["date"] or date.min,
             row["game"]["nhl_id"] if row["game"] else 0,
             row.get("player", {}).get("last_name", "").casefold(),
+            row.get("player", {}).get("player_type", ""),
             row.get("player", {}).get("nhl_id", 0),
         )
     )
@@ -210,6 +216,11 @@ def matches(value, suffix, bound):
 
 
 def ordered_value(row, field):
+    if field in FAVORITE_PLAYER_ORDER_FIELDS:
+        value = row.get("player", {}).get(FAVORITE_PLAYER_ORDER_FIELDS[field])
+        if isinstance(value, str):
+            return value.casefold() if value.strip() else None
+        return value
     if field == "date":
         return row["date"]
     if field == "game_id":

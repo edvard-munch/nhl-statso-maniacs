@@ -11,7 +11,7 @@ The [foundation below](#implemented-api-foundation), [scoreboard](scoreboard-api
 [registration](registration-api.md), [password recovery](password-recovery-api.md)
 and the private [Favorites list/membership API](favorites-api.md) and
 [comparison API](comparison-api.md), plus the
-[aggregated Favorites gamelog](favorites-gamelog-api.md), are implemented.
+[aggregated Favorites gamelog](favorites-gamelog-api.md) with global player-identity ordering, are implemented.
 [Private notes and position overrides](private-player-data-api.md) are implemented.
 [Account settings GET/PATCH](account-api.md) and the
 [multipart profile image API](account-image-api.md) are implemented. [Search/autocomplete](search-api.md) are also implemented.

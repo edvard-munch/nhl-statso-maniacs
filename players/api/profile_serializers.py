@@ -61,6 +61,8 @@ class HistoryQuerySerializer(ProfileQuerySerializer, PaginationQuerySerializer):
 
 
 class GamelogQuerySerializer(PaginationQuerySerializer):
+    extra_ordering_fields = frozenset()
+
     season_id = SeasonIdField(
         required=False,
         help_text="Optional regular-season filter from verified saved game IDs. Omission returns all saved dates, not the latest SBS season.",
@@ -91,10 +93,13 @@ class GamelogQuerySerializer(PaginationQuerySerializer):
 
     def validate(self, attrs):
         allowed = numeric_fields(self.context.get("player_type"))
+        allowed_ordering = (
+            ordering_fields(self.context.get("player_type")) | self.extra_ordering_fields
+        )
         fields = [term.removeprefix("-") for term in attrs["ordering"].split(",")]
-        if any(
-            field not in ordering_fields(self.context.get("player_type")) for field in fields
-        ) or len(set(fields)) != len(fields):
+        if any(field not in allowed_ordering for field in fields) or len(set(fields)) != len(
+            fields
+        ):
             raise serializers.ValidationError(
                 {"ordering": ["Use distinct allowlisted fields for this player type."]}
             )

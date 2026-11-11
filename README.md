@@ -31,7 +31,8 @@ are available under `/api/v1/me/favorites/`, including explicit PUT/DELETE membe
 changes. Private [comparison APIs](docs/comparison-api.md) support season/career
 statistics, explicit membership and typed resets under `/api/v1/me/comparison/`.
 The private [aggregated Favorites gamelog](docs/favorites-gamelog-api.md) is available
-at `/api/v1/me/favorites/gamelog/`. [Private notes and position overrides](docs/private-player-data-api.md)
+at `/api/v1/me/favorites/gamelog/`, including global player-identity ordering.
+[Private notes and position overrides](docs/private-player-data-api.md)
 are available under `/api/v1/me/players/{player_type}/{nhl_id}/`.
 [Account settings](docs/account-api.md) support private GET/PATCH at `/api/v1/me/`.
 [Profile images](docs/account-image-api.md) use dedicated multipart PUT and default-reset

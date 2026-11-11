@@ -19,7 +19,7 @@ the JSON API first, then scaffold frontend/client tooling and migrate the UI.
 Loaded-season discovery, the Players catalogue and team metadata/contributions are
 implemented, along with public profiles, season histories and gamelogs. JSON
 session/CSRF/login/logout, registration and password recovery are implemented. Next
-implement Favorites gamelog player-identity ordering, then review remaining parity decisions
+review remaining pre-cutover decisions and reproducible schema/client generation
 from the [API completeness review](api-completeness-review.md); private
 [Favorites list/membership](favorites-api.md), [comparison APIs](comparison-api.md),
 the [aggregated Favorites gamelog](favorites-gamelog-api.md),
@@ -1268,3 +1268,20 @@ Validation: 290 focused tests; 2121 full offline tests, 48 deselected, 94.10%
 combined players coverage. Warning-free schema, Django system/migration checks,
 lint/formatting, dependency export and documentation links pass. No migrations,
 loader changes or dependencies are introduced.
+
+
+## Aggregated Favorites gamelog player-identity ordering
+
+Implemented Favorites-only `player_name`, `player_last_name` and `player_nhl_id`
+ordering before pagination. Names use Unicode casefold, blank names sort last and
+NHL IDs sort numerically. Existing default date ordering, typed owner selection,
+unknown game/statistic evidence, quota and query bounds remain intact. Public
+single-player gamelog ordering is unchanged. See the [contract](favorites-gamelog-api.md#player-identity-ordering).
+G4 is resolved. G1–G4 now have implemented API contracts. Next review the remaining
+projection/admin and auth-deployment decisions for their affected cutovers and
+establish reproducible schema/client tooling before Vue/Vite page migration.
+
+Validation: 195 focused tests; 2157 full offline tests, 48 deselected, 94.11%
+combined players coverage. Schema, Django system/migration checks, lint/formatting,
+dependency export and documentation links pass. Existing 14/12 query bounds remain
+unchanged for skater/goalie Favorites gamelogs. No migrations or dependencies changed.

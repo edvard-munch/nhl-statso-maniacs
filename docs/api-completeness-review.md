@@ -150,9 +150,13 @@ malformed result/side data and no writes/upstream requests. Start times, period 
 clock are potential enhancements; this review did not find them in the existing
 public page UI and does not classify them as missing parity requirements.
 
-### G4 — Favorites gamelog lacks player-name/identity ordering
+### G4 — Favorites gamelog player-identity ordering (implemented after review)
 
-**Priority: before Favorites gamelog cutover.**
+**Resolved:** the aggregated Favorites gamelog now accepts `player_name`,
+`player_last_name` and `player_nhl_id` ordering, globally before pagination. See the
+[implemented contract](favorites-gamelog-api.md#player-identity-ordering). Public
+single-player ordering remains unchanged. The observations below describe the
+original review snapshot.
 
 The legacy aggregated table includes a player-name column and supports sorting it.
 The new [Favorite gamelog](favorites-gamelog-api.md) includes identity and a name
@@ -269,7 +273,7 @@ Recommended focused commits, following the user's API-first preference:
 1. **Season-scoped Players filter metadata** (G1) — implemented for public Players.
 2. **Saved game-date discovery/navigation** (G2) — implemented.
 3. **Explicit saved game-state evidence** (G3) — implemented for legacy sources.
-4. **Aggregated Favorites gamelog identity ordering** (G4).
+4. **Aggregated Favorites gamelog identity ordering** (G4) — implemented.
 5. Record projection/admin decisions before their affected cutovers; review the
    resulting schema delta and establish reproducible schema/client generation.
 6. Introduce Vue/Vite/TypeScript with pinned compatible tooling, same-origin dev

@@ -322,9 +322,9 @@ def test_read_is_bounded_read_only_and_fetches_no_season_or_career_snapshots(
         return execute(sql, params, many, context)
 
     with connection.execute_wrapper(queries), django_assert_num_queries(14):
-        assert listing(client).status_code == 200
+        assert listing(client, ordering="player_name").status_code == 200
     with django_assert_num_queries(12):
-        assert listing(client, player_type="goalie").status_code == 200
+        assert listing(client, player_type="goalie", ordering="player_nhl_id").status_code == 200
     assert before == {
         model: list(model.objects.order_by("pk").values()) for model in (Skater, Goalie, Game, Side)
     }

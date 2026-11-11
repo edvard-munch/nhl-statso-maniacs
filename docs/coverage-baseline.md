@@ -1666,3 +1666,20 @@ lint/formatting, dependency export, documentation links and diff checks pass.
 No models, migrations, dependencies, loaders or frontend behavior changed. Chromium
 was not rerun for this backend API slice; legacy rendered regressions remain in
 the offline gate. Legacy state observation time remains explicitly unknown.
+
+## Favorites gamelog player-identity ordering — 2026-11-11
+
+The full offline gate passes **2157 tests**, 48 deselected, at **94.11% combined
+players line/branch coverage**. Scope and the 35% gate are unchanged. Thirty-six
+new cases cover all three identity keys in both directions, global multi-page
+ordering, Unicode casefold equivalence, blank names, compound keys and stable
+ties, numeric NHL IDs versus database IDs, typed cross-model ID collisions,
+owner isolation, unknown game/statistic evidence, existing filters, invalid
+ordering paths/duplicates/types, public-query isolation and schema descriptions.
+The focused Favorites/public-profile/schema run passes 195 tests. Existing bounded
+read tests now exercise the new keys and retain 14 skater / 12 goalie queries.
+
+Schema validation, Django system/migration checks, lint/formatting, dependency
+export, local documentation links and diff checks pass. No models, migrations,
+dependencies, loaders or frontend behavior changed. Chromium was not rerun for
+this backend API slice; legacy rendered regressions remain in the offline gate.
