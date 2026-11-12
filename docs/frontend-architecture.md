@@ -207,3 +207,14 @@ pagination, conservative saved-state labels and cancellable loading/error recove
 Desktop/mobile browser regressions cover navigation and failure recovery. Existing
 Django routes remain available. Game detail/card navigation is the next slice;
 automatic refresh and deployment cutover remain separate work.
+
+
+## Implemented game-detail pilot
+
+[Vue game details](vue-game-detail.md) now read saved summaries and all six roster
+groups at `/games/{nhl_id}`. Scoreboard links preserve date/page context. TOI,
+percentages, null/zero and availability semantics come from typed game fields,
+without profile/season fallbacks. Responsive tables scroll inside the page and
+retain keyboard access. Browser/component checks cover navigation, units, missing
+records and retry/cancellation. Automatic saved-data refresh is the next focused
+slice; legacy route cutover remains separate.

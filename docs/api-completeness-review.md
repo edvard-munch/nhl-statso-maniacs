@@ -9,7 +9,7 @@ This is a workflow/contract review, not an implementation or deployment change.
 work. Full replacement-page parity is not yet complete.** The original review
 identified four contract gaps; all four are now closed, and the Vue/Vite shell is
 implemented. The [scoreboard pilot](vue-scoreboard.md) is now implemented; game
-detail is next. Existing pages must not be switched off just because a matching API route family exists.
+detail is [now implemented](vue-game-detail.md). Existing pages must not be switched off just because a matching API route family exists.
 
 The initial review's OpenAPI 3.0.3 export validated with `--validate --fail-on-warn`:
 **31 documented paths, 39 operations** (21 GET, 6 POST, 5 PUT, 1 PATCH, 6 DELETE).
@@ -284,7 +284,8 @@ Recommended focused commits, following the user's API-first preference:
    implemented.
 6. Vue/Vite/TypeScript scaffolding, same-origin dev proxy and frontend CI are
    implemented. The [scoreboard pilot](vue-scoreboard.md) now has desktop/mobile
-   checks; implement game detail next, keeping workflows in focused commits.
+   checks, and [game detail](vue-game-detail.md) is implemented. Automatic refresh/
+   freshness interactions follow, keeping workflows in focused commits.
 
 Do not select a generator merely because it emits TypeScript. Verify enum/null and
 polymorphic-statistics handling, session cookies/CSRF, typed 403 errors, multipart

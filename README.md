@@ -10,7 +10,7 @@ The proposed [frontend architecture and migration plan](docs/frontend-architectu
 and [API conventions](docs/api-conventions.md) describe the migration.
 The [Vue/Vite frontend](frontend/README.md) has a responsive shell, routing,
 a same-origin development proxy and a [saved scoreboard](docs/vue-scoreboard.md)
-at `/games`; game details follow next. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
+at `/games`, plus [game details](docs/vue-game-detail.md) with saved roster statistics. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. A
 [reviewed offline schema workflow](docs/openapi-workflow.md) supplies
 `make schema` / `make schema-check` and the checked `api/openapi.json` contract.

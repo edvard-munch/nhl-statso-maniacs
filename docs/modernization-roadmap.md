@@ -1389,3 +1389,35 @@ coverage scope changed; the full Python baseline was not remeasured for this sli
 Next implement the typed game-detail view and scoreboard card navigation. Automatic
 refresh and production routing/cutover remain separate commits. The prior scaffold
 commit (`589669c`) completed with a clean tree before any scoreboard files changed.
+
+## Vue saved game details
+
+Implemented [game details](vue-game-detail.md) at `/games/{nhl_id}` through the
+existing generated SDK, with scoreboard card links and validated date/page return
+context. Context queries never reach the query-free game API. Deep-link reload,
+history and returning to the same scoreboard selection are supported.
+
+The shared score/state summary preserves zero, unknown/conflicting evidence and
+storage freshness limits. All six roster groups display the API's ordered, typed
+identities and availability. Complete/partial/missing/unverified rows retain their
+meaning; no season statistics or profile positions fill missing game values.
+Skater/goalie columns include all declared counts, MM:SS TOI (including zero and
+minutes above 59), and one-decimal goalie percentages from fractions. Unknown
+values stay unavailable. Undated games do not gain a fabricated schedule date.
+
+Captioned roster tables scroll inside focusable regions with sticky player names.
+Malformed IDs/404s differ from retryable failures. Changing games clears old rows,
+abort signals cancel obsolete reads, and late responses/unmounted views cannot
+replace the current game. Generic proxy-error handling avoids displaying HTML.
+
+Validation: 80 frontend tests and 20 pinned Chromium desktop/mobile cases pass;
+Vue/TypeScript, lint/format, production build, schema/client drift, requirements
+export and Python static checks pass. Desktop/mobile screenshots were inspected.
+Tests use synthetic fixtures and intercepted requests, with no application database
+or NHL access. No backend API/schema, dependencies, migrations or Python coverage
+scope changed; the existing full Python baseline was not remeasured for this slice.
+The scoreboard commit (`49702d9`) completed with a clean tree before any edits.
+
+Next implement automatic refresh/freshness interactions for the scoreboard/game
+pilot, then continue season/player workflows. Production route cutover and legacy
+HTML retirement remain separate work.

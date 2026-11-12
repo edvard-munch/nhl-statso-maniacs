@@ -58,7 +58,7 @@ API responses at desktop/mobile sizes, including back/reload, Pacific date label
 empty/error recovery and pagination. They use no application database or live NHL
 requests. Existing frontend CI includes both suites and the production build.
 
-Next add the game-detail view and card navigation using the existing typed API.
-Automatic refresh/freshness interactions and production route cutover remain
-separate changes. No backend/schema, dependency or coverage-scope change is needed
+[Game details and card navigation](vue-game-detail.md) are now implemented,
+including exact date/page return context. Automatic refresh/freshness interactions
+and production route cutover remain separate changes. No backend/schema, dependency or coverage-scope change is needed
 for this scoreboard slice.

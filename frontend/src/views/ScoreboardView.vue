@@ -42,6 +42,16 @@ function chooseDate(date: string) {
   }
   void router.push({ name: 'games', query: { date } });
 }
+function gameDetailsLink(nhlId: number) {
+  return {
+    name: 'game-detail',
+    params: { nhlId },
+    query: {
+      date: selectedDate.value,
+      ...(page.value > FIRST_PAGE ? { page: String(page.value) } : {}),
+    },
+  };
+}
 function choosePage(value: number) {
   void router.push({ name: 'games', query: { date: selectedDate.value, page: String(value) } });
 }
@@ -205,7 +215,12 @@ onBeforeUnmount(() => controller?.abort());
             {{ page }}.
           </p>
           <div class="scoreboard-grid">
-            <ScoreboardCard v-for="game in scoreboard.results" :key="game.nhl_id" :game="game" />
+            <ScoreboardCard
+              v-for="game in scoreboard.results"
+              :key="game.nhl_id"
+              :game="game"
+              :details-to="gameDetailsLink(game.nhl_id)"
+            />
           </div>
           <nav
             v-if="scoreboard.previous || scoreboard.next"

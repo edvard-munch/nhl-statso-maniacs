@@ -3,7 +3,9 @@
 Vue 3, Vue Router, Vite and TypeScript live alongside the uv-managed Django
 backend. The responsive shell, home/missing-page routes and generated client now
 include a [saved scoreboard](../docs/vue-scoreboard.md) at `/games`, with exact
-date selection, navigation, pagination and error recovery. Game details are next.
+date selection, navigation, pagination and error recovery.
+[Game details](../docs/vue-game-detail.md) at `/games/{nhl_id}` show saved rosters
+and game statistics with scrollable mobile tables.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally
@@ -71,8 +73,9 @@ handwritten client files without changing their behavior.
 Vitest covers scoreboard date/state/error/cancellation behavior, shell
 navigation/focus/title, API transport/generation and the real
 Vite proxy using a synthetic loopback backend. Chromium tests exercise the actual
-built app at desktop and mobile sizes, scoreboard date/page navigation, error
-recovery, keyboard skipping, deep-link reload and client-side recovery. Tests never use the application database or NHL services.
+built app at desktop and mobile sizes, scoreboard/detail date/page navigation,
+roster table scrolling, error recovery, keyboard skipping, deep-link reload and
+client-side recovery. Tests never use the application database or NHL services.
 CI performs frozen installation, generation drift checks, Vue/TypeScript checks,
 lint/format, Vitest tests, production build and Chromium tests. Browser binaries
 are an explicit headless-only install; dependency lifecycle scripts remain disabled.

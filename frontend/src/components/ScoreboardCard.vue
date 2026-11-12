@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { RouterLink, type RouteLocationRaw } from 'vue-router';
 import type { ScoreboardGame } from '../api/index.js';
 import { stateLabel } from '../scoreboard/presentation.js';
 
-defineProps<{ game: ScoreboardGame }>();
+type GameSummary = Pick<
+  ScoreboardGame,
+  'away_team' | 'home_team' | 'away_score' | 'home_score' | 'state' | 'score_outcome' | 'freshness'
+>;
+defineProps<{ game: GameSummary; detailsTo?: RouteLocationRaw }>();
 </script>
 
 <template>
@@ -37,5 +42,6 @@ defineProps<{ game: ScoreboardGame }>();
       </li>
     </ul>
     <p v-if="game.freshness.partial" class="data-note">Some saved game details are unavailable.</p>
+    <RouterLink v-if="detailsTo" class="action-link" :to="detailsTo">View game details</RouterLink>
   </article>
 </template>
