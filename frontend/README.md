@@ -21,6 +21,9 @@ show current biography, selected-season/career packets and paginated split histo
 show actual game TOI, filters, URL pagination and contextual game links.
 [Teams](../docs/vue-teams.md) at `/teams` and `/teams/{nhl_id}` show saved metadata
 and exact season contribution tables with profile return navigation.
+[Private Favorites](../docs/vue-favorites.md) at `/favorites` use the current session
+for saved-player reads, filters and quota display. Anonymous/unknown sessions do
+not issue private list requests; add/remove actions remain a following slice.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

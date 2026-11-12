@@ -22,7 +22,9 @@ season/career packets and paginated team-split history.
 [Saved player gamelogs](docs/vue-player-gamelogs.md) add actual game statistics,
 filters and contextual navigation back from game details.
 [Vue teams](docs/vue-teams.md) add saved team browsing and exact season contribution
-tables, with team context preserved through player profiles. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
+tables, with team context preserved through player profiles.
+[Private Vue Favorites](docs/vue-favorites.md) add session-gated saved-player reads,
+filters, quota display and profile return navigation. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. A
 [reviewed offline schema workflow](docs/openapi-workflow.md) supplies
 `make schema` / `make schema-check` and the checked `api/openapi.json` contract.

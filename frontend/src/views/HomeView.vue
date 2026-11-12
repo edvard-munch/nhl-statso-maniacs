@@ -16,6 +16,11 @@ import { RouterLink } from 'vue-router';
       <p>Browse saved teams and exact season contributions.</p>
       <RouterLink class="action-link" to="/teams">Browse teams</RouterLink>
     </section>
+    <section class="panel" aria-labelledby="home-favorites-title">
+      <h2 id="home-favorites-title">Favorites</h2>
+      <p>View your saved players and their season statistics.</p>
+      <RouterLink class="action-link" to="/favorites">View Favorites</RouterLink>
+    </section>
     <section class="panel" aria-labelledby="games-title">
       <h2 id="games-title">Games</h2>
       <p>Browse saved NHL results by schedule date.</p>

@@ -87,7 +87,7 @@ filter/order/pagination URLs, errors, stale responses and request deadlines. No
 application database, real account, email, loader or NHL service is used. The
 existing isolated backend suite remains the evidence for split selection rules.
 
-Next add private Favorites UI with session-aware loading and ownership/cache
-invalidation, followed by comparison and private player fields. Account preferences,
-search, saved-video presentation, visual design and production cutover remain
+[Private Favorites reads](vue-favorites.md) now implement session-aware loading and
+account/revision invalidation. Membership actions follow, then comparison and private
+player fields. Account preferences, search, saved-video presentation, visual design and production cutover remain
 separate work.

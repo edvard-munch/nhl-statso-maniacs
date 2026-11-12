@@ -48,7 +48,9 @@ carry the full applied catalogue URL in `returnTo`. Only a validated local Playe
 catalogue is accepted as that destination; unsafe/unsupported values fall back to
 `/players`. A validated [team table](vue-teams.md) is also accepted as a source, with **Back to team**
 preserving its season/type/mode/filter/page and directory context. Profile routes
-also work as public sign-in return destinations.
+also work as public sign-in return destinations. [Favorites](vue-favorites.md) is
+another validated source, with **Back to Favorites** preserving its applied query
+and reapplying the private session gate on return.
 
 Browser context is never forwarded to APIs: the profile receives only season/mode,
 while history receives mode/page/page size. Server-provided history/gamelog/next URLs

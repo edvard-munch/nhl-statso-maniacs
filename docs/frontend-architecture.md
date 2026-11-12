@@ -311,3 +311,18 @@ Player profiles accept validated team-table return context alongside catalogue
 returns. Desktop/mobile and read-failure/cancellation checks cover the flow. Next
 implement private Favorites loading with identity/ownership/cache boundaries, then
 comparison/private player fields; account/search and production cutover remain later.
+
+
+## Implemented private Favorites read foundation
+
+[Private Favorites](vue-favorites.md) at `/favorites` now gate requests on healthy
+session state and retain missing/unverified/zero-game saved identities, scoped
+filters/order/pagination and unfiltered server quota. Component-local private reads
+clear on auth/revision/query/unmount boundaries and suppress late responses. A 403
+requires explicit session checking, without automatic read/check loops. No private
+packet is persisted or attached to public DTOs; public profiles accept validated
+Favorites return context and re-enter the gate after logout. Desktop/mobile and
+component checks cover session failures, account switches, disposal and deadlines.
+Next implement explicit CSRF-protected Favorites membership actions and uncertain
+response reconciliation, then private gamelogs/comparison/fields. Production cutover
+and account/search phases remain separate.

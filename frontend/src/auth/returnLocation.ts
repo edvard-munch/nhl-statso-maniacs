@@ -12,6 +12,7 @@ const RETURN_ROUTES = new Set([
   'player-gamelog',
   'teams',
   'team-detail',
+  'favorites',
 ]);
 export function safeReturnLocation(value: unknown, router: Router): string {
   if (

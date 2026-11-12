@@ -1698,3 +1698,42 @@ Next implement private Favorites UI with session-aware loading and identity/
 ownership/cache invalidation, then comparison and private notes/positions. Account
 settings/preferences, uploads/search, saved-video presentation, visual design and
 production route cutover remain later focused work.
+
+## Vue private Favorites read foundation
+
+Implemented [session-gated Favorites reads](vue-favorites.md) at `/favorites`, with
+home/navigation entry points and exact sign-in/profile return context. Reads use
+the current session's client only after healthy authenticated discovery. Anonymous,
+unknown, busy and unavailable sessions do not issue private list requests. Public
+profiles accept validated Favorites sources; returning after logout re-enters the
+gate rather than restoring private rows.
+
+The reusable component-local private reader captures account ID, session revision
+and route key. It cancels/clears accepted rows and quota on auth/check, revision,
+route and unmount boundaries, rejects late successes/errors and retains no last-good
+private cache or browser-storage packet. A 403 prompts explicit session checking,
+without an automatic read/check loop. Deadline and safe request-reference recovery
+cover failed/protocol/page responses. Backend session ownership remains authoritative;
+no owner parameter or new cross-tab/revision response protocol is introduced.
+
+Saved identities remain visible with missing/unverified/zero-game season packets,
+including explicit empty seasons or no globally loaded season. Shared named filters,
+sorting and pagination preserve URL state without public catalogue facets. Unknown
+values remain distinct from zero; goalie rates and per-game TOI preserve API units.
+Quota reflects both unfiltered groups, including retained over-limit data, and is
+not computed from page rows. Mobile tables remain within labelled focusable regions.
+
+Validation: 310 frontend tests and 98 pinned Chromium desktop/mobile cases pass.
+Type/lint/format, production build and generated-client drift checks pass. Synthetic
+fixtures/intercepted APIs cover anonymous gating, exact returns, empty/filtered lists,
+quota/packet semantics, logout/account switches, session failure/checks, repeated 403,
+late responses, disposal and deadlines without application DB, real accounts, email,
+loaders or NHL calls. No backend/schema, dependency, migration or Python coverage
+scope changed; the full Python baseline was not remeasured. Previously staged team
+files were edited only after commit `f7cd380` succeeded; preparation before that
+used new files only.
+
+Next add explicit CSRF-protected Favorites PUT/DELETE actions with quota handling
+and reconciliation of uncertain responses, extending this identity-bound foundation.
+Aggregated Favorites gamelogs, comparison and private fields, then account/preferences,
+search and production cutover remain following slices.
