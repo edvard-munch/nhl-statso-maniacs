@@ -1364,3 +1364,28 @@ Hosted CI remains a post-push verification step.
 Next implement the saved scoreboard workflow with the generated endpoints,
 loading/error/empty states and date navigation, then the game-detail page. Preserve
 the saved-data/state/freshness contracts and verify desktop/mobile interactions.
+
+
+## Vue saved scoreboard
+
+Implemented the [scoreboard workflow](vue-scoreboard.md) at `/games` using the
+existing generated SDK. Default discovery uses the API's Pacific/reference/fallback
+policy and canonicalizes its selection in the URL; an explicit date stays exact,
+including empty dates. Bounded saved-date shortcuts/neighbors, a date form and
+paginated games preserve back/reload state. Same-date form submission reloads data.
+
+Cards preserve zero versus unavailable values and use qualified saved-state
+live/final/conflict evidence independently of the old completion flag. Storage
+freshness/partial warnings remain separate from state observation. Obsolete requests
+are aborted and late replies ignored; loading clears previous results. Errors offer
+retry or first-page recovery, and proxy HTML is not exposed as an API message.
+
+Validation: 62 frontend tests and 12 pinned Chromium desktop/mobile cases pass.
+Vue/TypeScript compilation, lint, production build and generated-client drift checks
+pass. Synthetic fixtures/Fetch interception keep tests independent of application
+records and NHL services. No backend API/schema, dependencies, migrations or Python
+coverage scope changed; the full Python baseline was not remeasured for this slice.
+
+Next implement the typed game-detail view and scoreboard card navigation. Automatic
+refresh and production routing/cutover remain separate commits. The prior scaffold
+commit (`589669c`) completed with a clean tree before any scoreboard files changed.

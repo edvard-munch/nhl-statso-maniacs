@@ -197,3 +197,13 @@ checks all reviewed operations and owns the same-origin session/CSRF transport.
 Client generation, TypeScript contracts and mocked transport tests run in a separate
 CI job. The [Vue/Vite scaffold](../frontend/README.md) is now implemented;
 scoreboard/game page migration follows.
+
+
+## Implemented scoreboard pilot
+
+The [Vue saved scoreboard](vue-scoreboard.md) is implemented at `/games`, with
+API-driven Pacific date discovery, explicit-date preservation, query-based
+pagination, conservative saved-state labels and cancellable loading/error recovery.
+Desktop/mobile browser regressions cover navigation and failure recovery. Existing
+Django routes remain available. Game detail/card navigation is the next slice;
+automatic refresh and deployment cutover remain separate work.

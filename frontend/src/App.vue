@@ -21,6 +21,7 @@ watch(
       <RouterLink class="brand" to="/">NHL Statso Maniacs</RouterLink>
       <nav aria-label="Main navigation">
         <RouterLink to="/" exact-active-class="current-page">Home</RouterLink>
+        <RouterLink to="/games" exact-active-class="current-page">Games</RouterLink>
       </nav>
     </div>
   </header>

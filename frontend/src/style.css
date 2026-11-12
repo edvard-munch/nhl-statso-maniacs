@@ -113,3 +113,101 @@ nav {
 .skip-link:focus {
   transform: translateY(0);
 }
+
+button,
+input {
+  font: inherit;
+}
+button,
+input[type='date'] {
+  min-height: var(--touch-target);
+  border: 1px solid #9bafc2;
+  border-radius: 0.3rem;
+  padding: 0.5rem 0.75rem;
+  background: #fff;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  background: #e9f0f8;
+}
+button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+button[aria-pressed='true'] {
+  background: #174c8a;
+  color: #fff;
+  border-color: #174c8a;
+}
+.date-form,
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.date-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  max-width: 32rem;
+  margin-block: 1.5rem;
+}
+.date-form label {
+  grid-column: 1 / -1;
+  font-weight: 600;
+}
+.date-form input {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+.date-navigation {
+  margin-block: 1.5rem;
+}
+.data-note {
+  color: #465b70;
+}
+.scoreboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 1rem;
+}
+.game-card {
+  min-width: 0;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #d1dbe6;
+  border-radius: 0.5rem;
+}
+.game-state {
+  margin-top: 0;
+  font-weight: 600;
+}
+.game-sides {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.game-sides li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  margin-block: 0.75rem;
+  overflow-wrap: anywhere;
+}
+.game-sides strong {
+  font-size: 1.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.side-label {
+  display: block;
+  color: #465b70;
+  font-size: 0.85rem;
+}
+.pagination {
+  margin-block: 1.5rem;
+}

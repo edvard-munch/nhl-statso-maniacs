@@ -1,9 +1,10 @@
 # Vue frontend
 
 Vue 3, Vue Router, Vite and TypeScript live alongside the uv-managed Django
-backend. This first slice provides the responsive shell, home route, missing-page
-recovery and the existing generated API client. Scoreboard/game workflows are the
-next slice. Existing Django pages and production routing are unchanged.
+backend. The responsive shell, home/missing-page routes and generated client now
+include a [saved scoreboard](../docs/vue-scoreboard.md) at `/games`, with exact
+date selection, navigation, pagination and error recovery. Game details are next.
+Existing Django pages and production routing are unchanged.
 
 ## Run locally
 
@@ -28,7 +29,8 @@ make frontend-dev
 Open **http://127.0.0.1:5173/**. The legacy website is still on
 http://127.0.0.1:8000/. Django needs its normal local environment/database settings;
 the frontend shell and its automated tests do not require a running backend.
-The dev server binds to loopback and fails if its port is already in use.
+Open `/games` to browse saved data from Django. The dev server binds to loopback
+and fails if its port is already in use.
 
 Vite forwards only `/api/v1/` (including its version root without the final slash)
 and `/media/` to Django. Paths, Host, Origin, Cookie, Set-Cookie, CSRF headers,
@@ -47,7 +49,7 @@ custom storage/media URLs need their own routing configuration before integratio
 The proxy is for development only. Sessions/cookies from a production host are
 not local development sessions. HTTPS-only local cookie settings require a matching
 HTTPS development setup; do not weaken deployed settings to support local HTTP.
-No app data is fetched automatically by the scaffold. API usage follows the
+The home shell fetches no app data; `/games` reads the saved-game APIs. API usage follows the
 [generated client workflow](../docs/typescript-client.md).
 
 ## Checks and build
@@ -66,10 +68,11 @@ the lockfile are excluded from format/lint mutation; regenerate them from the
 reviewed schema. The initial formatter adoption also normalizes existing
 handwritten client files without changing their behavior.
 
-Vitest covers shell navigation/focus/title, API transport/generation and the real
+Vitest covers scoreboard date/state/error/cancellation behavior, shell
+navigation/focus/title, API transport/generation and the real
 Vite proxy using a synthetic loopback backend. Chromium tests exercise the actual
-built app at desktop and mobile sizes, keyboard skipping, deep-link reload and
-client-side recovery. Tests never use the application database or NHL services.
+built app at desktop and mobile sizes, scoreboard date/page navigation, error
+recovery, keyboard skipping, deep-link reload and client-side recovery. Tests never use the application database or NHL services.
 CI performs frozen installation, generation drift checks, Vue/TypeScript checks,
 lint/format, Vitest tests, production build and Chromium tests. Browser binaries
 are an explicit headless-only install; dependency lifecycle scripts remain disabled.
