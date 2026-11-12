@@ -329,3 +329,51 @@ button[aria-disabled='true'] {
 .login-form button {
   justify-self: start;
 }
+
+.catalogue-form {
+  margin-block: 1.5rem;
+}
+.catalogue-controls,
+.catalogue-ranges {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  margin-block: 1rem;
+}
+.catalogue-form label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.catalogue-form input,
+.catalogue-form select {
+  font: inherit;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--touch-target);
+  padding: 0.5rem;
+  border: 1px solid #9bafc2;
+  border-radius: 0.3rem;
+  background: white;
+  color: inherit;
+}
+.catalogue-form fieldset {
+  min-width: 0;
+  margin-block: 0.75rem;
+  border: 1px solid #9bafc2;
+}
+.catalogue-form .category-choice {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: 1rem;
+  min-height: var(--touch-target);
+}
+.category-choice input {
+  width: 1.15rem;
+  min-height: 1.15rem;
+}
+.catalogue-form summary {
+  cursor: pointer;
+  min-height: var(--touch-target);
+}

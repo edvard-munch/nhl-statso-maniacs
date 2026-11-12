@@ -1553,3 +1553,36 @@ configuration step once the route is served at the trusted public origin.
 Next implement the season-scoped Players catalogue with filter metadata, sorting,
 pagination and URL state. Protected screens and production route cutover remain
 later migration/deployment work.
+
+## Vue season-scoped Players catalogue
+
+Implemented the public [Players catalogue](vue-players.md) at `/players`, linked
+from home/navigation. Loaded season metadata selects and pins the API default;
+explicit empty seasons and an empty store never use calendar/snapshot fallback.
+Skater totals/per-game averages and goalie totals/rates use the existing typed
+statistics. Missing values stay distinct from zero, partial rows are labelled,
+and season team participation does not change overall season totals.
+
+Complete filter metadata supplies categorical choices and numeric ranges beyond
+the current page. Search, rookie, birth dates, all numeric bounds/missing-value
+filters, ordering and page size apply through URL state. Type changes clear
+incompatible selections, sorting/filtering reset pagination, and reload/back restore
+applied controls. Public auth returns accept the catalogue route. No private list
+membership or inactive frontend profile links were added.
+
+The view reads saved public APIs only. Navigation/unmount cancels reads, deadlines
+bound waiting, and late responses cannot replace a newer selection. Errors clear
+old rows and offer retry/clear/first-page recovery. Next/previous API URLs are used
+only as availability flags; local routes preserve validated selections. Scrollable,
+labelled tables and native form controls fit desktop/mobile viewports.
+
+Validation: 195 frontend unit/component tests and 64 pinned Chromium desktop/mobile
+cases pass. Type/lint/format, production build and generated-client drift checks
+pass. Tests use synthetic records and intercepted/local APIs, without application
+DB, real accounts, loaders, email or NHL calls. No backend/schema, dependencies,
+migrations or Python coverage scope changed; the full Python baseline was not
+remeasured. Work began with a clean index after password recovery commit `bd9b142`.
+
+Next add public typed player profiles, season history and gamelogs, preserving
+catalogue return context. Team screens, measurement preferences, private resources,
+visual design and production route cutover remain later focused slices.

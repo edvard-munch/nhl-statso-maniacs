@@ -13,6 +13,8 @@ rotation/reconciliation. [Registration](../docs/vue-registration.md) at `/regist
 shows validation and explicit sign-in confirmation without switching the caller
 session. [Password recovery](../docs/vue-password-recovery.md) uses `/password-reset`
 and `/recover-password/`, with fragment secrets scrubbed before router creation.
+[Players](../docs/vue-players.md) at `/players` supports season-specific skater/goalie
+statistics, complete filter metadata, sorting and URL pagination with mobile tables.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally
@@ -38,7 +40,7 @@ make frontend-dev
 Open **http://127.0.0.1:5173/**. The legacy website is still on
 http://127.0.0.1:8000/. Django needs its normal local environment/database settings;
 the frontend shell and its automated tests do not require a running backend.
-Open `/games` to browse saved data from Django. The dev server binds to loopback
+Open `/games` or `/players` to browse saved data from Django. The dev server binds to loopback
 and fails if its port is already in use.
 
 Vite forwards only `/api/v1/` (including its version root without the final slash)

@@ -261,3 +261,15 @@ sign-in. Session reconciliation and uncertain-write handling never replay mail o
 password changes. Desktop/mobile regressions cover URL/history/storage privacy,
 reload and same-document links. Next implement the season-scoped Players catalogue;
 production mail/rate-limit activation and route cutover remain separate.
+
+
+## Implemented public Players catalogue
+
+The [Vue Players catalogue](vue-players.md) at `/players` reads loaded season
+metadata, season-specific statistics and full filter metadata through the typed
+client. Skater totals/averages, goalie rates, numeric/categorical filters, ordering
+and pagination preserve their applied URL state. Unknown values remain distinct
+from zero; explicit empty seasons never fall back. Aborted/stale reads cannot
+replace a newer selection, and wide tables remain within the mobile viewport.
+Next add public player profiles, season history and gamelogs with catalogue return
+context. Private resources and production route cutover remain later work.

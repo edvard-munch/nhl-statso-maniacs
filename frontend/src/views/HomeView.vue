@@ -6,6 +6,11 @@ import { RouterLink } from 'vue-router';
   <section aria-labelledby="home-title">
     <h1 id="home-title">Follow NHL games and players</h1>
     <p>Game scores, player statistics and your saved lists, together in one place.</p>
+    <section class="panel" aria-labelledby="home-players-title">
+      <h2 id="home-players-title">Players</h2>
+      <p>Browse saved season statistics for skaters and goalies.</p>
+      <RouterLink class="action-link" to="/players">Browse players</RouterLink>
+    </section>
     <section class="panel" aria-labelledby="games-title">
       <h2 id="games-title">Games</h2>
       <p>Browse saved NHL results by schedule date.</p>

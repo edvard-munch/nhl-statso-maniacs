@@ -98,7 +98,6 @@ No application database, real account/email or NHL service is used. Existing iso
 backend tests remain the evidence for actual token expiry, atomic password changes,
 session invalidation and concurrent consumption.
 
-The session/login/registration/recovery UI phase is complete. Next implement the
-season-scoped Players catalogue, filtering/sorting/pagination and URL state through
-the existing APIs. Private-resource guards/caches, production recovery rate limits,
+The session/login/registration/recovery UI phase is complete. The [season-scoped Players catalogue](vue-players.md) now implements filtering,
+sorting, pagination and URL state through the existing APIs. Private-resource guards/caches, production recovery rate limits,
 email activation and route cutover remain separate work.
