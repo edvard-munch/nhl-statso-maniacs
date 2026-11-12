@@ -15,6 +15,8 @@ session. [Password recovery](../docs/vue-password-recovery.md) uses `/password-r
 and `/recover-password/`, with fragment secrets scrubbed before router creation.
 [Players](../docs/vue-players.md) at `/players` supports season-specific skater/goalie
 statistics, complete filter metadata, sorting and URL pagination with mobile tables.
+[Player profiles](../docs/vue-player-profiles.md) at `/players/{player_type}/{nhl_id}`
+show current biography, selected-season/career packets and paginated split history.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

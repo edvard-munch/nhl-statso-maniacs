@@ -60,8 +60,9 @@ error recovery and deadlines. Chromium checks exercise the workflow at desktop a
 mobile sizes with intercepted APIs and synthetic records. No application database,
 real accounts, email, loaders or upstream NHL services are involved.
 
-Next add typed player profiles, season history and gamelogs, linking catalogue rows
-to those views with preserved catalogue context. Team screens, account preferences
+Catalogue rows now link to [typed profiles and season history](vue-player-profiles.md),
+preserving the applied catalogue context. Verified saved gamelogs are the next slice.
+Team screens, account preferences
 (including measurement presentation), private resources, visual design and production
-route cutover remain later focused slices. This view does not add inactive profile
-links or private membership actions before their frontend workflows exist.
+route cutover remain later focused slices. Private membership actions remain deferred
+until their frontend workflows exist.

@@ -1586,3 +1586,40 @@ remeasured. Work began with a clean index after password recovery commit `bd9b14
 Next add public typed player profiles, season history and gamelogs, preserving
 catalogue return context. Team screens, measurement preferences, private resources,
 visual design and production route cutover remain later focused slices.
+
+## Vue typed player profiles and season history
+
+Implemented [public player profiles](vue-player-profiles.md) at
+`/players/{player_type}/{nhl_id}`, linked from catalogue names with validated
+catalogue return context. Typed identity selects the model explicitly; no lookup
+falls through to the other player type. Current biography/team is separate from
+selected-season packets, independent career totals and saved career averages.
+Missing/unverified packets and exact team contributions remain unknown rather
+than inheriting overall totals, snapshots or a different season. Zero-game history
+and profiles without selected-season statistics remain visible.
+
+Season/mode and history pagination use URL state, with API default-season pinning,
+explicit empty-season retention and reload/back navigation. History overall rows
+and exact team splits are separate; career aggregates are not reconstructed.
+Goalies show totals/rates without averages controls. Saved cm/kg/lb biography and
+percentage/duration labels have explicit units. Wide tables remain within labelled,
+keyboard-focusable desktop/mobile scroll regions.
+
+Profile and history requests exclude browser navigation context and never follow
+server-supplied resource/pagination URLs. Reads abort on navigation/unmount, share
+a ten-second deadline and discard stale results. A failed history page leaves the
+confirmed profile visible; missing profiles and invalid selectors have explicit
+recovery. Public authentication return navigation accepts profile routes.
+
+Validation: 225 frontend tests and 72 pinned Chromium desktop/mobile cases pass.
+Type/lint/format, production build and generated-client drift checks pass. Synthetic
+fixtures/intercepted APIs cover independent packets, null/zero values, typed IDs,
+unknown splits, empty history/seasons, safe return context, pagination, errors and
+deadlines without application DB, account, email or NHL calls. No backend/schema,
+dependency, migration or Python coverage scope changed; the full Python baseline
+was not remeasured. Previously staged files were edited only after catalogue commit
+`3c4efb9` succeeded; preparation before that used new files only.
+
+Next implement the verified saved gamelog frontend and contextual game-detail links
+as a separate focused commit. Team screens, saved-video presentation, measurement
+preferences, private resources, visual design and production cutover remain later work.

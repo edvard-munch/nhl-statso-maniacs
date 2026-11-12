@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouterHistory } from 'vue-router';
 import HomeView from './views/HomeView.vue';
 import PlayersView from './views/PlayersView.vue';
+import PlayerProfileView from './views/PlayerProfileView.vue';
 import ScoreboardView from './views/ScoreboardView.vue';
 import GameDetailView from './views/GameDetailView.vue';
 import NotFoundView from './views/NotFoundView.vue';
@@ -40,6 +41,12 @@ export function createAppRouter(
         meta: { title: 'Create account' },
       },
       { path: '/players', name: 'players', component: PlayersView, meta: { title: 'Players' } },
+      {
+        path: '/players/:playerType/:nhlId',
+        name: 'player-profile',
+        component: PlayerProfileView,
+        meta: { title: 'Player profile' },
+      },
       { path: '/games', name: 'games', component: ScoreboardView, meta: { title: 'Games' } },
       {
         path: '/games/:nhlId',

@@ -273,3 +273,15 @@ from zero; explicit empty seasons never fall back. Aborted/stale reads cannot
 replace a newer selection, and wide tables remain within the mobile viewport.
 Next add public player profiles, season history and gamelogs with catalogue return
 context. Private resources and production route cutover remain later work.
+
+
+## Implemented public player profiles and history
+
+[Typed player profiles](vue-player-profiles.md) now link from catalogue names,
+keeping the full validated catalogue return context. Biography/current team,
+selected-season statistics, independent career packets and paginated exact team
+contributions retain the backend's null/availability semantics. History failures
+leave confirmed profile data visible; cancelled/stale reads cannot replace a new
+selection. Desktop/mobile workflows cover typed goalie/skater identity, season/mode,
+URL pagination and recovery. Next implement verified saved gamelogs and contextual
+game links; team/private screens and production cutover remain later work.

@@ -16,7 +16,9 @@ The [Vue sign-in workflow](docs/vue-session-auth.md) adds session/CSRF bootstrap
 at `/register` creates accounts with a separate explicit sign-in step.
 [Password recovery](docs/vue-password-recovery.md) adds reset requests and transient
 email-link confirmation without automatic sign-in. The [Vue Players catalogue](docs/vue-players.md)
-at `/players` adds saved season statistics, filters, sorting and URL pagination. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
+at `/players` adds saved season statistics, filters, sorting and URL pagination.
+[Player profiles](docs/vue-player-profiles.md) add current biography, independent
+season/career packets and paginated team-split history. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. A
 [reviewed offline schema workflow](docs/openapi-workflow.md) supplies
 `make schema` / `make schema-check` and the checked `api/openapi.json` contract.

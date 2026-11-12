@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue';
-import { useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
+import { RouterLink, useRoute, useRouter, type LocationQueryRaw } from 'vue-router';
 import {
   ApiError,
   playersList,
@@ -441,7 +441,20 @@ onBeforeUnmount(() => controller?.abort());
           </thead>
           <tbody>
             <tr v-for="player in result.results" :key="`${player.player_type}:${player.nhl_id}`">
-              <th scope="row">{{ player.name }}</th>
+              <th scope="row">
+                <RouterLink
+                  :to="{
+                    name: 'player-profile',
+                    params: { playerType: player.player_type, nhlId: player.nhl_id },
+                    query: {
+                      season_id: result.meta.season_id || undefined,
+                      mode: result.meta.mode,
+                      returnTo: route.fullPath,
+                    },
+                  }"
+                  >{{ player.name }}</RouterLink
+                >
+              </th>
               <td>{{ player.teams.map((team) => team.abbr).join(', ') || '—' }}</td>
               <td>{{ player.position_abbr || '—' }}</td>
               <td>{{ player.nation_abbr || '—' }}</td>
