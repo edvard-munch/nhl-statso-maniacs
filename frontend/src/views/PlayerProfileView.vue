@@ -312,6 +312,26 @@ onBeforeUnmount(() => controller?.abort());
         :kind="profile.meta.player_type"
         :rows="packetRows"
       />
+      <div class="button-row">
+        <RouterLink
+          class="action-link"
+          :to="{
+            name: 'player-gamelog',
+            params: route.params,
+            query: { season_id: profile.meta.season_id || undefined, returnTo: route.fullPath },
+          }"
+          >View selected-season game log</RouterLink
+        >
+        <RouterLink
+          class="action-link"
+          :to="{
+            name: 'player-gamelog',
+            params: route.params,
+            query: { returnTo: route.fullPath },
+          }"
+          >View all saved games</RouterLink
+        >
+      </div>
       <h2>Season history</h2>
       <p>
         Overall season rows and exact team contributions are separate. Current team metadata does

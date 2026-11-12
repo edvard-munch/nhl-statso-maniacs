@@ -68,7 +68,7 @@ history, URL round trips, safe returns, missing pages, stale responses and deadl
 No application database, real account, email or NHL service is used. Backend packet
 semantics remain covered by the existing isolated backend regression suite.
 
-Next add the verified saved gamelog frontend and game-detail navigation with preserved
-profile/catalogue context. No inactive gamelog link is shown by this slice. Team
-screens, saved-video presentation, private actions, measurement preferences, visual
+The [verified saved gamelog frontend](vue-player-gamelogs.md) now offers selected-season
+and all-saved entry links, with game-detail navigation preserving profile/catalogue
+context. Team screens, saved-video presentation, private actions, measurement preferences, visual
 design and production cutover remain separate work.

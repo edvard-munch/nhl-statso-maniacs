@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { ApiError, gameRetrieve, type GameDetail } from '../api/index.js';
 import ScoreboardCard from '../components/ScoreboardCard.vue';
 import GameRosterTable from '../components/GameRosterTable.vue';
 import SavedRefreshControls from '../components/SavedRefreshControls.vue';
 import { SAVED_READ_TIMEOUT_MS, useSavedRefresh } from '../refresh/useSavedRefresh.js';
 import { parseGameId } from '../games/presentation.js';
+import { gamelogReturn } from '../players/gamelog.js';
 import {
   FIRST_PAGE,
   isScheduleDate,
@@ -16,6 +17,8 @@ import {
 } from '../scoreboard/presentation.js';
 
 const route = useRoute();
+const router = useRouter();
+const gamelogBack = computed(() => gamelogReturn(route.query.gamelog, router));
 const game = shallowRef<GameDetail | null>(null);
 const phase = ref<'loading' | 'ready' | 'error' | 'not-found'>('loading');
 const requestId = ref<string | null>(null);
@@ -99,7 +102,10 @@ onBeforeUnmount(() => controller?.abort());
 
 <template>
   <section aria-labelledby="game-detail-title">
-    <RouterLink class="action-link" :to="backLink">Back to games</RouterLink>
+    <RouterLink v-if="gamelogBack" class="action-link" :to="gamelogBack"
+      >Back to player gamelog</RouterLink
+    >
+    <RouterLink v-else class="action-link" :to="backLink">Back to games</RouterLink>
     <h1 id="game-detail-title">Game details</h1>
     <p v-if="phase === 'loading'" role="status">Loading saved game…</p>
     <div v-else-if="phase === 'not-found'" role="alert" class="panel">

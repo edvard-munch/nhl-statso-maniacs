@@ -2,6 +2,7 @@ import { createRouter, createWebHistory, type RouterHistory } from 'vue-router';
 import HomeView from './views/HomeView.vue';
 import PlayersView from './views/PlayersView.vue';
 import PlayerProfileView from './views/PlayerProfileView.vue';
+import PlayerGamelogView from './views/PlayerGamelogView.vue';
 import ScoreboardView from './views/ScoreboardView.vue';
 import GameDetailView from './views/GameDetailView.vue';
 import NotFoundView from './views/NotFoundView.vue';
@@ -46,6 +47,12 @@ export function createAppRouter(
         name: 'player-profile',
         component: PlayerProfileView,
         meta: { title: 'Player profile' },
+      },
+      {
+        path: '/players/:playerType/:nhlId/gamelog',
+        name: 'player-gamelog',
+        component: PlayerGamelogView,
+        meta: { title: 'Player game log' },
       },
       { path: '/games', name: 'games', component: ScoreboardView, meta: { title: 'Games' } },
       {

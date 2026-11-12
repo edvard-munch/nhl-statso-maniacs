@@ -66,3 +66,13 @@ and NHL services. Existing frontend CI runs these checks and the production buil
 implemented with last-good retention and focus/scroll preservation. Player-profile links, saved-list mutations, styling framework and
 production route cutover remain separate migration work. No backend schema,
 loader, dependency, migration or coverage-scope change is needed here.
+
+
+## Player gamelog return context
+
+[Verified player gamelogs](vue-player-gamelogs.md) now link saved games with a
+validated local gamelog return route. Game details offer **Back to player gamelog**
+when that context is valid, preserving filter/page/profile/catalogue state through
+reload. Otherwise the existing date/page scoreboard return continues. Browser
+context is never forwarded to the query-free game API. Roster profile-name links
+and saved-list actions remain separate work.

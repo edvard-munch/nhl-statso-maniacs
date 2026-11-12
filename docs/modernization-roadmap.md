@@ -1623,3 +1623,41 @@ was not remeasured. Previously staged files were edited only after catalogue com
 Next implement the verified saved gamelog frontend and contextual game-detail links
 as a separate focused commit. Team screens, saved-video presentation, measurement
 preferences, private resources, visual design and production cutover remain later work.
+
+## Vue verified saved player gamelogs
+
+Implemented [typed saved gamelogs](vue-player-gamelogs.md) at
+`/players/{player_type}/{nhl_id}/gamelog`, with selected-season and all-saved profile
+entry links. Omitted season remains all saved dates, independent of the profile
+API's default. Actual game PP/SH/total TOI, goalie decision/rates and explicit row
+availability come from saved gamelog statistics; season averages never substitute.
+Unknown values remain distinct from zero. Orphan dates do not manufacture game
+links or opponents, while known undated games retain links and missing row data.
+Saved game state/conflicts remain separate from player-row verification.
+
+Season/date/team/opponent and all supported numeric bounds/missing filters, named
+ordering and pagination preserve applied URL state. Type-inappropriate, repeated
+or invalid parameters fail before reads. Changes reset pagination; native controls
+and labelled scroll regions fit desktop/mobile. Profile reads supply the current
+name only; both reads have a deadline/cancellation boundary and discard late data.
+Errors clear old name/rows and offer explicit retry/first-page/filter recovery.
+
+Validated local context preserves the game → gamelog → typed profile → catalogue
+return chain through reload. Unsafe context uses existing local fallbacks, and
+scoreboard-origin game navigation remains unchanged. Navigation context is never
+forwarded to APIs, and server resource/pagination URLs are not followed. Existing
+game-page saved-data refresh continues; gamelog polling is a separate future choice.
+
+Validation: 257 frontend tests and 80 pinned Chromium desktop/mobile cases pass.
+Type/lint/format, production build and generated-client drift checks pass. Synthetic
+fixtures/intercepted APIs cover PP/SH values on both gamelog and game pages, zero/
+null values, unverified known games, orphan/undated evidence, goalie fields, all/
+empty-season scope, URL round trips, errors, stale reads and deadlines. No application
+DB, real accounts, email, loaders or NHL calls were used. No backend/schema,
+dependency, migration or Python coverage scope changed; the full Python baseline
+was not remeasured. Previously staged profile/history files were edited only after
+commit `3f1a55f` succeeded; preparation before that used new files only.
+
+Next implement public team browsing and exact team-season contribution screens.
+Private lists, account preferences, saved-video presentation, visual design and
+production route cutover remain later focused work.

@@ -17,6 +17,8 @@ and `/recover-password/`, with fragment secrets scrubbed before router creation.
 statistics, complete filter metadata, sorting and URL pagination with mobile tables.
 [Player profiles](../docs/vue-player-profiles.md) at `/players/{player_type}/{nhl_id}`
 show current biography, selected-season/career packets and paginated split history.
+[Player gamelogs](../docs/vue-player-gamelogs.md) at `/players/{player_type}/{nhl_id}/gamelog`
+show actual game TOI, filters, URL pagination and contextual game links.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

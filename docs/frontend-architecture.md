@@ -285,3 +285,15 @@ leave confirmed profile data visible; cancelled/stale reads cannot replace a new
 selection. Desktop/mobile workflows cover typed goalie/skater identity, season/mode,
 URL pagination and recovery. Next implement verified saved gamelogs and contextual
 game links; team/private screens and production cutover remain later work.
+
+
+## Implemented verified saved player gamelogs
+
+[Player gamelogs](vue-player-gamelogs.md) now use typed saved row statistics with
+actual game PP/SH TOI, explicit unknown/unlinked evidence and goalie rates.
+All-saved scope is independent of the profile default season; explicit season/date/
+team/statistic filters, ordering and pagination preserve URL state. Validated return
+context connects game detail, gamelog, profile and catalogue without forwarding
+browser context to APIs. Desktop/mobile, cancellation/deadline and recovery checks
+cover the read-only flow. Next add public team browsing and exact team-season
+contributions; private/account screens and production cutover remain later work.
