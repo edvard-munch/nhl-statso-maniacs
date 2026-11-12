@@ -34,11 +34,11 @@ jobs:
         run: make schema-check
 
   client:
-    name: TypeScript API client
+    name: Vue frontend and API client
     needs: schema
     runs-on: ubuntu-22.04
     timeout-minutes: 10
-    # Uses only the reviewed schema; no Django/database/NHL service is needed.
+    # Uses reviewed schema and synthetic fixtures; no Django/database/NHL service is needed.
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -48,10 +48,23 @@ jobs:
         run: make frontend-sync
       - name: Check generated client drift
         run: make api-client-check
+      - name: Lint and formatting
+        run: make frontend-lint frontend-format-check
       - name: Check TypeScript contracts
         run: make frontend-typecheck
-      - name: Test client transport and generation
+      - name: Test components, API transport, generation and development proxy
         run: make frontend-test
+      - name: Install Chromium
+        run: cd frontend && corepack pnpm exec playwright install --with-deps --only-shell chromium
+      - name: Build and smoke-test frontend at desktop and mobile sizes
+        run: make frontend-test-browser
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: frontend-browser-failures
+          path: frontend/test-results/
+          if-no-files-found: ignore
+          retention-days: 7
 
   tests:
     # Keep this interpreter in sync with .python-version.

@@ -6,16 +6,18 @@ This is a workflow/contract review, not an implementation or deployment change.
 ## Verdict
 
 **The principal API families exist and the backend foundation is ready for client
-work. Full replacement-page parity is not yet complete.** Scaffolding Vue/Vite
-would be technically possible, but the agreed API-first order should close the
-four contract gaps below before that application commit. Existing pages must not
+work. Full replacement-page parity is not yet complete.** The original review
+identified four contract gaps; all four are now closed, and the Vue/Vite shell is
+implemented. Scoreboard/game workflow migration is next. Existing pages must not
 be switched off just because a matching API route family exists.
 
-The current OpenAPI 3.0.3 export validates with `--validate --fail-on-warn`:
+The initial review's OpenAPI 3.0.3 export validated with `--validate --fail-on-warn`:
 **31 documented paths, 39 operations** (21 GET, 6 POST, 5 PUT, 1 PATCH, 6 DELETE).
 The public schema-serving route is intentionally omitted from its own document;
 HEAD/OPTIONS and the catch-all 404 route are not extra documented operations.
-The [generated TypeScript client](typescript-client.md) is implemented; there is no Vue application yet.
+The current reviewed snapshot has **33 paths / 41 operations**, covered by the
+[generated TypeScript client](typescript-client.md). The [Vue/Vite shell](../frontend/README.md)
+is now implemented.
 
 ## Scope and evidence
 
@@ -266,8 +268,9 @@ The [reviewed offline schema workflow](openapi-workflow.md) is now implemented,
 with a checked `api/openapi.json` and a separate database-free drift-check CI job.
 The [TypeScript client foundation](typescript-client.md) now has a frozen pnpm
 lockfile, checked SDK, transport tests, compilation and generation drift CI checks.
-There is still no Vue/Vite application. `browser/package.json` remains the existing
-npm/Playwright legacy smoke harness. Vue component/build checks follow scaffolding;
+The [Vue/Vite shell](../frontend/README.md) is implemented, with a same-origin
+development proxy and desktop/mobile browser checks. `browser/package.json` remains the existing
+npm/Playwright legacy smoke harness. Vue component/type/lint/build checks are included in CI;
 existing backend/schema contracts and legacy Chromium flows remain covered.
 
 Recommended focused commits, following the user's API-first preference:
@@ -279,9 +282,9 @@ Recommended focused commits, following the user's API-first preference:
 5. Record projection/admin decisions before their affected cutovers. Reviewed
    schema export/drift checks and reproducible TypeScript client generation are
    implemented.
-6. Introduce Vue/Vite/TypeScript with pinned compatible tooling, same-origin dev
-   proxy and frontend CI; then migrate the scoreboard/game pilot at desktop/mobile
-   sizes. Keep dependencies and page implementation in focused commits.
+6. Vue/Vite/TypeScript scaffolding, same-origin dev proxy and frontend CI are
+   implemented. Next migrate the scoreboard/game pilot at desktop/mobile sizes,
+   keeping page implementation in focused commits.
 
 Do not select a generator merely because it emits TypeScript. Verify enum/null and
 polymorphic-statistics handling, session cookies/CSRF, typed 403 errors, multipart

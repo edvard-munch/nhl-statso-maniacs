@@ -7,14 +7,18 @@ const MULTIPART_TYPE = 'multipart/form-data';
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const EMPTY_STATUSES = new Set([204, 205]);
 const TOKEN_ENDPOINTS = new Set([
-  '/api/v1/auth/csrf/', '/api/v1/auth/login/', '/api/v1/auth/logout/',
+  '/api/v1/auth/csrf/',
+  '/api/v1/auth/login/',
+  '/api/v1/auth/logout/',
 ]);
 
 type DataShape = { body?: unknown; headers?: unknown; path?: unknown; query?: unknown };
 type HeaderFields<T extends DataShape> = NonNullable<T['headers']>;
-type ManagedHeaders<H> = Omit<H, typeof CSRF_HEADER> & Partial<Pick<H, Extract<keyof H, typeof CSRF_HEADER>>>;
+type ManagedHeaders<H> = Omit<H, typeof CSRF_HEADER> &
+  Partial<Pick<H, Extract<keyof H, typeof CSRF_HEADER>>>;
 type HeaderOptions<T extends DataShape> = 'headers' extends keyof T
-  ? {} extends Omit<HeaderFields<T>, typeof CSRF_HEADER>
+  ? // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- Test whether remaining headers can all be omitted.
+    {} extends Omit<HeaderFields<T>, typeof CSRF_HEADER>
     ? { headers?: ManagedHeaders<HeaderFields<T>> }
     : { headers: ManagedHeaders<HeaderFields<T>> }
   : { headers?: object };
@@ -33,23 +37,29 @@ export type RequestConfig = {
   client?: Transport;
 };
 
-export type Options<T extends DataShape, Throw extends boolean = true> =
-  Omit<RequestConfig, keyof DataShape | 'method' | 'url' | 'throwOnError'> &
-  Omit<T, 'headers'> & HeaderOptions<T> & { throwOnError?: Throw };
+export type Options<T extends DataShape, Throw extends boolean = true> = Omit<
+  RequestConfig,
+  keyof DataShape | 'method' | 'url' | 'throwOnError'
+> &
+  Omit<T, 'headers'> &
+  HeaderOptions<T> & { throwOnError?: Throw };
 
 type SuccessBody<T> = {
   [Code in keyof T]: `${Code & (string | number)}` extends `2${string}`
-    ? `${Code & (string | number)}` extends '204' | '205' ? undefined : T[Code]
-    : never
+    ? `${Code & (string | number)}` extends '204' | '205'
+      ? undefined
+      : T[Code]
+    : never;
 }[keyof T];
 type ErrorBody<T> = {
-  [Code in keyof T]: `${Code & (string | number)}` extends `2${string}` ? never : T[Code]
+  [Code in keyof T]: `${Code & (string | number)}` extends `2${string}` ? never : T[Code];
 }[keyof T];
 export type RequestResult<T, Throw extends boolean = true> =
   | { data: SuccessBody<T>; error: undefined; response: Response }
   | (Throw extends true ? never : { data: undefined; error: ErrorBody<T>; response: Response });
 
-type TransportResult = { data: unknown; error: undefined; response: Response }
+type TransportResult =
+  | { data: unknown; error: undefined; response: Response }
   | { data: undefined; error: unknown; response: Response };
 export type Transport = (config: RequestConfig) => Promise<TransportResult>;
 export interface ApiClient extends Transport {
@@ -62,7 +72,10 @@ export type ErrorEnvelope = ErrorResponse;
 
 export class ApiError extends Error {
   readonly requestId: string | null;
-  constructor(readonly body: ErrorEnvelope, readonly response: Response) {
+  constructor(
+    readonly body: ErrorEnvelope,
+    readonly response: Response,
+  ) {
     super(body.error.message);
     this.name = 'ApiError';
     this.requestId = response.headers.get('X-Request-ID');
@@ -70,7 +83,10 @@ export class ApiError extends Error {
 }
 export class ApiProtocolError extends Error {
   readonly requestId: string | null;
-  constructor(message: string, readonly response: Response) {
+  constructor(
+    message: string,
+    readonly response: Response,
+  ) {
     super(message);
     this.name = 'ApiProtocolError';
     this.requestId = response.headers.get('X-Request-ID');
@@ -87,26 +103,38 @@ function record(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 function errorEnvelope(value: unknown): value is ErrorEnvelope {
-  return record(value) && record(value.error)
-    && typeof value.error.code === 'string' && typeof value.error.message === 'string'
-    && (value.error.fields === undefined || record(value.error.fields));
+  return (
+    record(value) &&
+    record(value.error) &&
+    typeof value.error.code === 'string' &&
+    typeof value.error.message === 'string' &&
+    (value.error.fields === undefined || record(value.error.fields))
+  );
 }
 
 function requestUrl(config: RequestConfig, origin: string): URL {
   const base = new URL(origin);
   const parameters: Record<string, unknown> = { ...config.path };
   const resolved = config.url.replace(/\{([^}]+)\}/g, (_, key: string) => {
-    if (parameters[key] === undefined || parameters[key] === null) throw new TypeError(`Missing path parameter: ${key}`);
+    if (parameters[key] === undefined || parameters[key] === null)
+      throw new TypeError(`Missing path parameter: ${key}`);
     return encodeURIComponent(String(parameters[key]));
   });
   const url = new URL(resolved, base.origin);
-  if (!['http:', 'https:'].includes(base.protocol) || url.origin !== base.origin
-      || !url.pathname.startsWith(API_PREFIX) || url.username || url.password || url.hash) {
+  if (
+    !['http:', 'https:'].includes(base.protocol) ||
+    url.origin !== base.origin ||
+    !url.pathname.startsWith(API_PREFIX) ||
+    url.username ||
+    url.password ||
+    url.hash
+  ) {
     throw new TypeError('Only same-origin /api/v1/ requests are allowed.');
   }
   for (const [key, value] of Object.entries(config.query ?? {})) {
     if (value !== undefined && value !== null) {
-      for (const item of Array.isArray(value) ? value : [value]) url.searchParams.append(key, String(item));
+      for (const item of Array.isArray(value) ? value : [value])
+        url.searchParams.append(key, String(item));
     }
   }
   return url;
@@ -114,11 +142,13 @@ function requestUrl(config: RequestConfig, origin: string): URL {
 
 function requestBody(config: RequestConfig, headers: Headers): BodyInit | undefined {
   if (config.body === undefined) return undefined;
-  const multipart = config.body instanceof FormData || config.contentType?.request === MULTIPART_TYPE;
+  const multipart =
+    config.body instanceof FormData || config.contentType?.request === MULTIPART_TYPE;
   if (multipart) {
     headers.delete('Content-Type'); // fetch owns the multipart boundary.
     if (config.body instanceof FormData) return config.body;
-    if (!record(config.body)) throw new TypeError('Multipart bodies must be field objects or FormData.');
+    if (!record(config.body))
+      throw new TypeError('Multipart bodies must be field objects or FormData.');
     const form = new FormData();
     for (const [key, value] of Object.entries(config.body)) {
       if (value !== undefined && value !== null) {
@@ -134,7 +164,7 @@ function requestBody(config: RequestConfig, headers: Headers): BodyInit | undefi
 
 export function createApiClient(options: ApiClientOptions = {}): ApiClient {
   let csrfToken: string | null = null;
-  const request: Transport = async config => {
+  const request: Transport = async (config) => {
     const browserOrigin = globalThis.location?.origin;
     const origin = options.origin ?? browserOrigin;
     if (!origin) throw new TypeError('An API origin is required outside the browser.');
@@ -151,26 +181,45 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
     }
     const body = requestBody(config, headers);
     const response = await (options.fetch ?? globalThis.fetch)(url, {
-      method: config.method, headers, body, signal: config.signal,
-      credentials: 'same-origin', redirect: 'error',
+      method: config.method,
+      headers,
+      body,
+      signal: config.signal,
+      credentials: 'same-origin',
+      redirect: 'error',
     });
     if (EMPTY_STATUSES.has(response.status) && response.ok) {
       return { data: undefined, error: undefined, response };
     }
     const mediaType = response.headers.get('Content-Type')?.split(';')[0]?.trim().toLowerCase();
     if (mediaType !== JSON_TYPE && !mediaType?.endsWith('+json')) {
-      throw new ApiProtocolError(`API returned a non-JSON response (${response.status}).`, response);
+      throw new ApiProtocolError(
+        `API returned a non-JSON response (${response.status}).`,
+        response,
+      );
     }
     let data: unknown;
-    try { data = await response.json(); }
-    catch { throw new ApiProtocolError(`API returned invalid JSON (${response.status}).`, response); }
+    try {
+      data = await response.json();
+    } catch {
+      throw new ApiProtocolError(`API returned invalid JSON (${response.status}).`, response);
+    }
     if (response.ok) {
-      if (TOKEN_ENDPOINTS.has(url.pathname) && record(data) && typeof data.csrf_token === 'string' && data.csrf_token) {
+      if (
+        TOKEN_ENDPOINTS.has(url.pathname) &&
+        record(data) &&
+        typeof data.csrf_token === 'string' &&
+        data.csrf_token
+      ) {
         csrfToken = data.csrf_token;
       }
       return { data, error: undefined, response };
     }
-    if (!errorEnvelope(data)) throw new ApiProtocolError(`API returned an unrecognized error (${response.status}).`, response);
+    if (!errorEnvelope(data))
+      throw new ApiProtocolError(
+        `API returned an unrecognized error (${response.status}).`,
+        response,
+      );
     if (data.error.code === 'csrf_failed') csrfToken = null;
     if (config.throwOnError ?? true) throw new ApiError(data, response);
     return { data: undefined, error: data, response };
@@ -180,8 +229,12 @@ export function createApiClient(options: ApiClientOptions = {}): ApiClient {
       if (token !== null && !token.trim()) throw new TypeError('CSRF token must be nonempty.');
       csrfToken = token;
     },
-    clearCsrfToken() { csrfToken = null; },
-    getCsrfToken() { return csrfToken; },
+    clearCsrfToken() {
+      csrfToken = null;
+    },
+    getCsrfToken() {
+      return csrfToken;
+    },
   });
 }
 

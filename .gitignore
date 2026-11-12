@@ -42,3 +42,10 @@ browser-artifacts/
 # Local Celery Beat runtime state
 celerybeat-schedule*
 celerybeat.pid
+
+# Vue/Vite build output, local frontend settings and browser artifacts
+/frontend/dist/
+/frontend/.env.*
+!/frontend/.env.example
+/frontend/test-results/
+/frontend/playwright-report/

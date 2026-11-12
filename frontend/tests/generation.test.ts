@@ -8,7 +8,8 @@ import { spawnSync } from 'node:child_process';
 const ROOT = fileURLToPath(new URL('../', import.meta.url));
 const temporary: string[] = [];
 afterEach(async () => {
-  for (const directory of temporary.splice(0)) await rm(directory, { recursive: true, force: true });
+  for (const directory of temporary.splice(0))
+    await rm(directory, { recursive: true, force: true });
 });
 
 async function fixture() {
@@ -23,16 +24,23 @@ async function fixture() {
   await cp(path.join(ROOT, 'package.json'), path.join(frontend, 'package.json'));
   await cp(path.join(ROOT, '../api/openapi.json'), path.join(api, 'openapi.json'));
   await symlink(path.join(ROOT, 'node_modules'), path.join(frontend, 'node_modules'), 'junction');
-  const run = (...args: string[]) => spawnSync(process.execPath, [path.join(frontend, 'scripts/generate-api.mjs'), ...args], {
-    cwd: directory, encoding: 'utf8', env: { ...process.env, TZ: 'Pacific/Auckland' },
-  });
+  const run = (...args: string[]) =>
+    spawnSync(process.execPath, [path.join(frontend, 'scripts/generate-api.mjs'), ...args], {
+      cwd: directory,
+      encoding: 'utf8',
+      env: { ...process.env, TZ: 'Pacific/Auckland' },
+    });
   return { frontend, output, schema: path.join(api, 'openapi.json'), run };
 }
 
 it('generates every reviewed operation and keeps date, null and enum types', async () => {
   const schema = JSON.parse(await readFile(path.join(ROOT, '../api/openapi.json'), 'utf8'));
-  const expected = Object.values(schema.paths as Record<string, Record<string, unknown>>)
-    .flatMap(item => Object.keys(item).filter(method => ['get', 'post', 'put', 'patch', 'delete'].includes(method)));
+  const expected = Object.values(schema.paths as Record<string, Record<string, unknown>>).flatMap(
+    (item) =>
+      Object.keys(item).filter((method) =>
+        ['get', 'post', 'put', 'patch', 'delete'].includes(method),
+      ),
+  );
   const sdk = await readFile(path.join(ROOT, 'src/api/generated/sdk.ts'), 'utf8');
   expect([...sdk.matchAll(/^export function /gm)]).toHaveLength(expected.length);
 });
@@ -45,7 +53,9 @@ it('reproduces output from another checkout and check mode never rewrites it', a
   const result = f.run();
   expect(result.status, result.stderr).toBe(0);
   for (const name of ['types.ts', 'sdk.ts']) {
-    expect(await readFile(path.join(f.output, name))).toEqual(await readFile(path.join(ROOT, 'src/api/generated', name)));
+    expect(await readFile(path.join(f.output, name))).toEqual(
+      await readFile(path.join(ROOT, 'src/api/generated', name)),
+    );
   }
   const checked = f.run('--check');
   expect(checked.status, checked.stderr).toBe(0);
@@ -65,16 +75,21 @@ it('detects extra generated files without deleting them during check', async () 
   expect(await readFile(path.join(f.output, 'extra.ts'), 'utf8')).toBe('retained');
 });
 
-it.each(['external reference', 'invalid schema'])('failed generation preserves the reviewed files: %s', async mode => {
-  const f = await fixture();
-  expect(f.run().status).toBe(0);
-  const before = await readFile(path.join(f.output, 'sdk.ts'));
-  const schema = JSON.parse(await readFile(f.schema, 'utf8'));
-  if (mode === 'external reference') schema.components.schemas.Injected = { $ref: 'https://example.invalid/remote.json' };
-  else schema.info.version = 42;
-  await writeFile(f.schema, JSON.stringify(schema));
-  const failed = f.run();
-  expect(failed.status).not.toBe(0);
-  if (mode === 'external reference') expect(failed.stderr).toContain('only local schema references');
-  expect(await readFile(path.join(f.output, 'sdk.ts'))).toEqual(before);
-});
+it.each(['external reference', 'invalid schema'])(
+  'failed generation preserves the reviewed files: %s',
+  async (mode) => {
+    const f = await fixture();
+    expect(f.run().status).toBe(0);
+    const before = await readFile(path.join(f.output, 'sdk.ts'));
+    const schema = JSON.parse(await readFile(f.schema, 'utf8'));
+    if (mode === 'external reference')
+      schema.components.schemas.Injected = { $ref: 'https://example.invalid/remote.json' };
+    else schema.info.version = 42;
+    await writeFile(f.schema, JSON.stringify(schema));
+    const failed = f.run();
+    expect(failed.status).not.toBe(0);
+    if (mode === 'external reference')
+      expect(failed.stderr).toContain('only local schema references');
+    expect(await readFile(path.join(f.output, 'sdk.ts'))).toEqual(before);
+  },
+);

@@ -9,7 +9,14 @@
     "noEmit": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vitest/globals", "vite/client"]
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.vue",
+    "tests/**/*.ts",
+    "e2e/**/*.ts",
+    "*.config.ts",
+    "dev-proxy.ts"
+  ]
 }

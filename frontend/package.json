@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Typed API client foundation for the Vue/Vite frontend",
+  "description": "Vue/Vite frontend for NHL games and player statistics",
   "packageManager": "pnpm@10.34.9",
   "engines": {
     "node": ">=24.13.0 <25"
@@ -11,8 +11,15 @@
   "scripts": {
     "api:generate": "node scripts/generate-api.mjs",
     "api:check": "node scripts/generate-api.mjs --check",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@kubb/adapter-oas": "5.18.3",
@@ -23,6 +30,22 @@
     "@kubb/renderer-jsx": "5.18.3",
     "@types/node": "24.19.2",
     "typescript": "6.0.2",
-    "vitest": "5.1.0"
+    "vitest": "5.1.0",
+    "vite": "8.3.8",
+    "@vitejs/plugin-vue": "6.0.10",
+    "vue-tsc": "3.3.14",
+    "@vue/test-utils": "2.4.6",
+    "jsdom": "29.1.1",
+    "eslint": "10.14.0",
+    "@eslint/js": "10.0.1",
+    "typescript-eslint": "8.72.2",
+    "eslint-plugin-vue": "10.12.1",
+    "globals": "17.14.0",
+    "prettier": "3.10.0",
+    "@playwright/test": "1.65.0"
+  },
+  "dependencies": {
+    "vue": "3.5.45",
+    "vue-router": "4.6.4"
   }
 }

@@ -1,15 +1,28 @@
 /** Compiled by tsc; never executed. These assertions exercise the actual generated contract. */
 import { expectTypeOf } from 'vitest';
 import {
-  authLoginCreate, meAccountImagePut, meAccountPatch, meFavoriteDelete,
-  meFavoritesGamelogList, playerRetrieve, playersList,
+  authLoginCreate,
+  meAccountImagePut,
+  meAccountPatch,
+  meFavoriteDelete,
+  meFavoritesGamelogList,
+  playerRetrieve,
+  playersList,
 } from '../src/api/generated/sdk.js';
 import type {
-  CataloguePlayer, CatalogueSeasonStatistics, ErrorResponse, SavedGameState, PlayersResponse,
+  CataloguePlayer,
+  CatalogueSeasonStatistics,
+  ErrorResponse,
+  SavedGameState,
+  PlayersResponse,
 } from '../src/api/generated/types.js';
 import type { ApiClient } from '../src/api/http.js';
 
-export function compileContract(api: ApiClient, stats: CatalogueSeasonStatistics, state: SavedGameState) {
+export function compileContract(
+  api: ApiClient,
+  stats: CatalogueSeasonStatistics,
+  state: SavedGameState,
+) {
   // A known null is preserved; wire dates stay strings rather than becoming Date objects.
   expectTypeOf<CataloguePlayer['height_cm']>().toEqualTypeOf<number | null>();
   expectTypeOf<CataloguePlayer['birth_date']>().toEqualTypeOf<string>();
@@ -18,21 +31,28 @@ export function compileContract(api: ApiClient, stats: CatalogueSeasonStatistics
   if (stats.kind === 'goalie_totals') {
     expectTypeOf(stats.wins).toEqualTypeOf<number | null>();
     // @ts-expect-error Skater fields cannot be read from the goalie variant.
-    stats.goals;
+    void stats.goals;
   } else {
     expectTypeOf(stats.goals).toEqualTypeOf<number | null>();
     // @ts-expect-error Goalie fields cannot be read from a skater variant.
-    stats.wins;
+    void stats.wins;
   }
   expectTypeOf<Awaited<ReturnType<typeof meFavoriteDelete>>['data']>().toEqualTypeOf<undefined>();
-  expectTypeOf<Awaited<ReturnType<typeof playersList<true>>>['data']>().toEqualTypeOf<PlayersResponse>();
-  expectTypeOf<Awaited<ReturnType<typeof playersList<false>>>['error']>().toEqualTypeOf<ErrorResponse | undefined>();
+  expectTypeOf<
+    Awaited<ReturnType<typeof playersList<true>>>['data']
+  >().toEqualTypeOf<PlayersResponse>();
+  expectTypeOf<Awaited<ReturnType<typeof playersList<false>>>['error']>().toEqualTypeOf<
+    ErrorResponse | undefined
+  >();
 
   // Transport-owned CSRF headers are optional at the call site, other required inputs are not.
   authLoginCreate({ client: api, body: { username: 'name', password: 'secret' } });
   meAccountImagePut({ client: api, body: { image: new Blob(['image']) } });
   meAccountPatch({ client: api, body: { measurements_format: 'Europe' } });
-  meFavoritesGamelogList({ client: api, query: { player_type: 'goalie', ordering: 'player_name,-date' } });
+  meFavoritesGamelogList({
+    client: api,
+    query: { player_type: 'goalie', ordering: 'player_name,-date' },
+  });
   playersList({ client: api, query: { mode: 'averages', hits_isnull: true, points_min: 0 } });
   // @ts-expect-error Login requires a password.
   authLoginCreate({ client: api, body: { username: 'name' } });

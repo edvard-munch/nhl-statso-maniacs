@@ -46,8 +46,9 @@ is implemented at `/api/v1/games/dates/`. Shared [saved game-state evidence](gam
 is also implemented, together with [Favorites gamelog player-identity ordering](favorites-gamelog-api.md#player-identity-ordering).
 The G1–G4 API parity slices are complete; the next checkpoint is remaining
 pre-cutover decisions and client tooling. The [reviewed offline schema](openapi-workflow.md)
-is checked into Git and checked for drift in CI; TypeScript client generation is next. Close
-these focused API slices before the scaffold under the API-first preference.
+and generated TypeScript SDK are checked into Git and checked for drift in CI.
+The [Vue/Vite scaffold](../frontend/README.md) now provides the responsive shell
+and development proxy; scoreboard/game workflow migration is next.
 Projection/admin decisions and auth deployment hardening precede their affected
 cutovers. Existing API families being present does not yet establish full UI parity.
 Legacy HTML/AJAX endpoints stay available until their tested replacements cut over.
@@ -79,20 +80,21 @@ formulas or quota checks into components.
 ## Repository, tools and hosting
 
 Keep one Git repository with a `frontend/` application, its own package manifest
-and lockfile, and the existing uv-managed backend. No frontend directory or new
-runtime dependency is introduced by this planning commit. Pin compatible tool
-versions when scaffolding; do not copy a reference repository's dependency list.
+and lockfile, and the existing uv-managed backend. The scaffold pins compatible
+Vue/Vite tooling independently of Python dependencies.
 
 The selected frontend uses Vue/Vite/TypeScript, Vue Router, pnpm, ESLint/Prettier,
 Vitest and Playwright. Evaluate Vue Query where shared browser caching/mutations justify it;
 do not create two competing sources of cached page data. Pinia is optional if
 substantial client-only shared state emerges. TanStack Table is the proposed
-statistics-table engine; styling uses Tailwind and shared accessible components.
+statistics-table engine; Tailwind/shared accessible components remain proposed
+for page work. The scaffold uses a small responsive base stylesheet.
 Storybook/visual snapshots can follow once reusable components exist.
 
 Django REST Framework supplies the API, drf-spectacular its OpenAPI schema, and a
-pinned generator supplies TypeScript types/client functions. Kubb is the reference
-candidate; validate compatibility with the selected Vue tooling before selecting generated query hooks.
+pinned Kubb generator supplies TypeScript types/named client functions through
+an app-owned Fetch transport. Query hooks remain deferred until workflow needs
+justify a caching library.
 Generated code must be reproducible from a checked schema without a live NHL
 connection or application database.
 
@@ -193,4 +195,5 @@ The application-specific contract is in [API conventions](api-conventions.md).
 The [generated client workflow](typescript-client.md) pins Node/pnpm and Kubb,
 checks all reviewed operations and owns the same-origin session/CSRF transport.
 Client generation, TypeScript contracts and mocked transport tests run in a separate
-CI job. Vue/Vite application scaffolding and page migration remain the next phase.
+CI job. The [Vue/Vite scaffold](../frontend/README.md) is now implemented;
+scoreboard/game page migration follows.

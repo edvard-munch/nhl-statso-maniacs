@@ -1333,3 +1333,34 @@ Hosted CI remains to be verified after push.
 Next scaffold Vue/Vite with a same-origin development proxy and mobile-friendly
 functional layout, then migrate the scoreboard/game pilot. Projection/admin and
 auth deployment decisions stay attached to their affected cutovers.
+
+## Vue/Vite application scaffold
+
+Implemented the [frontend shell and local workflow](../frontend/README.md): Vue 3,
+Vue Router and Vite use the existing TypeScript SDK. The home/missing-page routes
+have accessible landmarks, keyboard skip/focus handling, route titles, wrapping
+navigation and mobile touch targets. This commit prepares the UI infrastructure;
+the scoreboard/game workflows follow separately. Existing Django pages remain
+available and production routes are unchanged.
+
+The loopback-only Vite development proxy forwards API/media paths while preserving
+Host/Origin, cookies, CSRF headers and upstream errors. Server-only backend target
+configuration is not injected into browser code. Preview explicitly disables the
+development proxy. Dependency versions/lockfile, Vue type checking, ESLint/Prettier,
+Vitest component/proxy tests and desktop/mobile Chromium checks join frontend CI.
+Generated files remain unchanged and excluded from lint/format mutation; adopting
+the formatter normalizes the existing handwritten client files.
+
+Validation: lint/format, Vue/TypeScript compilation, production build, generated
+client/schema drift, frozen offline dependency install, Python lint/format and
+requirements export checks pass. All 46 frontend tests and four Chromium
+desktop/mobile smoke cases pass using the pinned Playwright browser. Checks cover
+viewport overflow, keyboard skipping, deep-link reload and client-side recovery;
+desktop/mobile screenshots were also inspected using existing cached Chromium.
+No Python application behavior, migrations or coverage scope changed. The prior
+2178-test Python baseline/94.11% players coverage were not remeasured for this slice.
+Hosted CI remains a post-push verification step.
+
+Next implement the saved scoreboard workflow with the generated endpoints,
+loading/error/empty states and date navigation, then the game-detail page. Preserve
+the saved-data/state/freshness contracts and verify desktop/mobile interactions.

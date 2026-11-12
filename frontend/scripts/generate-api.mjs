@@ -27,13 +27,14 @@ function assertLocalReferences(value) {
 
 async function files(directory, prefix = '') {
   const result = new Map();
-  for (const entry of await readdir(directory, { withFileTypes: true }).catch(error => {
+  for (const entry of await readdir(directory, { withFileTypes: true }).catch((error) => {
     if (error.code === 'ENOENT') return [];
     throw error;
   })) {
     const relative = path.posix.join(prefix, entry.name);
     if (entry.isDirectory()) {
-      for (const [name, content] of await files(path.join(directory, entry.name), relative)) result.set(name, content);
+      for (const [name, content] of await files(path.join(directory, entry.name), relative))
+        result.set(name, content);
     } else {
       result.set(relative, await readFile(path.join(directory, entry.name)));
     }
@@ -42,7 +43,8 @@ async function files(directory, prefix = '') {
 }
 
 const check = process.argv.includes(CHECK_FLAG);
-if (process.argv.slice(2).some(arg => arg !== CHECK_FLAG)) throw new Error('Use api:generate or api:check.');
+if (process.argv.slice(2).some((arg) => arg !== CHECK_FLAG))
+  throw new Error('Use api:generate or api:check.');
 const schema = JSON.parse(await readFile(SCHEMA, 'utf8'));
 assertLocalReferences(schema);
 const temporary = await mkdtemp(path.join(tmpdir(), 'nhl-api-client-'));
@@ -55,14 +57,21 @@ try {
     output: { path: temporary, clean: false, defaultBanner: 'simple', format: false, lint: false },
     plugins: [
       pluginTs({ output: { path: 'types.ts' }, enum: { type: 'literal' } }),
-      pluginClient({ output: { path: 'sdk.ts' }, importPath: '../http.js', throwOnErrorDefault: true }),
+      pluginClient({
+        output: { path: 'sdk.ts' },
+        importPath: '../http.js',
+        throwOnErrorDefault: true,
+      }),
     ],
   });
   const result = await engine.generate();
   engine.dispose();
-  const problems = result.diagnostics.filter(item =>
-    (item.kind ?? 'problem') === 'problem' && item.severity !== 'info'
-    && !(item.code === PASSWORD_FORMAT_WARNING && item.message.includes('format "password"')));
+  const problems = result.diagnostics.filter(
+    (item) =>
+      (item.kind ?? 'problem') === 'problem' &&
+      item.severity !== 'info' &&
+      !(item.code === PASSWORD_FORMAT_WARNING && item.message.includes('format "password"')),
+  );
   if (!result.success || problems.length) {
     process.stderr.write(`${JSON.stringify(problems, null, 2)}\n`);
     throw new Error('API client generation failed or emitted diagnostics.');
@@ -70,8 +79,13 @@ try {
   const generated = await files(temporary);
   if (check) {
     const existing = await files(OUTPUT);
-    if (existing.size !== generated.size || [...generated].some(([name, content]) => !existing.get(name)?.equals(content))) {
-      process.stderr.write('Generated API client is stale. Run make api-client and review the diff.\n');
+    if (
+      existing.size !== generated.size ||
+      [...generated].some(([name, content]) => !existing.get(name)?.equals(content))
+    ) {
+      process.stderr.write(
+        'Generated API client is stale. Run make api-client and review the diff.\n',
+      );
       process.exitCode = 1;
     } else console.log('Generated API client matches the reviewed schema.');
   } else {

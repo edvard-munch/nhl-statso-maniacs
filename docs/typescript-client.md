@@ -1,7 +1,8 @@
 # Generated TypeScript API client
 
-The client foundation lives in `frontend/`. Vue/Vite pages are the next step;
-this commit provides the API layer without changing the existing website.
+The client foundation lives in the [Vue/Vite application](../frontend/README.md)
+under `frontend/`. The responsive shell is implemented; scoreboard/game workflows
+are next. The existing Django website remains available.
 
 ## Install and check
 
@@ -33,8 +34,9 @@ rewriting them. Dependencies must already be installed; commands do not install
 missing dependencies automatically. Installation itself requires registry access
 unless the package-manager cache is populated.
 
-The separate CI client job installs the frozen lockfile, checks generation drift,
-compiles TypeScript and runs tests after the backend schema check. Existing Python
+The separate CI frontend job installs the frozen lockfile, checks generation drift,
+compiles Vue/TypeScript, lints/formats, tests the proxy/components/client and builds
+and checks the shell in Chromium after the backend schema check. Existing Python
 coverage and browser checks retain their current scope. Hosted execution still
 needs verification after push.
 
@@ -52,8 +54,8 @@ const { data } = await playersList({ query: { season_id: '20262027' } });
 
 The default client resolves the browser origin when called. Requests stay under
 same-origin `/api/v1/`, use session cookies through Fetch's `same-origin`
-credentials policy and reject redirects. A Vite development proxy must preserve
-this browser origin when the application is scaffolded.
+credentials policy and reject redirects. The Vite development proxy preserves
+Host and Origin together; see the [local workflow](../frontend/README.md).
 
 Bootstrap CSRF before mutations. The transport stores the returned token only in
 memory and captures rotations from login/logout. It supplies `X-CSRFToken` without

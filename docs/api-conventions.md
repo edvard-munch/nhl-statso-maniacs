@@ -235,9 +235,9 @@ uv run --locked python manage.py spectacular --format openapi-json \
   --validate --fail-on-warn --file /tmp/nhl-api-schema.json
 ```
 
-The normal offline suite runs this validation and fails on schema warnings. Schema
-artifact/client regeneration checks arrive in their later migration phase; there
-is no generated frontend client yet.
+The normal offline suite runs this validation and fails on schema warnings. The
+[reviewed offline schema](openapi-workflow.md) and [generated client](typescript-client.md)
+now have separate CI drift checks; use their Make commands for isolated exports.
 
 New DRF views inherit JSON rendering/parsing, session authentication and
 `IsAuthenticated` by default. Public reads must explicitly opt into `AllowAny`.
@@ -277,4 +277,5 @@ by this commit. Extending coverage scope is a separate reporting decision.
 The [generated client workflow](typescript-client.md) pins Node/pnpm and Kubb,
 checks all reviewed operations and owns the same-origin session/CSRF transport.
 Client generation, TypeScript contracts and mocked transport tests run in a separate
-CI job. Vue/Vite application scaffolding and page migration remain the next phase.
+CI job. The [Vue/Vite shell](../frontend/README.md) is implemented;
+scoreboard/game page migration follows.

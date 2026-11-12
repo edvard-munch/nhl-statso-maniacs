@@ -1,4 +1,4 @@
-.PHONY: sync lock-check requirements requirements-check schema schema-check frontend-sync api-client api-client-check frontend-typecheck frontend-test format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
+.PHONY: sync lock-check requirements requirements-check schema schema-check frontend-sync api-client api-client-check frontend-typecheck frontend-test frontend-dev frontend-build frontend-preview frontend-lint frontend-format frontend-format-check frontend-browser-install frontend-test-browser format lint check hooks hooks-run hooks-run-push test test-cov test-ci test-browser test-external update-daily update-all update-history
 
 .DEFAULT_GOAL := format
 
@@ -39,6 +39,32 @@ frontend-typecheck:
 
 frontend-test:
 	cd frontend && $(PNPM) test
+
+frontend-dev:
+	cd frontend && $(PNPM) dev
+
+frontend-build:
+	cd frontend && $(PNPM) build
+
+frontend-preview:
+	cd frontend && $(PNPM) preview
+
+frontend-lint:
+	cd frontend && $(PNPM) lint
+
+frontend-format:
+	cd frontend && $(PNPM) format
+
+frontend-format-check:
+	cd frontend && $(PNPM) format:check
+
+frontend-browser-install:
+	cd frontend && $(PNPM) exec playwright install --only-shell chromium
+
+# Build first so smoke tests always cover current production output.
+frontend-test-browser:
+	cd frontend && $(PNPM) build
+	cd frontend && $(PNPM) test:e2e
 
 format:
 	$(UV_RUN) python -m ruff format .
