@@ -76,6 +76,7 @@ errors, stale responses and deadlines. Tests use synthetic records without appli
 DB, real accounts, email, loaders or NHL calls. Backend verification remains the
 existing isolated API regression suite's responsibility.
 
-Next add public team browsing and team-season contribution screens. Private lists,
+[Public teams and team-season contributions](vue-teams.md) are now implemented.
+Private lists,
 account preferences, saved-video presentation, visual design and production routing
 remain later focused work.

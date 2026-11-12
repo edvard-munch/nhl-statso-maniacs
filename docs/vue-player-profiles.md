@@ -46,7 +46,9 @@ and browser navigation. Applying a season/mode form resets history pagination;
 selecting a season from the current history page retains that page. Catalogue links
 carry the full applied catalogue URL in `returnTo`. Only a validated local Players
 catalogue is accepted as that destination; unsafe/unsupported values fall back to
-`/players`. Profile routes also work as public sign-in return destinations.
+`/players`. A validated [team table](vue-teams.md) is also accepted as a source, with **Back to team**
+preserving its season/type/mode/filter/page and directory context. Profile routes
+also work as public sign-in return destinations.
 
 Browser context is never forwarded to APIs: the profile receives only season/mode,
 while history receives mode/page/page size. Server-provided history/gamelog/next URLs
@@ -70,5 +72,6 @@ semantics remain covered by the existing isolated backend regression suite.
 
 The [verified saved gamelog frontend](vue-player-gamelogs.md) now offers selected-season
 and all-saved entry links, with game-detail navigation preserving profile/catalogue
-context. Team screens, saved-video presentation, private actions, measurement preferences, visual
+context. [Team screens](vue-teams.md) now provide saved metadata and scoped contributions.
+Saved-video presentation, private actions, measurement preferences, visual
 design and production cutover remain separate work.

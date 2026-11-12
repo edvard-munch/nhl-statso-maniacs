@@ -19,6 +19,8 @@ statistics, complete filter metadata, sorting and URL pagination with mobile tab
 show current biography, selected-season/career packets and paginated split history.
 [Player gamelogs](../docs/vue-player-gamelogs.md) at `/players/{player_type}/{nhl_id}/gamelog`
 show actual game TOI, filters, URL pagination and contextual game links.
+[Teams](../docs/vue-teams.md) at `/teams` and `/teams/{nhl_id}` show saved metadata
+and exact season contribution tables with profile return navigation.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally
@@ -44,7 +46,9 @@ make frontend-dev
 Open **http://127.0.0.1:5173/**. The legacy website is still on
 http://127.0.0.1:8000/. Django needs its normal local environment/database settings;
 the frontend shell and its automated tests do not require a running backend.
-Open `/games` or `/players` to browse saved data from Django. The dev server binds to loopback
+Open `/games`, `/players` or `/teams` to browse saved data from Django.
+Django must run separately: normal development uses its configured database, while
+only automated tests intercept APIs with synthetic fixtures. The dev server binds to loopback
 and fails if its port is already in use.
 
 Vite forwards only `/api/v1/` (including its version root without the final slash)

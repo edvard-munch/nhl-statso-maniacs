@@ -62,7 +62,8 @@ real accounts, email, loaders or upstream NHL services are involved.
 
 Catalogue rows now link to [typed profiles and season history](vue-player-profiles.md),
 preserving the applied catalogue context. [Verified saved gamelogs](vue-player-gamelogs.md)
-now preserve that context through game links. Team screens, account preferences
+now preserve that context through game links. [Team screens](vue-teams.md), including exact team-season splits, are also implemented.
+Account preferences
 (including measurement presentation), private resources, visual design and production
 route cutover remain later focused slices. Private membership actions remain deferred
 until their frontend workflows exist.

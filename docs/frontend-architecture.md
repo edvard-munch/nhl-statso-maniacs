@@ -297,3 +297,17 @@ context connects game detail, gamelog, profile and catalogue without forwarding
 browser context to APIs. Desktop/mobile, cancellation/deadline and recovery checks
 cover the read-only flow. Next add public team browsing and exact team-season
 contributions; private/account screens and production cutover remain later work.
+
+
+## Implemented public teams and scoped season contributions
+
+[Vue teams](vue-teams.md) now provide a saved-identity directory and team detail
+with exact season contributions, skater totals/averages and goalie rates. Historical
+identities/current metadata do not imply active status or historical reconstruction.
+Global loaded-season defaults, explicit empty-season retention and missing/zero
+semantics match the existing API. Scoped filters/order/pagination preserve URL state
+without borrowing global facets or calculating team values from overall statistics.
+Player profiles accept validated team-table return context alongside catalogue
+returns. Desktop/mobile and read-failure/cancellation checks cover the flow. Next
+implement private Favorites loading with identity/ownership/cache boundaries, then
+comparison/private player fields; account/search and production cutover remain later.

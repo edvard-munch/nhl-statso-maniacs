@@ -32,6 +32,7 @@ watch(
       <nav aria-label="Main navigation">
         <RouterLink to="/" exact-active-class="current-page">Home</RouterLink>
         <RouterLink to="/players" exact-active-class="current-page">Players</RouterLink>
+        <RouterLink to="/teams" exact-active-class="current-page">Teams</RouterLink>
         <RouterLink to="/games" exact-active-class="current-page">Games</RouterLink>
       </nav>
       <SessionControls v-if="session" />

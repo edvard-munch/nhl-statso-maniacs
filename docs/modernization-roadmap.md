@@ -1661,3 +1661,40 @@ commit `3f1a55f` succeeded; preparation before that used new files only.
 Next implement public team browsing and exact team-season contribution screens.
 Private lists, account preferences, saved-video presentation, visual design and
 production route cutover remain later focused work.
+
+## Vue saved teams and exact season contributions
+
+Implemented [team browsing](vue-teams.md) at `/teams` and `/teams/{nhl_id}`.
+The directory includes historical/saved identities with current metadata, named
+search/conference/division/order filters and URL pagination. Team detail pins the
+API's global loaded-season default, retains explicit empty seasons and keeps known
+metadata visible without contributions. Active status and historical biography are
+never inferred from current saved records.
+
+The team table reads exact scoped contributions: skater totals/averages and goalie
+rates never borrow overall player totals or current roster membership. Null/zero,
+partial availability, per-game TOI and current jersey/position semantics remain
+explicit. All supported scoped filters/order/pagination preserve URL state; no team
+facets/ranges are guessed from a page or borrowed from public Players metadata.
+
+Validated directory → team → typed profile → team navigation preserves applied
+season/type/mode/filter/page context; existing catalogue profile returns continue.
+Public authentication returns accept team routes. Browser context never enters API
+queries and resource/pagination URLs are not followed. Deadline/cancellation/stale
+response boundaries prevent old rows replacing a new team. Contribution failures
+keep confirmed metadata visible and offer explicit recovery. Wide tables fit mobile
+pages inside keyboard-focusable scroll regions.
+
+Validation: 289 frontend tests and 88 pinned Chromium desktop/mobile cases pass.
+Type/lint/format, production build and generated-client drift checks pass. Synthetic
+fixtures and intercepted/local APIs cover traded team values versus overall profile
+values, goalie/skater modes, historical/empty metadata, null/zero, filters, context,
+reload/back, errors, stale reads and deadlines without application DB, real accounts,
+email, loaders or NHL calls. No backend/schema, dependency, migration or Python
+coverage scope changed; the full Python baseline was not remeasured. The working
+tree/index was clean after gamelog commit `e85f343` before edits began.
+
+Next implement private Favorites UI with session-aware loading and identity/
+ownership/cache invalidation, then comparison and private notes/positions. Account
+settings/preferences, uploads/search, saved-video presentation, visual design and
+production route cutover remain later focused work.
