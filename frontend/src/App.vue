@@ -2,11 +2,16 @@
 import { inject, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 
+import { resetLinkKey } from './auth/resetLink.js';
 import { sessionKey } from './auth/session.js';
 import SessionControls from './components/SessionControls.vue';
 
 const session = inject(sessionKey, null);
-onBeforeUnmount(() => session?.dispose());
+const resetLink = inject(resetLinkKey, null);
+onBeforeUnmount(() => {
+  session?.dispose();
+  resetLink?.clear();
+});
 const route = useRoute();
 const main = ref<HTMLElement | null>(null);
 // Preserve keyboard context after client-side navigation, without scrolling again.
@@ -32,7 +37,7 @@ watch(
     </div>
   </header>
   <main id="main-content" ref="main" class="container main-content" tabindex="-1">
-    <RouterView />
+    <RouterView :key="route.name === 'recover-password' ? resetLink?.version.value : undefined" />
   </main>
   <footer class="container site-footer">NHL games and player statistics</footer>
 </template>

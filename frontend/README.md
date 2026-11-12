@@ -11,7 +11,8 @@ last-check feedback. [Sign-in](../docs/vue-session-auth.md) at `/login` shares
 Django sessions, with header identity/logout, safe return navigation and CSRF
 rotation/reconciliation. [Registration](../docs/vue-registration.md) at `/register`
 shows validation and explicit sign-in confirmation without switching the caller
-session.
+session. [Password recovery](../docs/vue-password-recovery.md) uses `/password-reset`
+and `/recover-password/`, with fragment secrets scrubbed before router creation.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

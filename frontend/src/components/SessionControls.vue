@@ -8,7 +8,14 @@ const session = useSession();
 const route = useRoute();
 const router = useRouter();
 const returnTo = computed(() =>
-  route.name === 'register' ? safeReturnLocation(route.query.returnTo, router) : route.fullPath,
+  ['register', 'password-reset', 'recover-password'].includes(String(route.name))
+    ? safeReturnLocation(route.query.returnTo, router)
+    : route.fullPath,
+);
+const recoveryPending = computed(
+  () =>
+    !!session.activeAction.value?.startsWith('reset-') &&
+    !['password-reset', 'recover-password'].includes(String(route.name)),
 );
 const signIn = computed(() => ({ name: 'login', query: { returnTo: returnTo.value } }));
 </script>
@@ -20,7 +27,8 @@ const signIn = computed(() => ({ name: 'login', query: { returnTo: returnTo.valu
       session.user.value ||
       route.name !== 'login' ||
       session.issue.value?.action === 'logout' ||
-      session.activeAction.value === 'register'
+      session.activeAction.value === 'register' ||
+      recoveryPending
     "
     class="session-controls"
     aria-label="Sign-in status"
@@ -50,6 +58,7 @@ const signIn = computed(() => ({ name: 'login', query: { returnTo: returnTo.valu
     <p v-if="session.activeAction.value === 'register' && route.name !== 'register'" role="status">
       Creating account…
     </p>
+    <p v-if="recoveryPending" role="status">Password recovery request in progress…</p>
     <p v-if="session.activeAction.value === 'logout'" role="status">Signing out…</p>
     <p v-if="session.issue.value?.action === 'logout'" role="status">
       {{ session.issue.value.message }}

@@ -5,25 +5,40 @@ import {
   authLoginCreate,
   authLogoutCreate,
   authRegisterCreate,
+  authPasswordResetCreate,
+  authPasswordResetValidateCreate,
+  authPasswordResetConfirmCreate,
   authSessionRetrieve,
   createApiClient,
   type SessionResponse,
   type RegistrationCredentialsRequest,
   type RegistrationResponse,
+  type PasswordRecoveryRequestRequest,
+  type ResetLinkRequest,
+  type NewPasswordRequest,
   type SessionUser,
 } from '../api/index.js';
-import type { ApiClientOptions } from '../api/http.js';
+import type { ApiClient, ApiClientOptions } from '../api/http.js';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 10_000;
 const HTTP_CREATED = 201;
-type Action = 'login' | 'logout' | 'register' | 'check';
+type RecoveryAction = 'reset-request' | 'reset-validate' | 'reset-confirm';
+type Action = 'login' | 'logout' | 'register' | 'check' | RecoveryAction;
 export type SessionIssue = {
   action: Action;
+  code?: string;
   message: string;
   reference: string | null;
   fields: Partial<
     Record<
-      'username' | 'password' | 'email' | 'password1' | 'password2' | 'non_field_errors',
+      | 'username'
+      | 'password'
+      | 'email'
+      | 'password1'
+      | 'password2'
+      | 'non_field_errors'
+      | 'new_password1'
+      | 'new_password2',
       string[]
     >
   >;
@@ -283,6 +298,86 @@ export function createSession(options: ApiClientOptions = {}) {
       activeAction.value = null;
     }
   }
+  async function recover<T>(
+    action: RecoveryAction,
+    request: (requestClient: ApiClient, signal: AbortSignal) => Promise<T>,
+    valid: (data: T) => boolean,
+  ): Promise<T | null> {
+    if (busy.value || disposed) return null;
+    busy.value = true;
+    activeAction.value = action;
+    issue.value = null;
+    try {
+      if (status.value !== 'ready' || !client.getCsrfToken()) {
+        if (!(await reconcile())) {
+          if (!disposed)
+            issue.value = {
+              action,
+              code: 'session_unavailable',
+              message: 'Check your session before continuing password recovery.',
+              reference: null,
+              fields: {},
+            };
+          return null;
+        }
+      }
+      const requestClient = createApiClient(options);
+      requestClient.setCsrfToken(client.getCsrfToken());
+      const data = await bounded((signal) => request(requestClient, signal));
+      if (!valid(data)) throw new Error('Unexpected password recovery result');
+      // Reset can invalidate this browser's target session. Confirmation is still
+      // known successful even if the following session read is unavailable.
+      if (action === 'reset-confirm') await reconcile();
+      return disposed ? null : data;
+    } catch (failure) {
+      if (disposed) return null;
+      const apiError = failure instanceof ApiError ? failure : null;
+      const code = apiError?.body.error.code;
+      const fields: SessionIssue['fields'] = {};
+      if (code === 'invalid_parameters') {
+        const allowed =
+          action === 'reset-request'
+            ? (['email', 'non_field_errors'] as const)
+            : (['new_password1', 'new_password2', 'non_field_errors'] as const);
+        for (const field of allowed) {
+          const messages = apiError?.body.error.fields?.[field];
+          if (Array.isArray(messages))
+            fields[field] = messages.filter(
+              (message): message is string => typeof message === 'string',
+            );
+        }
+      } else if (code !== 'invalid_reset_token' && code !== 'password_reset_unavailable') {
+        // Reconcile the caller only. Never retry mail or password-changing POSTs.
+        await reconcile();
+      }
+      if (disposed) return null;
+      const message =
+        code === 'invalid_reset_token'
+          ? 'This reset link is invalid or no longer available.'
+          : code === 'password_reset_unavailable'
+            ? 'Password recovery is currently unavailable. Please try later.'
+            : code === 'invalid_parameters'
+              ? 'Check the recovery fields below.'
+              : code === 'csrf_failed'
+                ? 'Your session changed. Review your sign-in status and submit again if needed.'
+                : action === 'reset-request'
+                  ? 'The request could not be confirmed. Check your email before choosing to send another request.'
+                  : action === 'reset-validate'
+                    ? 'Unable to check this reset link. Please try again.'
+                    : 'Password change could not be confirmed. Try signing in before checking this link or requesting another.';
+      issue.value = {
+        action,
+        code: code ?? 'unconfirmed',
+        message,
+        reference: apiError?.requestId ?? null,
+        fields,
+      };
+      return null;
+    } finally {
+      busy.value = false;
+      activeAction.value = null;
+    }
+  }
   function dispose() {
     disposed = true;
     pending?.abort();
@@ -300,6 +395,33 @@ export function createSession(options: ApiClientOptions = {}) {
     revision: readonly(revision),
     checkSession,
     register,
+    requestPasswordReset: (body: PasswordRecoveryRequestRequest) =>
+      recover(
+        'reset-request',
+        (requestClient, signal) =>
+          authPasswordResetCreate({ client: requestClient, body, signal }).then(
+            (result) => result.data,
+          ),
+        (data) => data.accepted === true,
+      ),
+    validatePasswordReset: (body: ResetLinkRequest) =>
+      recover(
+        'reset-validate',
+        (requestClient, signal) =>
+          authPasswordResetValidateCreate({ client: requestClient, body, signal }).then(
+            (result) => result.data,
+          ),
+        (data) => data.valid === true,
+      ),
+    confirmPasswordReset: (body: NewPasswordRequest) =>
+      recover(
+        'reset-confirm',
+        (requestClient, signal) =>
+          authPasswordResetConfirmCreate({ client: requestClient, body, signal }).then(
+            (result) => result.data,
+          ),
+        (data) => data.password_reset === true && data.login_required === true,
+      ),
     login: (credentials: { username: string; password: string }) => mutate('login', credentials),
     logout: () => mutate('logout'),
     dispose,

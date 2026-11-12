@@ -71,6 +71,6 @@ uncertain creation and exact return URL context. Synthetic fixtures/intercepted 
 use no real accounts, database, email service or NHL requests; backend tests already
 cover real form/password/profile persistence and concurrent usernames separately.
 
-Next implement password-reset request and confirmation UI through the existing
-recovery endpoints. No dependency, schema, migration, loader or Python coverage-scope
+[Password-reset request and confirmation UI](vue-password-recovery.md) are now
+implemented through the existing recovery endpoints. Season/player tables are next. No dependency, schema, migration, loader or Python coverage-scope
 change is needed for this registration slice. Production cutover remains separate.

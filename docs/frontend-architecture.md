@@ -250,3 +250,14 @@ reconciliation and an explicit sign-in handoff. Creating another account does no
 replace the caller's identity/token or silently sign in. Desktop/mobile and
 component regressions cover the workflow. Password-reset request/confirmation UI
 is the next focused slice; deployment cutover remains separate.
+
+
+## Implemented password-recovery UI
+
+[Vue password recovery](vue-password-recovery.md) completes the auth UI phase with
+generic email acknowledgement, transient fragment capture before routing,
+non-consuming validation, correctable password fields and explicit post-reset
+sign-in. Session reconciliation and uncertain-write handling never replay mail or
+password changes. Desktop/mobile regressions cover URL/history/storage privacy,
+reload and same-document links. Next implement the season-scoped Players catalogue;
+production mail/rate-limit activation and route cutover remain separate.

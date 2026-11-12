@@ -39,21 +39,23 @@ path other than `/`. HTTPS is required except DEBUG development loopback HTTP,
 such as `http://localhost:8000`. No link origin is derived from request Host,
 forwarded headers or body/query fields.
 
-Leave `PASSWORD_RESET_FRONTEND_PATH` empty during the current migration. Emails
+Keep `PASSWORD_RESET_FRONTEND_PATH` empty until the Vue build is actually served
+at the configured trusted origin. The [Vue recovery routes](vue-password-recovery.md)
+now exist, but their deployment activation is separate. Emails
 then link to the existing HTML reset-confirm page under the configured origin,
 which still completes the recovery workflow. Its Django token-to-session exchange
 removes the raw token from the displayed form URL before rendering the form.
 
-When the Vue route exists, set an absolute path only, for example:
+When activating the served Vue confirmation route, set its absolute path:
 
 ```dotenv
 PASSWORD_RESET_FRONTEND_PATH=/recover-password/
 ```
 
 The resulting link is `https://stats.example.com/recover-password/#uidb64=...&token=...`.
-The fragment is not transmitted in the HTTP request. The future frontend should
-read it into transient memory, remove it from browser navigation state and submit
-the API requests with JSON bodies. Protocol-relative paths, backslashes, query or
+The fragment is not transmitted in the HTTP request. The Vue frontend reads it into transient memory, removes it from browser
+navigation state before router creation and submits the API requests with JSON
+bodies. Reloading the cleaned URL requires reopening the email link. Protocol-relative paths, backslashes, query or
 fragment configuration are rejected. Existing HTML mail requests retain their
 Django behavior; the trusted-origin rule above applies to the new JSON mail route.
 

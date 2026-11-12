@@ -1524,3 +1524,32 @@ files were edited only after their commit (`983daa7`) succeeded.
 Next implement password-reset request and confirmation UI through the existing
 recovery endpoints. Protected-resource integration, production auth/rate limits and
 route cutover remain separate migration/deployment work.
+
+## Vue password recovery UI
+
+Implemented [password recovery](vue-password-recovery.md) through the existing
+request, validation and confirmation APIs. Requests show the same conditional
+acknowledgement for known and unknown accounts. Confirmation validates the link,
+shows correctable password errors, clears submitted passwords and requires explicit
+sign-in after success. Successful confirmation rechecks the browser session.
+
+Reset fragments are captured and scrubbed before router creation; subsequent
+same-document reset links are also captured and scrubbed. UID/token values stay
+in transient memory and POST bodies, outside navigation state, links and browser
+storage. Leaving the view or reloading requires reopening the email link.
+Recovery shares the auth action lock/deadline. Failed or uncertain mutations are
+never automatically replayed; an uncertain confirmation offers explicit sign-in
+or non-consuming link validation without inferring success.
+
+Validation: 166 frontend tests and 58 pinned Chromium desktop/mobile cases pass.
+Type/lint/format/build, generated-client/schema drift, Python static and requirements
+export checks pass. Tests use synthetic fixtures and intercepted APIs, without
+application records, email delivery or NHL calls. No backend/schema, dependency,
+migration or Python coverage scope changed; the Python baseline was not remeasured.
+Previously staged auth/router files were edited only after registration commit
+`2a31f9f` succeeded. Frontend reset-link activation remains an explicit server
+configuration step once the route is served at the trusted public origin.
+
+Next implement the season-scoped Players catalogue with filter metadata, sorting,
+pagination and URL state. Protected screens and production route cutover remain
+later migration/deployment work.

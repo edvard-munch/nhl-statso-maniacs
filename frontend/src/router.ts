@@ -5,13 +5,31 @@ import GameDetailView from './views/GameDetailView.vue';
 import NotFoundView from './views/NotFoundView.vue';
 import LoginView from './views/LoginView.vue';
 import RegisterView from './views/RegisterView.vue';
+import PasswordResetRequestView from './views/PasswordResetRequestView.vue';
+import PasswordResetConfirmView from './views/PasswordResetConfirmView.vue';
+import { RECOVERY_PATH, captureResetLink, type ResetLinkSlot } from './auth/resetLink.js';
 
 export const SITE_TITLE = 'NHL Statso Maniacs';
 
-export function createAppRouter(history: RouterHistory = createWebHistory()) {
+export function createAppRouter(
+  history: RouterHistory = createWebHistory(),
+  resetLink?: ResetLinkSlot,
+) {
   const router = createRouter({
     history,
     routes: [
+      {
+        path: '/password-reset',
+        name: 'password-reset',
+        component: PasswordResetRequestView,
+        meta: { title: 'Reset password' },
+      },
+      {
+        path: RECOVERY_PATH,
+        name: 'recover-password',
+        component: PasswordResetConfirmView,
+        meta: { title: 'Choose a new password' },
+      },
       { path: '/', name: 'home', component: HomeView, meta: { title: 'Home' } },
       { path: '/login', name: 'login', component: LoginView, meta: { title: 'Sign in' } },
       {
@@ -36,6 +54,22 @@ export function createAppRouter(history: RouterHistory = createWebHistory()) {
     ],
     scrollBehavior: () => ({ top: 0 }),
   });
+  if (resetLink)
+    router.beforeEach((to) => {
+      if (!to.hash && !Object.keys(to.query).length) return;
+      let clean: string | null = null;
+      const captured = captureResetLink(
+        new URL(to.fullPath, window.location.origin).href,
+        (path) => {
+          clean = path;
+          history.replace(path, { back: null, current: path, forward: null });
+        },
+      );
+      if (clean !== null) {
+        resetLink.replace(captured);
+        return { path: clean, replace: true };
+      }
+    });
   router.afterEach((to) => {
     document.title = `${to.meta.title} | ${SITE_TITLE}`;
   });
