@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { RouterLink, useRoute } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
+import { safeReturnLocation } from '../auth/returnLocation.js';
 import { useSession } from '../auth/session.js';
 
 const session = useSession();
 const route = useRoute();
-const signIn = computed(() => ({ name: 'login', query: { returnTo: route.fullPath } }));
+const router = useRouter();
+const returnTo = computed(() =>
+  route.name === 'register' ? safeReturnLocation(route.query.returnTo, router) : route.fullPath,
+);
+const signIn = computed(() => ({ name: 'login', query: { returnTo: returnTo.value } }));
 </script>
 
 <template>
@@ -14,7 +19,8 @@ const signIn = computed(() => ({ name: 'login', query: { returnTo: route.fullPat
       session.status.value !== 'ready' ||
       session.user.value ||
       route.name !== 'login' ||
-      session.issue.value?.action === 'logout'
+      session.issue.value?.action === 'logout' ||
+      session.activeAction.value === 'register'
     "
     class="session-controls"
     aria-label="Sign-in status"
@@ -32,9 +38,18 @@ const signIn = computed(() => ({ name: 'login', query: { returnTo: route.fullPat
         Sign out
       </button>
     </template>
-    <RouterLink v-else-if="route.name !== 'login'" class="action-link" :to="signIn"
-      >Sign in</RouterLink
-    >
+    <template v-else-if="route.name !== 'login'">
+      <RouterLink class="action-link" :to="signIn">Sign in</RouterLink>
+      <RouterLink
+        v-if="route.name !== 'register'"
+        class="action-link"
+        :to="{ name: 'register', query: { returnTo } }"
+        >Create account</RouterLink
+      >
+    </template>
+    <p v-if="session.activeAction.value === 'register' && route.name !== 'register'" role="status">
+      Creating account…
+    </p>
     <p v-if="session.activeAction.value === 'logout'" role="status">Signing out…</p>
     <p v-if="session.issue.value?.action === 'logout'" role="status">
       {{ session.issue.value.message }}

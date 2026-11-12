@@ -308,6 +308,7 @@ button[aria-disabled='true'] {
 }
 .login-view {
   max-width: 34rem;
+  overflow-wrap: anywhere;
 }
 .login-form {
   display: grid;

@@ -240,3 +240,13 @@ No mutations are automatically replayed. Tokens remain in memory, while app-owne
 identity/revision state provides a boundary for later private views. Public routes
 stay usable; next implement registration UI, then password recovery. Production
 route/auth activation decisions remain separate.
+
+
+## Implemented registration UI
+
+[Vue registration](vue-registration.md) now uses the existing API at `/register`,
+with typed field errors, shared auth action serialization, uncertain-result
+reconciliation and an explicit sign-in handoff. Creating another account does not
+replace the caller's identity/token or silently sign in. Desktop/mobile and
+component regressions cover the workflow. Password-reset request/confirmation UI
+is the next focused slice; deployment cutover remains separate.

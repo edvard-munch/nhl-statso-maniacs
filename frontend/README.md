@@ -9,7 +9,9 @@ and game statistics with scrollable mobile tables. Both views include
 [automatic saved-data refresh](../docs/vue-refresh.md), pause/manual controls and
 last-check feedback. [Sign-in](../docs/vue-session-auth.md) at `/login` shares
 Django sessions, with header identity/logout, safe return navigation and CSRF
-rotation/reconciliation.
+rotation/reconciliation. [Registration](../docs/vue-registration.md) at `/register`
+shows validation and explicit sign-in confirmation without switching the caller
+session.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

@@ -83,6 +83,6 @@ or claim its wire mocks replace backend security tests. Dependencies/schema,
 migrations and Python coverage scope are unchanged. Production auth/rate-limit
 activation and route cutover remain separate deployment decisions.
 
-Next add the registration UI using the existing typed registration API, then the
-password-recovery UI. Owned-resource screens/guards, account settings and private
+[Registration UI](vue-registration.md) is now implemented with shared action
+serialization and caller-session preservation. Password-recovery UI is next. Owned-resource screens/guards, account settings and private
 cache invalidation integrate with this foundation in their own migration slices.

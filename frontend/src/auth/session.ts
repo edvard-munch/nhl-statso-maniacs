@@ -4,20 +4,29 @@ import {
   authCsrfRetrieve,
   authLoginCreate,
   authLogoutCreate,
+  authRegisterCreate,
   authSessionRetrieve,
   createApiClient,
   type SessionResponse,
+  type RegistrationCredentialsRequest,
+  type RegistrationResponse,
   type SessionUser,
 } from '../api/index.js';
 import type { ApiClientOptions } from '../api/http.js';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 10_000;
-type Action = 'login' | 'logout' | 'check';
+const HTTP_CREATED = 201;
+type Action = 'login' | 'logout' | 'register' | 'check';
 export type SessionIssue = {
   action: Action;
   message: string;
   reference: string | null;
-  fields: { username?: string[]; password?: string[] };
+  fields: Partial<
+    Record<
+      'username' | 'password' | 'email' | 'password1' | 'password2' | 'non_field_errors',
+      string[]
+    >
+  >;
 };
 
 function validateIdentity(value: SessionResponse): SessionUser | null {
@@ -194,6 +203,86 @@ export function createSession(options: ApiClientOptions = {}) {
       activeAction.value = null;
     }
   }
+  async function register(
+    credentials: RegistrationCredentialsRequest,
+  ): Promise<RegistrationResponse | null> {
+    if (busy.value || disposed) return null;
+    busy.value = true;
+    activeAction.value = 'register';
+    issue.value = null;
+    try {
+      if (status.value !== 'ready' || !client.getCsrfToken()) {
+        if (!(await reconcile())) {
+          if (!disposed)
+            issue.value = {
+              action: 'register',
+              message:
+                'Unable to check sign-in status. Check your session before creating an account.',
+              reference: null,
+              fields: {},
+            };
+          return null;
+        }
+      }
+      const requestClient = createApiClient(options);
+      requestClient.setCsrfToken(client.getCsrfToken());
+      const response = await bounded((signal) =>
+        authRegisterCreate({ client: requestClient, body: credentials, signal }),
+      );
+      if (response.response.status !== HTTP_CREATED)
+        throw new Error('Unexpected registration status');
+      const data = response.data;
+      const created = validateIdentity({ authenticated: true, user: data.user });
+      if (data.login_required !== true || !created)
+        throw new Error('Unexpected registration result');
+      // This identity is the NEW account, never the caller's session identity.
+      // Registration does not rotate CSRF or sign in; do not call accept().
+      return { user: created, login_required: true };
+    } catch (failure) {
+      if (disposed) return null;
+      const apiError = failure instanceof ApiError ? failure : null;
+      if (apiError?.body.error.code === 'invalid_parameters') {
+        const fields: SessionIssue['fields'] = {};
+        for (const field of [
+          'username',
+          'email',
+          'password1',
+          'password2',
+          'non_field_errors',
+        ] as const) {
+          const messages = apiError.body.error.fields?.[field];
+          if (Array.isArray(messages))
+            fields[field] = messages.filter(
+              (message): message is string => typeof message === 'string',
+            );
+        }
+        issue.value = {
+          action: 'register',
+          message: 'Check the registration fields below.',
+          reference: apiError.requestId,
+          fields,
+        };
+      } else {
+        // A lost response can hide successful creation. Reconcile ONLY the caller's
+        // session and token; never resubmit registration or infer account creation.
+        await reconcile();
+        if (!disposed)
+          issue.value = {
+            action: 'register',
+            message:
+              apiError?.body.error.code === 'csrf_failed'
+                ? 'Your session changed. Review your sign-in status and submit again if needed.'
+                : 'Account creation could not be confirmed. Check whether you can sign in before trying to create this account again.',
+            reference: apiError?.requestId ?? null,
+            fields: {},
+          };
+      }
+      return null;
+    } finally {
+      busy.value = false;
+      activeAction.value = null;
+    }
+  }
   function dispose() {
     disposed = true;
     pending?.abort();
@@ -210,6 +299,7 @@ export function createSession(options: ApiClientOptions = {}) {
     issue: readonly(issue),
     revision: readonly(revision),
     checkSession,
+    register,
     login: (credentials: { username: string; password: string }) => mutate('login', credentials),
     logout: () => mutate('logout'),
     dispose,

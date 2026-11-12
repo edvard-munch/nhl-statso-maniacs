@@ -110,6 +110,15 @@ regressions run alongside these contracts.
 
 Implementation under `users` and `nhl_web_app.api` is outside the existing
 `players` coverage percentage; these contracts are tested explicitly. Registration
-adds no dependencies, migrations, loader writes or frontend implementation.
-[Password recovery](password-recovery-api.md) is implemented separately; account
-and owned-resource APIs remain later work.
+originally added no dependencies, migrations or loader writes; the Vue client
+below now consumes it. [Password recovery](password-recovery-api.md) is implemented
+separately; its Vue screens follow registration.
+
+
+## Vue client
+
+The [Vue registration form](vue-registration.md) now consumes this endpoint through
+the generated SDK. It preserves field validation, exact passwords and caller
+identity/token state, requires explicit sign-in after confirmed creation, and never
+automatically replays an uncertain creation request. Frontend mocks supplement the
+isolated backend persistence/concurrency tests without changing registration policy.

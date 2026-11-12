@@ -1488,3 +1488,39 @@ Next implement registration UI against the existing API, preserving explicit
 login-required behavior, then password recovery. Protected screens and their cache/
 403 handling remain later integration work. Production auth/rate-limit activation
 and route cutover remain separate deployment decisions.
+
+## Vue registration UI
+
+Implemented [registration](vue-registration.md) at `/register` through the existing
+typed API, with header/login entry links and preserved public return context.
+Four labelled fields expose the backend's field/non-field errors. Exact passwords
+are preserved in requests and both clear after submitted attempts; username/email
+stay available for correction and clear on success/unmount. Long valid usernames
+wrap within mobile confirmation layouts.
+
+Registration shares the auth action lock and deadline. Only valid 201 creation
+with `login_required: true` produces confirmation. The created identity never
+replaces the caller, rotates its token or triggers automatic sign-in. Anonymous
+callers remain anonymous and signed-in callers retain their identity/revision.
+Confirmation offers explicit sign-in using the preserved public destination.
+
+CSRF failures reconcile the caller's token/session without resubmitting creation.
+Lost/timed-out/unexpected responses remain uncertain and suggest checking sign-in
+before attempting creation again. The UI never infers account existence or replays
+a potentially successful creation request. Unmounted forms suppress late local
+confirmation, and disposed sessions suppress late results. Backend persistence,
+password policy, non-unique email and username concurrency rules remain unchanged.
+
+Validation: 136 frontend tests and 46 pinned Chromium desktop/mobile cases pass,
+including field recovery, caller preservation, explicit sign-in handoff, CSRF and
+lost-response handling. A targeted browser recheck verifies an unbroken valid
+144-character username without page overflow. Type/lint/format/build, schema/client
+drift, Python static and requirements export checks pass. Tests use synthetic
+fixtures/intercepted APIs, not real accounts, application DB, email or NHL services.
+No backend/schema, dependencies, migrations or Python coverage scope changed; the
+full Python baseline was not remeasured. Previously staged session/router/header
+files were edited only after their commit (`983daa7`) succeeded.
+
+Next implement password-reset request and confirmation UI through the existing
+recovery endpoints. Protected-resource integration, production auth/rate limits and
+route cutover remain separate migration/deployment work.

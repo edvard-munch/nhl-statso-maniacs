@@ -85,5 +85,8 @@ onBeforeUnmount(() => {
         Signing in…
       </p>
     </form>
+    <RouterLink class="action-link" :to="{ name: 'register', query: { returnTo } }"
+      >Create account</RouterLink
+    >
   </section>
 </template>
