@@ -285,8 +285,8 @@ Recommended focused commits, following the user's API-first preference:
 6. Vue/Vite/TypeScript scaffolding, same-origin dev proxy and frontend CI are
    implemented. The [scoreboard pilot](vue-scoreboard.md) now has desktop/mobile
    checks, and [game detail](vue-game-detail.md) is implemented. [Automatic refresh/
-   freshness interactions](vue-refresh.md) complete the pilot; session-auth UI
-   follows in focused commits.
+   freshness interactions](vue-refresh.md) complete the pilot; [session-auth UI](vue-session-auth.md)
+   is now implemented. Registration and recovery UI follow in focused commits.
 
 Do not select a generator merely because it emits TypeScript. Verify enum/null and
 polymorphic-statistics handling, session cookies/CSRF, typed 403 errors, multipart

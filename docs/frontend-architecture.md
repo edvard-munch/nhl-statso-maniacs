@@ -229,3 +229,14 @@ manual/pause controls and distinct save/check/state-observation semantics are
 covered by component/browser regressions. Legacy Django refresh behavior remains
 operational. Next follow the recorded session/CSRF/login/logout UI phase, then
 registration/recovery and Players tables; deployment cutover remains separate.
+
+
+## Implemented session-auth UI foundation
+
+The [Vue sign-in workflow](vue-session-auth.md) now bootstraps CSRF/session state,
+renders shared header identity and supports login/logout with exact credentials,
+token rotation, safe local returns and read-only reconciliation of uncertain POSTs.
+No mutations are automatically replayed. Tokens remain in memory, while app-owned
+identity/revision state provides a boundary for later private views. Public routes
+stay usable; next implement registration UI, then password recovery. Production
+route/auth activation decisions remain separate.

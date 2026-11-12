@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures.js';
 import { gameDetail } from '../tests/fixtures/game-detail.js';
 import { game, gameDates, games } from '../tests/fixtures/scoreboard.js';
 
@@ -19,6 +19,7 @@ test('polls the selected scoreboard page without changing the date draft, focus 
     return route.fulfill({ json: games('2026-11-12', [game({ home_score: checks > 1 ? 4 : 2 })]) });
   });
   await page.goto('/games?date=2026-11-12&page=2');
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   await expect(page.getByLabel('Home score: 2', { exact: true })).toBeVisible();
   const draft = page.getByLabel('Schedule date', { exact: true });
   await draft.fill('2026-11-14');
@@ -60,6 +61,7 @@ test('retains roster focus and scroll through failed checks, then allows manual 
     return route.fulfill({ json: data });
   });
   await page.goto('/games/2026020001');
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   const controls = page.getByRole('region', { name: 'Saved data refresh', exact: true });
   const region = page.getByRole('region', { name: 'Away forwards', exact: true });
   await expect(region).toBeVisible();
@@ -103,6 +105,7 @@ test('pauses hidden and offline tabs and checks once when they return', async ({
     return route.fulfill({ json: gameDetail() });
   });
   await page.goto('/games/2026020001');
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
   await expect(page.getByRole('table', { name: 'Away forwards', exact: true })).toBeVisible();
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'hidden' });

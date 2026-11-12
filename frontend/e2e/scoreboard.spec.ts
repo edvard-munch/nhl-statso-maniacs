@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Page } from './fixtures.js';
 import { gameDates, games, game } from '../tests/fixtures/scoreboard.js';
 
 test.use({ timezoneId: 'America/Los_Angeles' });

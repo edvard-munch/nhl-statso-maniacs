@@ -290,3 +290,41 @@ button[aria-disabled='true'] {
   cursor: default;
   opacity: 0.55;
 }
+
+.session-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.session-controls p {
+  margin: 0;
+}
+.session-identity {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.login-view {
+  max-width: 34rem;
+}
+.login-form {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 1.5rem;
+}
+.login-form label {
+  font-weight: 600;
+}
+.login-form input {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--touch-target);
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #9bafc2;
+  border-radius: 0.3rem;
+}
+.login-form button {
+  justify-self: start;
+}

@@ -7,7 +7,9 @@ date selection, navigation, pagination and error recovery.
 [Game details](../docs/vue-game-detail.md) at `/games/{nhl_id}` show saved rosters
 and game statistics with scrollable mobile tables. Both views include
 [automatic saved-data refresh](../docs/vue-refresh.md), pause/manual controls and
-last-check feedback.
+last-check feedback. [Sign-in](../docs/vue-session-auth.md) at `/login` shares
+Django sessions, with header identity/logout, safe return navigation and CSRF
+rotation/reconciliation.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally
@@ -53,7 +55,7 @@ custom storage/media URLs need their own routing configuration before integratio
 The proxy is for development only. Sessions/cookies from a production host are
 not local development sessions. HTTPS-only local cookie settings require a matching
 HTTPS development setup; do not weaken deployed settings to support local HTTP.
-The home shell fetches no app data; `/games` reads the saved-game APIs. API usage follows the
+App startup reads CSRF/session state; `/games` reads the saved-game APIs. API usage follows the
 [generated client workflow](../docs/typescript-client.md).
 
 ## Checks and build

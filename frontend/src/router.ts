@@ -3,6 +3,7 @@ import HomeView from './views/HomeView.vue';
 import ScoreboardView from './views/ScoreboardView.vue';
 import GameDetailView from './views/GameDetailView.vue';
 import NotFoundView from './views/NotFoundView.vue';
+import LoginView from './views/LoginView.vue';
 
 export const SITE_TITLE = 'NHL Statso Maniacs';
 
@@ -11,6 +12,7 @@ export function createAppRouter(history: RouterHistory = createWebHistory()) {
     history,
     routes: [
       { path: '/', name: 'home', component: HomeView, meta: { title: 'Home' } },
+      { path: '/login', name: 'login', component: LoginView, meta: { title: 'Sign in' } },
       { path: '/games', name: 'games', component: ScoreboardView, meta: { title: 'Games' } },
       {
         path: '/games/:nhlId',

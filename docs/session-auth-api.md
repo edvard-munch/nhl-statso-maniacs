@@ -125,3 +125,12 @@ measures `players` and does not include these new modules in that percentage.
 Their lifecycle/security contracts are exercised explicitly. Registration uses
 this foundation, as does password recovery. `/me/` settings and owned-resource
 endpoints are still pending.
+
+
+## Vue client
+
+The [Vue session-auth UI](vue-session-auth.md) now consumes these routes through
+the generated SDK, including CSRF/session initialization, header identity,
+login/logout, safe local return navigation and read-only recovery of uncertain
+responses. Frontend wire mocks supplement the isolated backend security tests;
+registration/recovery screens follow separately.

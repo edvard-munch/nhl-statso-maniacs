@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue';
+import { inject, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 
+import { sessionKey } from './auth/session.js';
+import SessionControls from './components/SessionControls.vue';
+
+const session = inject(sessionKey, null);
+onBeforeUnmount(() => session?.dispose());
 const route = useRoute();
 const main = ref<HTMLElement | null>(null);
 // Preserve keyboard context after client-side navigation, without scrolling again.
@@ -23,6 +28,7 @@ watch(
         <RouterLink to="/" exact-active-class="current-page">Home</RouterLink>
         <RouterLink to="/games" exact-active-class="current-page">Games</RouterLink>
       </nav>
+      <SessionControls v-if="session" />
     </div>
   </header>
   <main id="main-content" ref="main" class="container main-content" tabindex="-1">

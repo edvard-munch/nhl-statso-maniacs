@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures.js';
 
 test('built shell fits the viewport and keyboard users can skip navigation', async ({ page }) => {
   const errors: string[] = [];

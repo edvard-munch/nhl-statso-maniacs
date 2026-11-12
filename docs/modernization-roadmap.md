@@ -1455,3 +1455,36 @@ scope changed; the full Python baseline was not remeasured for this frontend sli
 The scoreboard/game pilot is complete for this phase. Follow the recorded next
 phase: Vue session/CSRF bootstrap and login/logout, then registration/recovery and
 season/player tables. Production route cutover and legacy retirement remain separate.
+
+## Vue session/CSRF and login/logout UI
+
+Implemented the [session-auth UI foundation](vue-session-auth.md) after confirming
+`1277898` was committed with a clean tree. Application startup sequentially reads
+CSRF bootstrap and session discovery through the generated SDK. Header identity,
+anonymous sign-in and explicit unavailable/check-session states use app-owned,
+in-memory state; `/login` provides labelled credentials, field/generic errors and
+safe local return navigation. Header logout remains on the current public route.
+
+Successful POSTs publish validated identity and rotated tokens. Exact passwords
+are never trimmed or put into URLs/storage; form state clears after attempts and
+unmount. Actions serialize and have ten-second deadlines. Unknown mutation results
+and CSRF failures trigger read-only reconciliation, not POST replay. Late responses
+cannot resurrect identity/tokens after disposal. Identity/revision changes provide
+an invalidation boundary for later private resources, without adding private caches
+or flags to public views. An unmounted form cannot redirect a later navigation.
+
+Validation: 119 frontend tests and 36 pinned Chromium desktop/mobile cases pass.
+Checks cover discovery order/expiry, HttpOnly-compatible cookies, token rotation,
+account switching, generic/field errors, duplicate-submit prevention, lost/timed-out
+mutation readback, stale-token disposal, safe returns and navigation. Existing public
+browser fixtures explicitly initialize anonymous session state. Type/lint/format,
+production build, schema/client drift, Python static and requirements export checks
+pass; desktop/mobile login/error layouts were inspected. Tests use synthetic
+credentials and intercepted APIs, never real accounts, application records or NHL.
+No backend/schema, dependency, migration or Python coverage scope changed; the full
+Python baseline was not remeasured for this frontend slice.
+
+Next implement registration UI against the existing API, preserving explicit
+login-required behavior, then password recovery. Protected screens and their cache/
+403 handling remain later integration work. Production auth/rate-limit activation
+and route cutover remain separate deployment decisions.
