@@ -59,6 +59,7 @@ const signIn = computed(() => ({ name: 'login', query: { returnTo: returnTo.valu
       Creating account…
     </p>
     <p v-if="recoveryPending" role="status">Password recovery request in progress…</p>
+    <p v-if="session.activeAction.value === 'private'" role="status">Updating saved player data…</p>
     <p v-if="session.activeAction.value === 'logout'" role="status">Signing out…</p>
     <p v-if="session.issue.value?.action === 'logout'" role="status">
       {{ session.issue.value.message }}

@@ -75,5 +75,7 @@ semantics remain covered by the existing isolated backend regression suite.
 The [verified saved gamelog frontend](vue-player-gamelogs.md) now offers selected-season
 and all-saved entry links, with game-detail navigation preserving profile/catalogue
 context. [Team screens](vue-teams.md) now provide saved metadata and scoped contributions.
-Saved-video presentation, private actions, measurement preferences, visual
+[Save to Favorites](vue-favorite-actions.md) now provides an explicit owner/CSRF-checked
+action on profiles without optimistic membership flags. Saved-video presentation,
+other private actions, measurement preferences, visual
 design and production cutover remain separate work.

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, inject, reactive, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { meFavoritesList } from '../api/index.js';
+import FavoriteActionButton from '../components/FavoriteActionButton.vue';
+import { favoriteActionsKey } from '../favorites/actions.js';
 import { useSession } from '../auth/session.js';
 import { usePrivateRead } from '../private/usePrivateRead.js';
 import { AVAILABILITY_LABELS } from '../games/presentation.js';
@@ -18,6 +20,7 @@ import {
 import { profileStatisticLabel } from '../players/profile.js';
 
 const PAGE_SIZES = [25, 50, 100];
+const actions = inject(favoriteActionsKey, null);
 const route = useRoute();
 const router = useRouter();
 const session = useSession();
@@ -60,6 +63,26 @@ watch(
   (season) => {
     if (resource.phase.value === 'ready' && route.query.season_id === undefined && season)
       void router.replace({ name: 'favorites', query: { ...route.query, season_id: season } });
+  },
+);
+watch(
+  [() => resource.phase.value, () => resource.httpStatus.value, () => actions?.notice.value],
+  () => {
+    const notice = actions?.notice.value;
+    if (
+      notice?.action === 'remove' &&
+      notice.desiredObserved &&
+      notice.owner === session.user.value?.id &&
+      notice.revision === session.revision.value &&
+      notice.source === route.fullPath &&
+      resource.phase.value === 'error' &&
+      resource.httpStatus.value === 404 &&
+      page.value > FIRST_PAGE
+    )
+      void router.replace({
+        name: 'favorites',
+        query: { ...route.query, page: String(FIRST_PAGE) },
+      });
   },
 );
 function apply() {
@@ -305,6 +328,7 @@ function sort(field: string) {
           <thead>
             <tr>
               <th scope="col">Player</th>
+              <th scope="col">Actions</th>
               <th scope="col">Season teams</th>
               <th scope="col">Position</th>
               <th scope="col">Nation</th>
@@ -351,6 +375,14 @@ function sort(field: string) {
                   >{{ player.name }}</RouterLink
                 >
               </th>
+              <td>
+                <FavoriteActionButton
+                  action="remove"
+                  :player-type="player.player_type"
+                  :nhl-id="player.nhl_id"
+                  :name="player.name"
+                />
+              </td>
               <td>{{ player.teams.map((team) => team.abbr).join(', ') || '—' }}</td>
               <td>{{ player.position_abbr || '—' }}</td>
               <td>{{ player.nation_abbr || '—' }}</td>

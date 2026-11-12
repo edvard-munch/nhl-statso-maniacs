@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { inject, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { inject, provide, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 
 import { resetLinkKey } from './auth/resetLink.js';
 import { sessionKey } from './auth/session.js';
 import SessionControls from './components/SessionControls.vue';
+import FavoriteActionNotice from './components/FavoriteActionNotice.vue';
+import { createFavoriteActions, favoriteActionsKey } from './favorites/actions.js';
 
 const session = inject(sessionKey, null);
+const favoriteActions = session ? createFavoriteActions(session) : null;
+if (favoriteActions) provide(favoriteActionsKey, favoriteActions);
 const resetLink = inject(resetLinkKey, null);
 onBeforeUnmount(() => {
+  favoriteActions?.dispose();
   session?.dispose();
   resetLink?.clear();
 });
@@ -40,6 +45,7 @@ watch(
     </div>
   </header>
   <main id="main-content" ref="main" class="container main-content" tabindex="-1">
+    <FavoriteActionNotice v-if="favoriteActions" />
     <RouterView :key="route.name === 'recover-password' ? resetLink?.version.value : undefined" />
   </main>
   <footer class="container site-footer">NHL games and player statistics</footer>

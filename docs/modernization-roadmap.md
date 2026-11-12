@@ -1737,3 +1737,43 @@ Next add explicit CSRF-protected Favorites PUT/DELETE actions with quota handlin
 and reconciliation of uncertain responses, extending this identity-bound foundation.
 Aggregated Favorites gamelogs, comparison and private fields, then account/preferences,
 search and production cutover remain following slices.
+
+## Vue explicit Favorites membership actions
+
+Implemented [profile Save and Favorites Remove](vue-favorite-actions.md) through
+the existing explicit PUT/DELETE API. The app-owned action store holds no public
+membership flags and does not toggle or optimistically change list/quota data.
+A generic session private-action lease verifies the initiating cookie identity and
+fresh CSRF, serializes with auth/other writes, bounds each network phase and discards
+outcomes for changed/unknown/disposed owners. Navigation remains available while
+header controls/additional writes are disabled.
+
+Known matching 200/201 PUT bodies and 204 DELETE acknowledgements have explicit
+feedback. Quota rejection and CSRF/auth failures remain safe/recoverable without
+replay. Full/over-limit counts do not disable idempotent saves or removals. Lost/
+time-out/malformed responses reverify owner and read one unfiltered typed Favorites
+page: presence can be observed, absence requires a complete coherent first-page
+population. Incomplete legacy over-limit data/read failures remain uncertain; no
+moving-page scan or automatic PUT/DELETE replay is performed.
+
+Private read invalidation reloads authoritative rows/quota after each attempt.
+App-owned notices survive removed-row/view unmount, remain owner/revision scoped
+and clear on later session changes. A confirmed/observed removal that invalidates
+the initiating page returns to page one with preserved filters. Existing private
+empty/filtered-state distinctions and public profile/team/catalogue navigation
+remain intact.
+
+Validation: 333 frontend tests and 108 pinned Chromium desktop/mobile cases pass.
+Type/lint/format, production build and generated-client drift checks pass. Synthetic
+fixtures/intercepted APIs cover owner/CSRF verification, typed/idempotent writes,
+quota limits, delayed/uncertain outcomes, incomplete/failed readback, deadline/auth
+serialization, disposal, navigation and last-row/page recovery without application
+DB, real accounts, email, loaders or NHL calls. Existing Favorites assertions were
+updated for the added Actions column. No backend/schema, dependency, migration or
+Python coverage scope changed; the full Python baseline was not remeasured.
+Previously staged read-foundation files were edited only after commit `1f0cffa`
+succeeded; preparation before that used new files only.
+
+Next implement the private aggregated Favorites gamelog, reusing the private read
+boundary and existing scoped API. Comparison, private notes/positions and subsequent
+account/preferences/search phases remain following slices.

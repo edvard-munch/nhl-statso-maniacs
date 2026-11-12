@@ -108,14 +108,14 @@ it('retains missing/unverified/zero-GP members and server quota counts without p
   expect(app.text()).toContain('First Missing Player');
   expect(app.text()).toContain('Unverified');
   const zero = app.findAll('tbody tr').find((row) => row.text().includes('First Zero Player'))!;
-  expect(zero.findAll('td')[4]!.text()).toBe('0');
+  expect(zero.findAll('td')[5]!.text()).toBe('0');
   const missing = app
     .findAll('tbody tr')
     .find((row) => row.text().includes('First Missing Player'))!;
   expect(
     missing
       .findAll('td')
-      .slice(4)
+      .slice(5)
       .every((cell) => cell.text() === '—'),
   ).toBe(true);
   expect(app.get('[aria-label="Favorites quota"]').text()).toContain('5 of 100');
@@ -131,7 +131,7 @@ it('preserves explicit empty-season saved identities without snapshot fallback',
     app.findAll('tbody tr').every((row) =>
       row
         .findAll('td')
-        .slice(4)
+        .slice(5)
         .every((cell) => cell.text() === '—'),
     ),
   ).toBe(true);

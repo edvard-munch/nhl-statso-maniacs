@@ -97,7 +97,7 @@ test('retains private missing/zero-season members and unfiltered quotas through 
   const zero = page
     .getByRole('row')
     .filter({ has: page.getByRole('rowheader', { name: 'First Zero Player', exact: true }) });
-  expect((await zero.getByRole('cell').allTextContents())[4]).toBe('0');
+  expect((await zero.getByRole('cell').allTextContents())[5]).toBe('0');
   await expect(page.getByLabel('Favorites quota', { exact: true })).toContainText('5 of 100');
   await page.getByText('Birth date and numeric filters', { exact: true }).click();
   await page.getByRole('spinbutton', { name: 'Goals minimum', exact: true }).fill('0');
@@ -121,7 +121,7 @@ test('retains private missing/zero-season members and unfiltered quotas through 
   await expect(page.getByRole('link', { name: 'First Saved Player', exact: true })).toBeVisible();
   const row = page.locator('tbody tr').first();
   expect(
-    (await row.getByRole('cell').allTextContents()).slice(4).every((value) => value === '—'),
+    (await row.getByRole('cell').allTextContents()).slice(5).every((value) => value === '—'),
   ).toBe(true);
   const width = await page.evaluate(() => ({
     content: document.documentElement.scrollWidth,

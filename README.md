@@ -24,7 +24,9 @@ filters and contextual navigation back from game details.
 [Vue teams](docs/vue-teams.md) add saved team browsing and exact season contribution
 tables, with team context preserved through player profiles.
 [Private Vue Favorites](docs/vue-favorites.md) add session-gated saved-player reads,
-filters, quota display and profile return navigation. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
+filters, quota display and profile return navigation. [Favorites actions](docs/vue-favorite-actions.md)
+add explicit profile saves and list removals, with CSRF/account checks and readback
+of uncertain responses. The [JSON API foundation](docs/api-conventions.md#implemented-api-foundation)
 now provides versioned routing and an OpenAPI schema. A
 [reviewed offline schema workflow](docs/openapi-workflow.md) supplies
 `make schema` / `make schema-check` and the checked `api/openapi.json` contract.

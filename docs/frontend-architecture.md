@@ -326,3 +326,17 @@ component checks cover session failures, account switches, disposal and deadline
 Next implement explicit CSRF-protected Favorites membership actions and uncertain
 response reconciliation, then private gamelogs/comparison/fields. Production cutover
 and account/search phases remain separate.
+
+
+## Implemented Favorites membership actions
+
+[Explicit Favorites actions](vue-favorite-actions.md) now save from profiles and
+remove from private rows. A serialized session lease verifies current cookie identity
+and CSRF before writing, invalidates private reads and preserves app-owned progress
+through navigation/row unmount. Confirmed bodies/statuses and quota rejection have
+safe feedback. Uncertain replies trigger same-owner verification and one unfiltered
+typed readback without write replay; incomplete snapshots never prove absence.
+Last-page removal reloads an authoritative first page with preserved filters, while
+public statistics retain no private flags. Next implement the aggregated Favorites
+gamelog, then comparison/private fields. Account/search and production cutover
+remain following phases.

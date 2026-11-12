@@ -23,7 +23,9 @@ show actual game TOI, filters, URL pagination and contextual game links.
 and exact season contribution tables with profile return navigation.
 [Private Favorites](../docs/vue-favorites.md) at `/favorites` use the current session
 for saved-player reads, filters and quota display. Anonymous/unknown sessions do
-not issue private list requests; add/remove actions remain a following slice.
+not issue private list requests. [Membership actions](../docs/vue-favorite-actions.md)
+save explicitly from profiles and remove from Favorites, with verified owner/CSRF,
+quota feedback and read-only reconciliation of uncertain replies.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

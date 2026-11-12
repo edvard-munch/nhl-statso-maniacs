@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
+import { computed, inject, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
   ApiError,
@@ -9,6 +9,8 @@ import {
   type HistoryResponse,
 } from '../api/index.js';
 import PlayerStatisticsTable from '../components/PlayerStatisticsTable.vue';
+import FavoriteActionButton from '../components/FavoriteActionButton.vue';
+import { sessionKey } from '../auth/session.js';
 import { FIRST_PAGE, seasonLabel } from '../players/catalogue.js';
 import {
   catalogueReturn,
@@ -20,6 +22,7 @@ import { favoritesReturn } from '../favorites/navigation.js';
 import { teamSourceReturn } from '../teams/navigation.js';
 import { SAVED_READ_TIMEOUT_MS } from '../refresh/useSavedRefresh.js';
 
+const actionSession = inject(sessionKey, null);
 const route = useRoute();
 const router = useRouter();
 const phase = ref<'loading' | 'ready' | 'error' | 'not-found'>('loading');
@@ -218,6 +221,13 @@ onBeforeUnmount(() => controller?.abort());
         class="profile-photo"
         :src="profile.player.image_url"
         :alt="profile.player.name"
+      />
+      <FavoriteActionButton
+        v-if="actionSession"
+        action="add"
+        :player-type="profile.player.player_type"
+        :nhl-id="profile.player.nhl_id"
+        :name="profile.player.name"
       />
       <h2>Current saved biography</h2>
       <dl class="profile-biography">

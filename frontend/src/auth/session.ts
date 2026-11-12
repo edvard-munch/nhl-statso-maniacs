@@ -18,12 +18,13 @@ import {
   type NewPasswordRequest,
   type SessionUser,
 } from '../api/index.js';
+import type { PrivateActionContext, PrivateActionResult } from '../private/actionTypes.js';
 import type { ApiClient, ApiClientOptions } from '../api/http.js';
 
 export const AUTH_REQUEST_TIMEOUT_MS = 10_000;
 const HTTP_CREATED = 201;
 type RecoveryAction = 'reset-request' | 'reset-validate' | 'reset-confirm';
-type Action = 'login' | 'logout' | 'register' | 'check' | RecoveryAction;
+type Action = 'login' | 'logout' | 'register' | 'check' | 'private' | RecoveryAction;
 export type SessionIssue = {
   action: Action;
   code?: string;
@@ -378,6 +379,35 @@ export function createSession(options: ApiClientOptions = {}) {
       activeAction.value = null;
     }
   }
+  async function withPrivateAction<T>(
+    operation: (context: PrivateActionContext) => Promise<T>,
+  ): Promise<PrivateActionResult<T> | null> {
+    if (busy.value || disposed || status.value !== 'ready' || !user.value) return null;
+    const owner = user.value.id;
+    busy.value = true;
+    activeAction.value = 'private';
+    issue.value = null;
+    const requestClient = createApiClient(options);
+    const sameOwner = () => !disposed && status.value === 'ready' && user.value?.id === owner;
+    const recheck = async () => {
+      if (disposed || !(await reconcile()) || !sameOwner()) return false;
+      requestClient.setCsrfToken(client.getCsrfToken());
+      return true;
+    };
+    let value: T | null = null;
+    try {
+      // Verify the current cookie identity and fresh CSRF before any private write.
+      if (await recheck())
+        value = await operation({ client: requestClient, request: bounded, sameOwner, recheck });
+    } catch {
+      value = null;
+    } finally {
+      if (sameOwner()) revision.value += 1;
+      busy.value = false;
+      activeAction.value = null;
+    }
+    return sameOwner() ? { owner, revision: revision.value, value } : null;
+  }
   function dispose() {
     disposed = true;
     pending?.abort();
@@ -394,6 +424,7 @@ export function createSession(options: ApiClientOptions = {}) {
     issue: readonly(issue),
     revision: readonly(revision),
     checkSession,
+    withPrivateAction,
     register,
     requestPasswordReset: (body: PasswordRecoveryRequestRequest) =>
       recover(
