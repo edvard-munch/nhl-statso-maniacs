@@ -130,7 +130,7 @@ input[type='date'] {
 button {
   cursor: pointer;
 }
-button:hover:not(:disabled) {
+button:hover:not(:disabled):not([aria-disabled='true']) {
   background: #e9f0f8;
 }
 button:disabled {
@@ -262,4 +262,31 @@ button[aria-pressed='true'] {
 }
 .empty-roster {
   margin-block: 1.5rem;
+}
+
+.refresh-controls {
+  margin-block: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #d1dbe6;
+  border-radius: 0.4rem;
+  background: #fff;
+}
+.refresh-controls p {
+  margin-block: 0.5rem;
+}
+.refresh-toggle {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch-target);
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.refresh-toggle input {
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+button[aria-disabled='true'] {
+  cursor: default;
+  opacity: 0.55;
 }

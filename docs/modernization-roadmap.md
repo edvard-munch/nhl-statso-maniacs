@@ -1421,3 +1421,37 @@ The scoreboard commit (`49702d9`) completed with a clean tree before any edits.
 Next implement automatic refresh/freshness interactions for the scoreboard/game
 pilot, then continue season/player workflows. Production route cutover and legacy
 HTML retirement remain separate work.
+
+## Vue automatic saved-data refresh
+
+Implemented shared [refresh/freshness controls](vue-refresh.md) for scoreboard and
+game detail after confirming the game-detail commit (`569ae06`) completed. Ready,
+visible/online views check public saved APIs every minute, serialize checks and
+back off failures to a five-minute cap. Manual/pause controls and ten-second read
+deadlines apply without triggering ingestion. Hidden/offline views pause scheduling;
+visibility/connectivity return resumes eligible checks. Initial errors retain their
+explicit retry UI rather than starting uncontrolled retries.
+
+Background failures keep the accepted rows and last successful check/save times.
+Successful checks update data in place, preserving stable-key focus and table
+scroll. Date drafts and exact date/page selection stay unchanged; an initially
+empty store pins the API's Pacific reference for later checks. Resource changes
+abort old reads and reset retry state, and obsolete replies cannot corrupt the new
+view. Disposal clears listeners/timers. No private mutations or flags are introduced.
+
+Save/check/state-observation semantics remain separate. An estimated storage-age
+warning combines server age and monotonic elapsed browser time, including while
+network auto-refresh is paused. Old finals and empty results do not become stale
+merely by age, and no current NHL observation time is manufactured.
+
+Validation: 93 frontend tests and 26 pinned Chromium desktop/mobile cases pass.
+Fake timers/browser clocks cover cadence, capped backoff/reset, non-overlap,
+pause/resume, offline handling, timeouts, route races and last-good retention.
+Browser regressions cover date drafts, URL state, input/roster focus and horizontal
+scroll. Type/lint/format/build, schema/client drift, Python static and requirements
+export checks pass. No backend/schema, dependencies, migrations or Python coverage
+scope changed; the full Python baseline was not remeasured for this frontend slice.
+
+The scoreboard/game pilot is complete for this phase. Follow the recorded next
+phase: Vue session/CSRF bootstrap and login/logout, then registration/recovery and
+season/player tables. Production route cutover and legacy retirement remain separate.

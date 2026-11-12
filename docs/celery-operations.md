@@ -182,6 +182,10 @@ isolated PostgreSQL, without a running broker or real server services.
 
 ## Browser refresh and freshness
 
+The [Vue scoreboard/game pilot](vue-refresh.md) implements the same saved-read
+policy below, with explicit offline pausing and request deadlines. Its Last checked
+value comes from accepted API metadata; the existing Django pages remain operational.
+
 The scoreboard and game detail page check saved application data every 60 seconds
 while visible. They do not call the NHL or start loaders. The scoreboard stays on
 its selected day; game tables retain their sort order and favorite controls.

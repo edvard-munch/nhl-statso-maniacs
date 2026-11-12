@@ -4,6 +4,8 @@ import { RouterLink, useRoute } from 'vue-router';
 import { ApiError, gameRetrieve, type GameDetail } from '../api/index.js';
 import ScoreboardCard from '../components/ScoreboardCard.vue';
 import GameRosterTable from '../components/GameRosterTable.vue';
+import SavedRefreshControls from '../components/SavedRefreshControls.vue';
+import { SAVED_READ_TIMEOUT_MS, useSavedRefresh } from '../refresh/useSavedRefresh.js';
 import { parseGameId } from '../games/presentation.js';
 import {
   FIRST_PAGE,
@@ -17,6 +19,7 @@ const route = useRoute();
 const game = shallowRef<GameDetail | null>(null);
 const phase = ref<'loading' | 'ready' | 'error' | 'not-found'>('loading');
 const requestId = ref<string | null>(null);
+const busy = ref(false);
 let controller: AbortController | undefined;
 const sides = ['away', 'home'] as const;
 const backLink = computed(() => {
@@ -35,30 +38,53 @@ const backLink = computed(() => {
       : {},
   };
 });
-async function load() {
+const refresh = useSavedRefresh({
+  key: () => String(route.params.nhlId),
+  ready: () => phase.value === 'ready' && !busy.value,
+  freshness: () => game.value?.freshness ?? null,
+  refresh: () => load(true),
+});
+async function load(background = false): Promise<boolean | undefined> {
+  if (background && busy.value) return;
+  if (!background) refresh.reset();
   controller?.abort();
   const current = new AbortController();
   controller = current;
   const { signal } = current;
-  game.value = null;
-  requestId.value = null;
-  phase.value = 'loading';
+  if (!background) {
+    game.value = null;
+    requestId.value = null;
+    phase.value = 'loading';
+  }
   const id = parseGameId(route.params.nhlId);
   if (id === null) {
     phase.value = 'not-found';
+    busy.value = false;
     return;
   }
+  busy.value = true;
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    current.abort();
+  }, SAVED_READ_TIMEOUT_MS);
   try {
     // Browser return-context queries must not be forwarded to this query-free API.
     const { data } = await gameRetrieve({ path: { nhl_id: id }, signal });
     if (signal.aborted) return;
     game.value = data;
     phase.value = 'ready';
+    return true;
   } catch (failure) {
-    if (signal.aborted) return;
+    if (controller !== current || (signal.aborted && !timedOut)) return;
+    if (background) return false;
     phase.value =
       failure instanceof ApiError && failure.response.status === 404 ? 'not-found' : 'error';
     requestId.value = failure instanceof ApiError ? failure.requestId : null;
+    return false;
+  } finally {
+    clearTimeout(timeout);
+    if (controller === current) busy.value = false;
   }
 }
 watch(
@@ -83,9 +109,10 @@ onBeforeUnmount(() => controller?.abort());
     <div v-else-if="phase === 'error'" role="alert" class="panel">
       <p>Unable to load this saved game. Please try again.</p>
       <p v-if="requestId">Reference: {{ requestId }}</p>
-      <button type="button" @click="load">Try again</button>
+      <button type="button" @click="load()">Try again</button>
     </div>
     <template v-else-if="game">
+      <SavedRefreshControls :refresh="refresh" />
       <h2>
         {{ game.away_team?.name ?? 'Away team unavailable' }} at
         {{ game.home_team?.name ?? 'Home team unavailable' }}
@@ -96,7 +123,7 @@ onBeforeUnmount(() => controller?.abort());
       <p class="data-note">
         Saved states, not current NHL observations. Unknown does not mean live.
       </p>
-      <p v-if="game.freshness.is_stale" class="data-note">Saved data may be out of date.</p>
+      <p v-if="refresh.stale.value" class="data-note">Saved data may be out of date.</p>
       <p class="data-note">Saved record update: {{ savedTimeLabel(game.freshness.saved_at) }}.</p>
       <section aria-labelledby="rosters-title">
         <h2 id="rosters-title">Saved rosters and statistics</h2>

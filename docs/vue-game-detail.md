@@ -62,7 +62,7 @@ reload, history/back context, mobile overflow/keyboard scrolling and error recov
 Fixtures and Fetch interception keep both suites independent of application data
 and NHL services. Existing frontend CI runs these checks and the production build.
 
-Automatic saved-data refresh and interactive freshness handling are the next
-focused slice. Player-profile links, saved-list mutations, styling framework and
+[Automatic saved-data refresh and freshness controls](vue-refresh.md) are now
+implemented with last-good retention and focus/scroll preservation. Player-profile links, saved-list mutations, styling framework and
 production route cutover remain separate migration work. No backend schema,
 loader, dependency, migration or coverage-scope change is needed here.

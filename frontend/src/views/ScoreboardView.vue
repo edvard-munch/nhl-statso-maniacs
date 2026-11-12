@@ -9,6 +9,8 @@ import {
   type ScoreboardResponse,
 } from '../api/index.js';
 import ScoreboardCard from '../components/ScoreboardCard.vue';
+import SavedRefreshControls from '../components/SavedRefreshControls.vue';
+import { SAVED_READ_TIMEOUT_MS, useSavedRefresh } from '../refresh/useSavedRefresh.js';
 import {
   FIRST_PAGE,
   SCOREBOARD_PAGE_SIZE,
@@ -23,6 +25,7 @@ const router = useRouter();
 const phase = ref<'loading' | 'ready' | 'error'>('loading');
 const error = ref('');
 const requestId = ref<string | null>(null);
+const busy = ref(false);
 const draftDate = ref('');
 const selectedDate = ref('');
 const initialFallback = shallowRef<{ date: string; reference: string } | null>(null);
@@ -56,26 +59,46 @@ function choosePage(value: number) {
   void router.push({ name: 'games', query: { date: selectedDate.value, page: String(value) } });
 }
 
-async function load() {
+const refresh = useSavedRefresh({
+  key: () => JSON.stringify([route.query.date, route.query.page]),
+  ready: () => phase.value === 'ready' && !busy.value,
+  freshness: () => scoreboard.value?.meta.freshness ?? null,
+  refresh: () => load(true),
+});
+async function load(background = false): Promise<boolean | undefined> {
+  if (background && busy.value) return;
+  if (!background) refresh.reset();
   controller?.abort();
   const current = new AbortController();
   controller = current;
   const { signal } = current;
-  phase.value = 'loading';
-  scoreboard.value = null;
-  dates.value = null;
-  error.value = '';
-  requestId.value = null;
-  const date = route.query.date;
+  if (!background) {
+    phase.value = 'loading';
+    scoreboard.value = null;
+    dates.value = null;
+    error.value = '';
+    requestId.value = null;
+  }
+  // An initially empty store keeps its API-supplied Pacific reference date when polling.
+  const date = route.query.date ?? (background ? selectedDate.value || undefined : undefined);
   const requestedPage = parsePage(route.query.page);
-  selectedDate.value = isScheduleDate(date) ? date : '';
-  draftDate.value = selectedDate.value;
+  if (!background) {
+    selectedDate.value = isScheduleDate(date) ? date : '';
+    draftDate.value = selectedDate.value;
+  }
   if ((date !== undefined && !isScheduleDate(date)) || requestedPage === null) {
     error.value = 'Choose a valid schedule date (YYYY-MM-DD) and a positive page number.';
     phase.value = 'error';
+    busy.value = false;
     return;
   }
   page.value = requestedPage;
+  busy.value = true;
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    current.abort();
+  }, SAVED_READ_TIMEOUT_MS);
   try {
     if (date === undefined) {
       // Only a visit without an explicit date adopts the API's Pacific/default selection.
@@ -89,9 +112,10 @@ async function load() {
         return;
       }
       dates.value = data.meta;
+      selectedDate.value = data.meta.reference_date;
       draftDate.value = data.meta.reference_date;
       phase.value = 'ready';
-      return;
+      return true;
     }
     // isScheduleDate above has validated the route; never pass raw route parameters.
     const requestedDate = selectedDate.value;
@@ -106,15 +130,21 @@ async function load() {
     dates.value = navigation.data.meta;
     scoreboard.value = games.data;
     phase.value = 'ready';
+    return true;
   } catch (failure) {
-    if (signal.aborted) return;
+    if (controller !== current || (signal.aborted && !timedOut)) return;
     current.abort();
+    if (background) return false;
     requestId.value = failure instanceof ApiError ? failure.requestId : null;
     error.value =
       failure instanceof ApiError && failure.response.status === 404
         ? 'That saved games page is unavailable. Choose another date or return to the first page.'
         : 'Unable to load saved games. Please try again.';
     phase.value = 'error';
+    return false;
+  } finally {
+    clearTimeout(timeout);
+    if (controller === current) busy.value = false;
   }
 }
 
@@ -142,7 +172,7 @@ onBeforeUnmount(() => controller?.abort());
       <p>{{ error }}</p>
       <p v-if="requestId">Reference: {{ requestId }}</p>
       <div class="button-row">
-        <button type="button" @click="load">Try again</button>
+        <button type="button" @click="load()">Try again</button>
         <button
           v-if="selectedDate && page > FIRST_PAGE"
           type="button"
@@ -153,6 +183,7 @@ onBeforeUnmount(() => controller?.abort());
       </div>
     </div>
     <template v-else>
+      <SavedRefreshControls :refresh="refresh" />
       <template v-if="dates?.selected_date">
         <nav class="date-navigation" aria-label="Saved game dates">
           <div class="button-row">
@@ -202,9 +233,7 @@ onBeforeUnmount(() => controller?.abort());
         <p class="data-note">
           Saved states, not current NHL observations. Unknown does not mean live.
         </p>
-        <p v-if="scoreboard.meta.freshness.is_stale" class="data-note">
-          Saved data may be out of date.
-        </p>
+        <p v-if="refresh.stale.value" class="data-note">Saved data may be out of date.</p>
         <p v-if="scoreboard.meta.freshness.partial" class="data-note">
           Some saved team or score details are unavailable.
         </p>

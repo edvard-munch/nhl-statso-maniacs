@@ -42,11 +42,12 @@ It does not manufacture clocks, periods, start times or observation timestamps.
 See the [scoreboard](scoreboard-api.md), [date-navigation](game-dates-api.md) and
 [state-evidence](game-state-api.md) contracts.
 
-Loading clears old results immediately. Date/page changes and unmounting abort
+Initial/navigation loading clears old results immediately; background checks retain them. Date/page changes and unmounting abort
 obsolete requests; aborted/late replies cannot overwrite the current selection or
 its error state. Failures have a retry action, JSON error correlation references
 where available, and generic messages for non-JSON proxy failures. Submitting the
-unchanged date form explicitly reloads it. There is no timer or automatic refresh.
+unchanged date form explicitly reloads it. [Automatic saved-data refresh](vue-refresh.md)
+now checks the selected date/page without replacing an unsubmitted date draft.
 
 ## Verification and next slice
 
@@ -59,6 +60,6 @@ empty/error recovery and pagination. They use no application database or live NH
 requests. Existing frontend CI includes both suites and the production build.
 
 [Game details and card navigation](vue-game-detail.md) are now implemented,
-including exact date/page return context. Automatic refresh/freshness interactions
-and production route cutover remain separate changes. No backend/schema, dependency or coverage-scope change is needed
+including exact date/page return context. [Refresh/freshness controls](vue-refresh.md)
+are also implemented; production route cutover remains separate. No backend/schema, dependency or coverage-scope change is needed
 for this scoreboard slice.

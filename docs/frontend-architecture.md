@@ -218,3 +218,14 @@ without profile/season fallbacks. Responsive tables scroll inside the page and
 retain keyboard access. Browser/component checks cover navigation, units, missing
 records and retry/cancellation. Automatic saved-data refresh is the next focused
 slice; legacy route cutover remains separate.
+
+
+## Implemented saved-data refresh
+
+The [Vue refresh workflow](vue-refresh.md) completes the scoreboard/game pilot:
+visible/online views check saved APIs every minute, preserve last-good data and
+focus/scroll, and back off failed checks to five minutes. Timeouts/cancellation,
+manual/pause controls and distinct save/check/state-observation semantics are
+covered by component/browser regressions. Legacy Django refresh behavior remains
+operational. Next follow the recorded session/CSRF/login/logout UI phase, then
+registration/recovery and Players tables; deployment cutover remains separate.

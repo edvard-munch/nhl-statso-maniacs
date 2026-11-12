@@ -5,7 +5,9 @@ backend. The responsive shell, home/missing-page routes and generated client now
 include a [saved scoreboard](../docs/vue-scoreboard.md) at `/games`, with exact
 date selection, navigation, pagination and error recovery.
 [Game details](../docs/vue-game-detail.md) at `/games/{nhl_id}` show saved rosters
-and game statistics with scrollable mobile tables.
+and game statistics with scrollable mobile tables. Both views include
+[automatic saved-data refresh](../docs/vue-refresh.md), pause/manual controls and
+last-check feedback.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally
