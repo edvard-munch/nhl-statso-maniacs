@@ -18,6 +18,7 @@ import {
   parsePlayerIdentity,
   parseProfileQuery,
 } from '../players/profile.js';
+import { favoriteGamelogReturn } from '../favorites/gamelog.js';
 import { favoritesReturn } from '../favorites/navigation.js';
 import { teamSourceReturn } from '../teams/navigation.js';
 import { SAVED_READ_TIMEOUT_MS } from '../refresh/useSavedRefresh.js';
@@ -34,10 +35,15 @@ const reference = ref<string | null>(null);
 const historyReference = ref<string | null>(null);
 const draftSeason = ref('');
 const draftMode = ref('totals');
+const favoriteLogBack = computed(() => favoriteGamelogReturn(route.query.returnTo, router));
 const favoriteBack = computed(() => favoritesReturn(route.query.returnTo, router));
 const teamBack = computed(() => teamSourceReturn(route.query.returnTo, router));
 const back = computed(
-  () => favoriteBack.value ?? teamBack.value ?? catalogueReturn(route.query.returnTo, router),
+  () =>
+    favoriteLogBack.value ??
+    favoriteBack.value ??
+    teamBack.value ??
+    catalogueReturn(route.query.returnTo, router),
 );
 const identity = computed(() => parsePlayerIdentity(route.params.playerType, route.params.nhlId));
 const page = computed(() => Number(route.query.history_page || FIRST_PAGE));
@@ -195,7 +201,13 @@ onBeforeUnmount(() => controller?.abort());
 <template>
   <section aria-labelledby="player-profile-title">
     <RouterLink class="action-link" :to="back">{{
-      favoriteBack ? 'Back to Favorites' : teamBack ? 'Back to team' : 'Back to players'
+      favoriteLogBack
+        ? 'Back to Favorites gamelog'
+        : favoriteBack
+          ? 'Back to Favorites'
+          : teamBack
+            ? 'Back to team'
+            : 'Back to players'
     }}</RouterLink>
     <h1 id="player-profile-title">{{ profile?.player.name || 'Player profile' }}</h1>
     <p v-if="phase === 'loading'" role="status">Loading saved player…</p>

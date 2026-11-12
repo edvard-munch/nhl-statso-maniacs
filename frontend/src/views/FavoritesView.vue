@@ -292,6 +292,29 @@ function sort(field: string) {
           ><button type="button" @click="resource.reload()">Refresh Favorites</button>
         </div>
       </form>
+      <nav aria-label="Favorites game logs">
+        <RouterLink
+          v-if="result.meta.season_id"
+          class="action-link"
+          :to="{
+            name: 'favorite-gamelog',
+            query: {
+              player_type: result.meta.player_type,
+              season_id: result.meta.season_id || undefined,
+              returnTo: route.fullPath,
+            },
+          }"
+          >Selected-season Favorites game log</RouterLink
+        >
+        <RouterLink
+          class="action-link"
+          :to="{
+            name: 'favorite-gamelog',
+            query: { player_type: result.meta.player_type, returnTo: route.fullPath },
+          }"
+          >All saved Favorite games</RouterLink
+        >
+      </nav>
       <h2>
         {{ result.meta.season_id ? seasonLabel(result.meta.season_id) : 'No loaded season' }} ·
         {{ result.meta.player_type === 'goalie' ? 'Goalies' : 'Skaters' }} ·

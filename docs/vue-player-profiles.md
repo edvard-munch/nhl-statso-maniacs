@@ -50,7 +50,8 @@ catalogue is accepted as that destination; unsafe/unsupported values fall back t
 preserving its season/type/mode/filter/page and directory context. Profile routes
 also work as public sign-in return destinations. [Favorites](vue-favorites.md) is
 another validated source, with **Back to Favorites** preserving its applied query
-and reapplying the private session gate on return.
+and reapplying the private session gate on return. [Aggregated Favorites gamelogs](vue-favorites-gamelog.md)
+are another validated return source, labelled **Back to Favorites gamelog**.
 
 Browser context is never forwarded to APIs: the profile receives only season/mode,
 while history receives mode/page/page size. Server-provided history/gamelog/next URLs

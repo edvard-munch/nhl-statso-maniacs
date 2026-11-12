@@ -375,6 +375,12 @@ it('retains saved identities with null global season and distinguishes empty lis
     },
   });
   expect(app.get('h2').text()).toContain('No loaded season');
+  expect(
+    app.findAll('main a').some((link) => link.text() === 'Selected-season Favorites game log'),
+  ).toBe(false);
+  expect(app.findAll('main a').some((link) => link.text() === 'All saved Favorite games')).toBe(
+    true,
+  );
   expect(app.text()).toContain('First Saved Player');
   groupEmpty = true;
   await app

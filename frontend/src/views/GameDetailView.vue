@@ -7,6 +7,7 @@ import GameRosterTable from '../components/GameRosterTable.vue';
 import SavedRefreshControls from '../components/SavedRefreshControls.vue';
 import { SAVED_READ_TIMEOUT_MS, useSavedRefresh } from '../refresh/useSavedRefresh.js';
 import { parseGameId } from '../games/presentation.js';
+import { favoriteGamelogReturn } from '../favorites/gamelog.js';
 import { gamelogReturn } from '../players/gamelog.js';
 import {
   FIRST_PAGE,
@@ -18,6 +19,7 @@ import {
 
 const route = useRoute();
 const router = useRouter();
+const favoriteLogBack = computed(() => favoriteGamelogReturn(route.query.favoriteLog, router));
 const gamelogBack = computed(() => gamelogReturn(route.query.gamelog, router));
 const game = shallowRef<GameDetail | null>(null);
 const phase = ref<'loading' | 'ready' | 'error' | 'not-found'>('loading');
@@ -102,7 +104,10 @@ onBeforeUnmount(() => controller?.abort());
 
 <template>
   <section aria-labelledby="game-detail-title">
-    <RouterLink v-if="gamelogBack" class="action-link" :to="gamelogBack"
+    <RouterLink v-if="favoriteLogBack" class="action-link" :to="favoriteLogBack"
+      >Back to Favorites gamelog</RouterLink
+    >
+    <RouterLink v-else-if="gamelogBack" class="action-link" :to="gamelogBack"
       >Back to player gamelog</RouterLink
     >
     <RouterLink v-else class="action-link" :to="backLink">Back to games</RouterLink>

@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory, type RouterHistory } from 'vue-router';
 import HomeView from './views/HomeView.vue';
 import FavoritesView from './views/FavoritesView.vue';
+import FavoriteGamelogView from './views/FavoriteGamelogView.vue';
 import TeamsView from './views/TeamsView.vue';
 import TeamDetailView from './views/TeamDetailView.vue';
 import PlayersView from './views/PlayersView.vue';
@@ -43,6 +44,12 @@ export function createAppRouter(
         name: 'register',
         component: RegisterView,
         meta: { title: 'Create account' },
+      },
+      {
+        path: '/favorites/gamelog',
+        name: 'favorite-gamelog',
+        component: FavoriteGamelogView,
+        meta: { title: 'Favorites game log' },
       },
       {
         path: '/favorites',

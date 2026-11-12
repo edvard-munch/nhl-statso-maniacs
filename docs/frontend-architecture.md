@@ -340,3 +340,17 @@ Last-page removal reloads an authoritative first page with preserved filters, wh
 public statistics retain no private flags. Next implement the aggregated Favorites
 gamelog, then comparison/private fields. Account/search and production cutover
 remain following phases.
+
+
+## Implemented private aggregated Favorites gamelog
+
+[The aggregated gamelog](vue-favorites-gamelog.md) at `/favorites/gamelog` now uses
+the existing scoped API and shared private-read identity/revision boundary. Typed
+player identity, multiple favorites per game, exact game TOI and unknown evidence
+remain explicit; API row counts are distinct from unfiltered membership quota.
+Name/game ordering, search, numeric/date/team filters and pagination preserve URL
+state without local sorting, a 200-row cap or defaulting to the list's season.
+Validated game/profile/list returns re-enter the private gate, with no navigation
+context in API requests. Desktop/mobile and session/cancellation/error checks cover
+the flow. Next implement private comparison views and then its mutations/private
+fields; account/search and production cutover remain following phases.

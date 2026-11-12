@@ -26,6 +26,8 @@ for saved-player reads, filters and quota display. Anonymous/unknown sessions do
 not issue private list requests. [Membership actions](../docs/vue-favorite-actions.md)
 save explicitly from profiles and remove from Favorites, with verified owner/CSRF,
 quota feedback and read-only reconciliation of uncertain replies.
+[The aggregated Favorites gamelog](../docs/vue-favorites-gamelog.md) at `/favorites/gamelog`
+adds private multi-player game rows, name ordering, filters and game/profile returns.
 Existing Django pages and production routing are unchanged.
 
 ## Run locally

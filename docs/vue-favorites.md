@@ -9,8 +9,8 @@ are not used by the running application.
 The read foundation adds filtering/pagination, quota display and public profile
 navigation. [Explicit Save/Remove actions](vue-favorite-actions.md) are now implemented
 using the existing membership API; private reads refresh after those actions.
-Aggregated Favorites gamelogs, comparison and private notes/positions remain following
-commits. Existing Django saved-list workflows and backend behavior remain available.
+[Aggregated Favorites gamelogs](vue-favorites-gamelog.md) are also implemented.
+Comparison and private notes/positions remain following commits. Existing Django saved-list workflows and backend behavior remain available.
 
 ## Session and private data lifetime
 
@@ -92,5 +92,6 @@ No application database, real accounts, email, loaders or NHL calls are used.
 
 [Favorites PUT/DELETE actions](vue-favorite-actions.md) now extend this private read
 foundation with CSRF/owner verification, quota handling and uncertain-response
-readback. Next add the private aggregated Favorites gamelog; comparison/private
-fields follow without putting private state into public API responses.
+readback. [The private aggregated gamelog](vue-favorites-gamelog.md) now extends
+the same read boundary; comparison/private fields follow without putting private
+state into public API responses.

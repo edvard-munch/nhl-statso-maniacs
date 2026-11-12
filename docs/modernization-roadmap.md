@@ -1777,3 +1777,44 @@ succeeded; preparation before that used new files only.
 Next implement the private aggregated Favorites gamelog, reusing the private read
 boundary and existing scoped API. Comparison, private notes/positions and subsequent
 account/preferences/search phases remain following slices.
+
+## Vue private aggregated Favorites gamelog
+
+Implemented [aggregated Favorite game rows](vue-favorites-gamelog.md) at
+`/favorites/gamelog`. List entry links distinguish selected-season and all-saved
+scope, omit list-only filters/mode from game selection and preserve list state as
+return context. No loaded season offers only the all-saved entry. Direct visits
+remain all saved dates/seasons, with explicit empty seasons retained.
+
+Each row keeps typed public player identity, current versus game-specific position,
+actual game PP/SH/total TOI and independent row availability/game-state evidence.
+Two favorites sharing one game remain two rows; orphan/undated evidence is not
+reconstructed. API row counts may exceed 200 and are not membership/game counts.
+Server quota counts both unfiltered groups, including favorites without any logs.
+
+Global named identity/game ordering, literal search, typed numeric/missing/date/
+team/opponent filters and paging preserve applied URL state. Shared public gamelog
+validation/formatters are reused without accepting private-only keys on public
+routes. There is no local sorting, deduplication or facet/range inference.
+Validated game/profile/list return chains preserve context through reload and
+re-enter the private gate after logout; browser context never enters API queries.
+
+The shared private reader gates requests, clears names/rows/quota at identity/
+revision/route/unmount boundaries and discards stale results. Explicit 403 checks,
+request deadlines and safe retry/page recovery preserve the established private
+behavior. No per-row requests or membership writes are introduced. Tables fit
+mobile pages inside labelled keyboard-focusable scroll regions.
+
+Validation: 367 frontend tests and 118 pinned Chromium desktop/mobile cases pass.
+Type/lint/format, production build and generated-client drift checks pass. Synthetic
+fixtures/intercepted APIs cover same-game multiple players, exact/unknown statistics,
+all/empty seasons, ordering/filter/page state, context round trips, anonymous/expired/
+unavailable sessions, logout/account changes, late data and deadlines without
+application DB, real accounts, email, loaders or NHL calls. No backend/schema,
+dependency, migration or Python coverage scope changed; the full Python baseline
+was not remeasured. The working tree/index was clean after membership commit
+`e1f640e` before edits began.
+
+Next implement the private comparison UI for selected-season/career packets,
+followed by its membership/reset actions and private notes/positions. Subsequent
+account/preferences/search and production cutover phases remain separate work.

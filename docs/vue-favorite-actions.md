@@ -88,6 +88,6 @@ feedback. No application database, real account, email, loader or NHL call is us
 Existing isolated backend tests remain evidence for actual persistence, ownership
 and quota concurrency.
 
-Next implement the private aggregated Favorites gamelog using the existing scoped
-API and this private read boundary. Comparison and private notes/positions follow;
+[The private aggregated Favorites gamelog](vue-favorites-gamelog.md) now uses the
+existing scoped API and private read boundary. Comparison and private notes/positions follow;
 account/preferences, search, visual design and production cutover remain later work.

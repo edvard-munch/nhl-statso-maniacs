@@ -76,3 +76,13 @@ when that context is valid, preserving filter/page/profile/catalogue state throu
 reload. Otherwise the existing date/page scoreboard return continues. Browser
 context is never forwarded to the query-free game API. Roster profile-name links
 and saved-list actions remain separate work.
+
+
+## Private Favorites gamelog context
+
+[Aggregated Favorites game rows](vue-favorites-gamelog.md) link public games with
+validated `favoriteLog` navigation context. **Back to Favorites gamelog** restores
+the applied private route and re-enters its session gate, including after logout.
+The context is not forwarded to the game API. Existing public gamelog and scoreboard
+fallbacks continue when private context is absent/invalid; no private row/quota
+packet is attached to public game data.
